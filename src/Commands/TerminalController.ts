@@ -21,30 +21,30 @@ type TerminalOptions = {
     cwd?: string;
 };
 
-function createTerminal(options: VSCExtensionTerminalOptions): Terminal {
-    const { name } = options;
-
-    let terminal: Terminal | undefined;
-    if (name && typeof name === "string") {
-        terminal = window.terminals.find((term) => term.name === name);
-    } else {
-        terminal = window.activeTerminal;
-    }
-
-    if (terminal) {
-        // might be useful to do something here
-    } else {
-        terminal = window.createTerminal(options);
-    }
-
-    return terminal;
-}
-
 export class TerminalController {
     subprocess: ChildProcessWithoutNullStreams | null = null;
     writeEmitter: EventEmitter<string> = new EventEmitter<string>();
 
-    async execute({ autoClear, name, cwd, ...options }: TerminalOptions) {
+    private createTerminal = (options: VSCExtensionTerminalOptions): Terminal => {
+        const { name } = options;
+
+        let terminal: Terminal | undefined;
+        if (name && typeof name === "string") {
+            terminal = window.terminals.find((term) => term.name === name);
+        } else {
+            terminal = window.activeTerminal;
+        }
+
+        if (terminal) {
+            // might be useful to do something here
+        } else {
+            terminal = window.createTerminal(options);
+        }
+
+        return terminal;
+    };
+
+    execute = async ({ autoClear, name, cwd, ...options }: TerminalOptions) => {
         try {
             const pty: Pseudoterminal = {
                 onDidWrite: this.writeEmitter.event,
@@ -55,7 +55,7 @@ export class TerminalController {
                 open: () => {},
                 close: () => {},
             };
-            const terminal: Terminal = createTerminal({
+            const terminal: Terminal = this.createTerminal({
                 name,
                 pty,
             });
@@ -93,5 +93,5 @@ export class TerminalController {
         } catch (err) {
             console.error(err);
         }
-    }
+    };
 }

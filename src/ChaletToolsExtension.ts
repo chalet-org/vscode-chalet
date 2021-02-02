@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import * as fs from "fs";
-import { window, commands, StatusBarAlignment, ExtensionContext, StatusBarItem, workspace, Uri } from "vscode";
+import { window, commands, StatusBarAlignment, ExtensionContext, StatusBarItem, workspace, Uri, Memento } from "vscode";
 import { TerminalController } from "./Commands";
 
 // import { helloWorld } from "./Commands";
@@ -36,7 +36,7 @@ class ChaletToolsExtension {
     chaletCommand: ChaletCommands;
     statusBarChaletCommand: StatusBarItem;
 
-    buildConfiguration: BuildConfigurations | string | null = null;
+    buildConfiguration: string | null = null;
     statusBarBuildConfiguration: StatusBarItem;
     buildConfigurationMenu: (BuildConfigurations | string)[] = [];
 
@@ -50,6 +50,7 @@ class ChaletToolsExtension {
     // runScriptPath: string;
 
     workspaceRoot?: string;
+    workspaceState: Memento;
 
     private addStatusBarCommand = (
         { subscriptions }: ExtensionContext,
@@ -66,6 +67,7 @@ class ChaletToolsExtension {
 
     constructor(context: ExtensionContext) {
         this.terminalController = new TerminalController();
+        this.workspaceState = context.workspaceState;
 
         // register a command that is invoked when the status bar item is selected
 
@@ -98,11 +100,13 @@ class ChaletToolsExtension {
 
         // register some listener that make sure the status bar
         // item always up-to-date
-        context.subscriptions.push(window.onDidChangeActiveTextEditor(this.updateStatusBarItems));
-        context.subscriptions.push(window.onDidChangeTextEditorSelection(this.updateStatusBarItems));
+        // context.subscriptions.push(window.onDidChangeActiveTextEditor(this.updateStatusBarItems));
+        // context.subscriptions.push(window.onDidChangeTextEditorSelection(this.updateStatusBarItems));
 
-        this.chaletCommand = ChaletCommands.BuildRun;
-        this.buildArchitecture = BuildArchitecture.x64;
+        this.chaletCommand = this.workspaceState.get("chaletCommand", ChaletCommands.BuildRun);
+        this.buildArchitecture = this.workspaceState.get("buildArchitecture", BuildArchitecture.x64);
+
+        this.buildConfiguration = this.workspaceState.get("buildConfiguration", null);
 
         // fs.readFileSync("../scripts/run-chalet.sh");
 
@@ -132,6 +136,21 @@ class ChaletToolsExtension {
         this.terminalController = null;
     };
 
+    private setChaletCommand = async (value: ChaletCommands) => {
+        this.chaletCommand = value;
+        await this.workspaceState.update("chaletCommand", value);
+    };
+
+    private setBuildConfiguration = async (value: string | null) => {
+        this.buildConfiguration = value;
+        await this.workspaceState.update("buildConfiguration", value);
+    };
+
+    private setBuildArchitecture = async (value: BuildArchitecture) => {
+        this.buildArchitecture = value;
+        await this.workspaceState.update("buildArchitecture", value);
+    };
+
     private setDefaultBuildConfigurations = () => {
         this.buildConfigurationMenu = [
             BuildConfigurations.Debug,
@@ -141,7 +160,7 @@ class ChaletToolsExtension {
         ];
 
         if (this.buildConfiguration === null || !this.buildConfigurationMenu.includes(this.buildConfiguration)) {
-            this.buildConfiguration = BuildConfigurations.Debug;
+            this.setBuildConfiguration(BuildConfigurations.Debug);
         }
     };
 
@@ -173,11 +192,11 @@ class ChaletToolsExtension {
                         (this.buildConfiguration !== null &&
                             !this.buildConfigurationMenu.includes(this.buildConfiguration))
                     ) {
-                        this.buildConfiguration = this.buildConfigurationMenu[0];
+                        this.setBuildConfiguration(this.buildConfigurationMenu[0]);
                     }
 
                     if (this.buildConfiguration !== null && this.buildConfigurationMenu.length === 0) {
-                        this.buildConfiguration = null;
+                        this.setBuildConfiguration(null);
                     }
 
                     return;
@@ -201,7 +220,7 @@ class ChaletToolsExtension {
             ChaletCommands.Init,
         ]);
         if (result) {
-            this.chaletCommand = result as ChaletCommands;
+            this.setChaletCommand(result as ChaletCommands);
         }
         this.updateStatusBarItems();
     };
@@ -211,7 +230,7 @@ class ChaletToolsExtension {
 
         const result = await window.showQuickPick(this.buildConfigurationMenu);
         if (result) {
-            this.buildConfiguration = result as BuildConfigurations;
+            this.setBuildConfiguration(result);
         }
         this.updateStatusBarItems();
     };
@@ -219,7 +238,7 @@ class ChaletToolsExtension {
     private actionBuildArchitectureQuickPick = async () => {
         const result = await window.showQuickPick([BuildArchitecture.x64, BuildArchitecture.x86]);
         if (result) {
-            this.buildArchitecture = result as BuildArchitecture;
+            this.setBuildArchitecture(result as BuildArchitecture);
         }
         this.updateStatusBarItems();
     };
