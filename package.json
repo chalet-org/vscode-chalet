@@ -10,7 +10,7 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onCommand:chalet-tools.helloWorld"
+		"*"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
@@ -18,6 +18,16 @@
 			{
 				"command": "chalet-tools.helloWorld",
 				"title": "Hello World"
+			}
+		],
+		"jsonValidation": [
+			{
+				"fileMatch": "build*.json",
+				"url": "./schema/chalet.schema.json"
+			},
+			{
+				"fileMatch": "build/chalet-cache.json",
+				"url": "./schema/chalet-cache.schema.json"
 			}
 		]
 	},
