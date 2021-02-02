@@ -1,4 +1,6 @@
+import * as vscode from "vscode";
 import { window, commands, StatusBarAlignment, ExtensionContext, StatusBarItem } from "vscode";
+import { TerminalController } from "./Commands";
 
 // import { helloWorld } from "./Commands";
 
@@ -40,8 +42,35 @@ let statusBarBuildArchitecture: StatusBarItem;
 let doActionIcon: string = "$(play)";
 let statusBarDoAction: StatusBarItem;
 
+let terminalController: TerminalController | null = null;
+
+const getCommandFromLabel = (label: ChaletCommands) => {
+    switch (label) {
+        case ChaletCommands.BuildRun:
+            return "buildrun";
+        case ChaletCommands.Run:
+            return "run";
+        case ChaletCommands.Build:
+            return "build";
+        case ChaletCommands.Rebuild:
+            return "rebuild";
+        case ChaletCommands.Clean:
+            return "clean";
+        case ChaletCommands.Bundle:
+            return "bundle";
+        case ChaletCommands.Install:
+            return "install";
+        case ChaletCommands.Configure:
+            return "configure";
+        case ChaletCommands.Init:
+            return "init";
+    }
+};
+
 export function activate({ subscriptions }: ExtensionContext) {
     console.log('Congratulations, your extension "chalet-tools" is now active!');
+
+    terminalController = new TerminalController();
 
     // register a command that is invoked when the status bar
     // item is selected
@@ -96,7 +125,17 @@ export function activate({ subscriptions }: ExtensionContext) {
     const goIconId = "chalet-tools.doAction";
     subscriptions.push(
         commands.registerCommand(goIconId, async () => {
-            window.showInformationMessage("Do the thing!");
+            // window.showInformationMessage("Do the thing!");
+
+            let cmd = getCommandFromLabel(chaletCommand);
+            cmd += ` ${buildConfiguration}`;
+
+            if (terminalController) {
+                await terminalController.execute(`chalet ${cmd}`, {
+                    name: "Chalet",
+                    autoClear: false,
+                });
+            }
         })
     );
 
@@ -153,4 +192,6 @@ const updateStatusBarItem = (item: StatusBarItem, text: string) => {
 };
 
 // this method is called when your extension is deactivated
-export function deactivate() {}
+export function deactivate() {
+    terminalController = null;
+}
