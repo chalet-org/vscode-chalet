@@ -82,7 +82,7 @@ export class TerminalController {
 
             this.subprocess.on("close", (code: number, signal: NodeJS.Signals) => {
                 let color: number = 37;
-                terminal.sendText(`\x1b[1;${color}m\r\nChalet exited with code: ${code}\r\n\x1b[0m`);
+                terminal.sendText(`\x1b[1;${color}m\r\n${name} exited with code: ${code}\r\n\x1b[0m`);
                 // pty.close();
                 // terminal.dispose();
             });

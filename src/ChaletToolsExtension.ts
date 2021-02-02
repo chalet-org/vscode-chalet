@@ -35,6 +35,17 @@ enum BuildArchitecture {
 class ChaletToolsExtension {
     chaletCommand: ChaletCommands;
     statusBarChaletCommand: StatusBarItem;
+    chaletCommandMenu: ChaletCommands[] = [
+        ChaletCommands.BuildRun,
+        ChaletCommands.Run,
+        ChaletCommands.Build,
+        ChaletCommands.Rebuild,
+        ChaletCommands.Clean,
+        ChaletCommands.Bundle,
+        ChaletCommands.Install,
+        ChaletCommands.Configure,
+        ChaletCommands.Init,
+    ];
 
     buildConfiguration: string | null = null;
     statusBarBuildConfiguration: StatusBarItem;
@@ -42,6 +53,7 @@ class ChaletToolsExtension {
 
     buildArchitecture: BuildArchitecture;
     statusBarBuildArchitecture: StatusBarItem;
+    buildArchitectureMenu: BuildArchitecture[] = [BuildArchitecture.x64, BuildArchitecture.x86];
 
     doActionIcon: string = "$(play)";
     statusBarDoAction: StatusBarItem;
@@ -68,8 +80,6 @@ class ChaletToolsExtension {
     constructor(context: ExtensionContext) {
         this.terminalController = new TerminalController();
         this.workspaceState = context.workspaceState;
-
-        // register a command that is invoked when the status bar item is selected
 
         this.statusBarChaletCommand = window.createStatusBarItem(StatusBarAlignment.Left, 4);
         this.addStatusBarCommand(
@@ -98,8 +108,6 @@ class ChaletToolsExtension {
         this.statusBarDoAction = window.createStatusBarItem(StatusBarAlignment.Left, 1);
         this.addStatusBarCommand(context, this.statusBarDoAction, "runChalet", this.actionRunChalet);
 
-        // register some listener that make sure the status bar
-        // item always up-to-date
         // context.subscriptions.push(window.onDidChangeActiveTextEditor(this.updateStatusBarItems));
         // context.subscriptions.push(window.onDidChangeTextEditorSelection(this.updateStatusBarItems));
 
@@ -107,8 +115,6 @@ class ChaletToolsExtension {
         this.buildArchitecture = this.workspaceState.get("buildArchitecture", BuildArchitecture.x64);
 
         this.buildConfiguration = this.workspaceState.get("buildConfiguration", null);
-
-        // fs.readFileSync("../scripts/run-chalet.sh");
 
         if (vscode.window.activeTextEditor) {
             let workspaceFolder = workspace.getWorkspaceFolder(vscode.window.activeTextEditor.document.uri);
@@ -208,17 +214,7 @@ class ChaletToolsExtension {
     };
 
     private actionChaletCommandQuickPick = async () => {
-        const result = await window.showQuickPick([
-            ChaletCommands.BuildRun,
-            ChaletCommands.Run,
-            ChaletCommands.Build,
-            ChaletCommands.Rebuild,
-            ChaletCommands.Clean,
-            ChaletCommands.Bundle,
-            ChaletCommands.Install,
-            ChaletCommands.Configure,
-            ChaletCommands.Init,
-        ]);
+        const result = await window.showQuickPick(this.chaletCommandMenu);
         if (result) {
             this.setChaletCommand(result as ChaletCommands);
         }
@@ -236,7 +232,7 @@ class ChaletToolsExtension {
     };
 
     private actionBuildArchitectureQuickPick = async () => {
-        const result = await window.showQuickPick([BuildArchitecture.x64, BuildArchitecture.x86]);
+        const result = await window.showQuickPick(this.buildArchitectureMenu);
         if (result) {
             this.setBuildArchitecture(result as BuildArchitecture);
         }
