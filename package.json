@@ -22,7 +22,11 @@
 		],
 		"jsonValidation": [
 			{
-				"fileMatch": "build*.json",
+				"fileMatch": [
+					"build.json",
+					"build.*.json",
+					"build-*.json"
+				],
 				"url": "./schema/chalet.schema.json"
 			},
 			{
