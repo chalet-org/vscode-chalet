@@ -1,8 +1,10 @@
 import * as vscode from "vscode";
 import * as fs from "fs";
+import * as os from "os";
 import { window, commands, StatusBarAlignment, ExtensionContext, StatusBarItem, workspace, Uri, Memento } from "vscode";
 import * as CommentJSON from "comment-json";
 import { TerminalController } from "./Commands";
+import { Dictionary } from "./Types";
 
 // import { helloWorld } from "./Commands";
 
@@ -32,6 +34,8 @@ enum BuildArchitecture {
     ARM = "ARM",
     ARM64 = "ARM64",
 }
+
+type VSCodePlatform = "osx" | "linux" | "windows";
 
 class ChaletToolsExtension {
     chaletCommand: ChaletCommands;
@@ -64,6 +68,7 @@ class ChaletToolsExtension {
 
     workspaceRoot?: Uri;
     workspaceState: Memento;
+    platform: VSCodePlatform;
 
     private addStatusBarCommand = (
         { subscriptions }: ExtensionContext,
@@ -78,9 +83,58 @@ class ChaletToolsExtension {
         subscriptions.push(statusBarItem);
     };
 
+    private getTerminalEnv = (): Dictionary<string> => {
+        const workspaceConfig = workspace.getConfiguration("terminal");
+        if (workspaceConfig["integrated"]) {
+            const integratedTerminal: any = workspaceConfig["integrated"];
+            if (integratedTerminal["env"]) {
+                const terminalEnv: any = integratedTerminal["env"];
+                if (terminalEnv[this.platform]) {
+                    const platformEnv: Dictionary<string> = terminalEnv[this.platform];
+                    if (platformEnv) {
+                        let out: Dictionary<string> = {};
+                        for (const [key, value] of Object.entries(platformEnv)) {
+                            const regex = /\$\{env:(\w+)\}/g;
+                            const matches = [...value.matchAll(regex)];
+                            if (matches && matches.length > 0) {
+                                let outValue = value;
+                                for (const match of matches) {
+                                    if (match.length < 2) break;
+
+                                    const env = process.env[match[1]];
+                                    if (env) {
+                                        const re = new RegExp(match[0].replace("$", "\\$"), "g");
+                                        outValue = outValue.replace(re, env.replace(/\\/g, "/"));
+                                    }
+                                }
+                                out[key] = outValue;
+                            } else {
+                                out[key] = value;
+                            }
+                        }
+                        return out;
+                    }
+                }
+            }
+        }
+        return {};
+    };
+
+    private getPlatform = (): VSCodePlatform => {
+        const nodePlatform = os.platform();
+        if (nodePlatform === "win32") {
+            return "windows";
+        } else if (nodePlatform === "darwin") {
+            return "osx";
+        } else {
+            return "linux";
+        }
+    };
+
     constructor(context: ExtensionContext) {
         this.terminalController = new TerminalController();
         this.workspaceState = context.workspaceState;
+        this.platform = this.getPlatform();
 
         this.statusBarChaletCommand = window.createStatusBarItem(StatusBarAlignment.Left, 4);
         this.addStatusBarCommand(
@@ -257,8 +311,9 @@ class ChaletToolsExtension {
             await this.terminalController.execute({
                 name: "Chalet",
                 cwd: this.workspaceRoot?.fsPath,
+                env: this.getTerminalEnv(),
                 autoClear: true,
-                shellPath: "chalet",
+                shellPath: "chalet-debug",
                 shellArgs,
             });
         }

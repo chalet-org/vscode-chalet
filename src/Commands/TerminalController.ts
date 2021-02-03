@@ -7,6 +7,7 @@ import {
     Pseudoterminal,
 } from "vscode";
 import { ChildProcessWithoutNullStreams, spawn } from "child_process";
+import { Dictionary } from "../Types";
 
 // suppress:
 // [DEP0005] DeprecationWarning: Buffer() is deprecated due to security and usability issues. Please use the Buffer.alloc(), Buffer.allocUnsafe(), or Buffer.from() methods instead.
@@ -19,6 +20,7 @@ type TerminalOptions = {
     shellPath: string;
     shellArgs?: string[];
     cwd?: string;
+    env?: Dictionary<string>;
 };
 
 export class TerminalController {
@@ -52,7 +54,7 @@ export class TerminalController {
         }
     };
 
-    execute = async ({ autoClear, name, cwd, ...options }: TerminalOptions) => {
+    execute = async ({ autoClear, name, cwd, env, ...options }: TerminalOptions) => {
         try {
             const pty: Pseudoterminal = {
                 onDidWrite: this.writeEmitter.event,
@@ -78,9 +80,10 @@ export class TerminalController {
 
             console.log("starting subprocess");
             console.log(cwd);
+            console.log(env);
 
             const shellArgs: string[] = options.shellArgs ?? [];
-            this.subprocess = spawn(options.shellPath, shellArgs, { cwd: cwd ?? "" });
+            this.subprocess = spawn(options.shellPath, shellArgs, { cwd: cwd ?? "", env });
 
             this.subprocess.stdout.on("data", (data: Buffer) => {
                 console.log(data.toString());
