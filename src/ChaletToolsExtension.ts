@@ -49,7 +49,6 @@ class ChaletToolsExtension {
         ChaletCommands.Bundle,
         ChaletCommands.Install,
         ChaletCommands.Configure,
-        ChaletCommands.Init,
     ];
 
     buildConfiguration: string | null = null;
@@ -219,6 +218,9 @@ class ChaletToolsExtension {
     }
 
     deactivate = () => {
+        if (this.terminalController) {
+            this.terminalController.haltSubProcess();
+        }
         this.terminalController = null;
     };
 
@@ -338,7 +340,7 @@ class ChaletToolsExtension {
                 cwd: this.workspaceRoot?.fsPath,
                 env: this.getTerminalEnv(),
                 autoClear: true,
-                shellPath: "chalet-debug",
+                shellPath: "chalet",
                 shellArgs,
             });
         }

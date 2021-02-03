@@ -83,6 +83,7 @@ export class TerminalController {
             console.log(env);
 
             const shellArgs: string[] = options.shellArgs ?? [];
+            // console.log(options.shellPath, shellArgs.join(" "));
             this.subprocess = spawn(options.shellPath, shellArgs, { cwd: cwd ?? "", env });
 
             this.subprocess.stdout.on("data", (data: Buffer) => {
