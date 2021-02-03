@@ -44,6 +44,14 @@ export class TerminalController {
         return terminal;
     };
 
+    haltSubProcess = () => {
+        if (this.subprocess) {
+            if (!this.subprocess.kill("SIGINT")) {
+                console.error("Couldn't kill previous process");
+            }
+        }
+    };
+
     execute = async ({ autoClear, name, cwd, ...options }: TerminalOptions) => {
         try {
             const pty: Pseudoterminal = {
@@ -53,7 +61,9 @@ export class TerminalController {
                     this.writeEmitter.fire(data.replace(/\r/g, "\r\n"));
                 },
                 open: () => {},
-                close: () => {},
+                close: () => {
+                    this.haltSubProcess();
+                },
             };
             const terminal: Terminal = this.createTerminal({
                 name,
@@ -64,11 +74,7 @@ export class TerminalController {
                 await commands.executeCommand("workbench.action.terminal.clear");
             }
 
-            if (this.subprocess) {
-                if (!this.subprocess.kill("SIGINT")) {
-                    console.error("Couldn't kill previous process");
-                }
-            }
+            this.haltSubProcess();
 
             console.log("starting subprocess");
             console.log(cwd);
