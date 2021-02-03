@@ -83,7 +83,7 @@ class ChaletToolsExtension {
     };
 
     private getTerminalEnv = (): Dictionary<string> => {
-        let out: Dictionary<string> = {};
+        let out: Dictionary<string> = process.env as Dictionary<string>;
         let inheritEnv: boolean = true;
         const workspaceConfig = workspace.getConfiguration("terminal");
         if (workspaceConfig["integrated"]) {
@@ -135,7 +135,7 @@ class ChaletToolsExtension {
                 let path = process.env[PATH_UNIX];
                 if (path) {
                     if (out[PATH_UNIX] && !out[PATH_UNIX].includes(path)) {
-                        out[PATH_UNIX] = `${out[PATH_UNIX]};${path}`;
+                        out[PATH_UNIX] = `${out[PATH_UNIX]}:${path}`;
                     }
                 }
             }
@@ -335,12 +335,13 @@ class ChaletToolsExtension {
         }
 
         if (this.terminalController) {
+            const env = this.getTerminalEnv();
             await this.terminalController.execute({
                 name: "Chalet",
                 cwd: this.workspaceRoot?.fsPath,
-                env: this.getTerminalEnv(),
+                env,
                 autoClear: true,
-                shellPath: "chalet",
+                shellPath: "chalet-debug",
                 shellArgs,
             });
         }

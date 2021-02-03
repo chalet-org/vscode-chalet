@@ -48,8 +48,10 @@ export class TerminalController {
 
     haltSubProcess = () => {
         if (this.subprocess) {
-            if (!this.subprocess.kill("SIGINT")) {
-                console.error("Couldn't kill previous process");
+            if (this.subprocess.connected) {
+                if (!this.subprocess.kill("SIGINT")) {
+                    console.error("Couldn't kill previous process");
+                }
             }
         }
     };
@@ -83,8 +85,19 @@ export class TerminalController {
             console.log(env);
 
             const shellArgs: string[] = options.shellArgs ?? [];
-            // console.log(options.shellPath, shellArgs.join(" "));
-            this.subprocess = spawn(options.shellPath, shellArgs, { cwd: cwd ?? "", env });
+            console.log(options.shellPath, shellArgs.join(" "));
+            let spawnOptions = {
+                cwd: cwd ?? "",
+                env,
+            };
+            console.log(spawnOptions);
+            this.subprocess = spawn(options.shellPath, shellArgs, spawnOptions);
+
+            this.subprocess.on("error", (err: Error) => {
+                console.error(err.name);
+                console.error(err.message);
+                console.error(err.stack);
+            });
 
             this.subprocess.stdout.on("data", (data: Buffer) => {
                 console.log(data.toString());
