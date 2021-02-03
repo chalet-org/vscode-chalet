@@ -84,15 +84,19 @@ class ChaletToolsExtension {
     };
 
     private getTerminalEnv = (): Dictionary<string> => {
+        let out: Dictionary<string> = {};
+        let inheritEnv: boolean = false;
         const workspaceConfig = workspace.getConfiguration("terminal");
         if (workspaceConfig["integrated"]) {
             const integratedTerminal: any = workspaceConfig["integrated"];
+            if (integratedTerminal["inheritEnv"]) {
+                inheritEnv = integratedTerminal["inheritEnv"];
+            }
             if (integratedTerminal["env"]) {
                 const terminalEnv: any = integratedTerminal["env"];
                 if (terminalEnv[this.platform]) {
                     const platformEnv: Dictionary<string> = terminalEnv[this.platform];
                     if (platformEnv) {
-                        let out: Dictionary<string> = {};
                         for (const [key, value] of Object.entries(platformEnv)) {
                             const regex = /\$\{env:(\w+)\}/g;
                             const matches = [...value.matchAll(regex)];
@@ -112,12 +116,33 @@ class ChaletToolsExtension {
                                 out[key] = value;
                             }
                         }
-                        return out;
                     }
                 }
             }
         }
-        return {};
+
+        if (inheritEnv) {
+            const PATH_WIN = "Path";
+            const PATH_UNIX = "PATH";
+            if (this.platform === "windows") {
+                let path = process.env[PATH_WIN];
+                if (path) {
+                    path = path.replace(/\\/g, "/");
+                    if (out[PATH_WIN] && !out[PATH_WIN].includes(path)) {
+                        out[PATH_WIN] = `${out[PATH_WIN]};${path}`;
+                    }
+                }
+            } else {
+                let path = process.env[PATH_UNIX];
+                if (path) {
+                    if (out[PATH_UNIX] && !out[PATH_UNIX].includes(path)) {
+                        out[PATH_UNIX] = `${out[PATH_UNIX]};${path}`;
+                    }
+                }
+            }
+        }
+
+        return out;
     };
 
     private getPlatform = (): VSCodePlatform => {
