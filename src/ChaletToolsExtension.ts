@@ -85,13 +85,13 @@ class ChaletToolsExtension {
 
     private getTerminalEnv = (): Dictionary<string> => {
         let out: Dictionary<string> = {};
-        let inheritEnv: boolean = false;
+        let inheritEnv: boolean = true;
         const workspaceConfig = workspace.getConfiguration("terminal");
         if (workspaceConfig["integrated"]) {
             const integratedTerminal: any = workspaceConfig["integrated"];
-            if (integratedTerminal["inheritEnv"]) {
-                inheritEnv = integratedTerminal["inheritEnv"];
-            }
+            // if (integratedTerminal["inheritEnv"]) {
+            //     inheritEnv = integratedTerminal["inheritEnv"];
+            // }
             if (integratedTerminal["env"]) {
                 const terminalEnv: any = integratedTerminal["env"];
                 if (terminalEnv[this.platform]) {
