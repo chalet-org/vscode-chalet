@@ -70,13 +70,19 @@ export class TerminalController {
                 }
             }
 
-            this.subprocess = spawn(options.shellPath, options.shellArgs ?? [], { cwd: cwd ?? "" });
+            console.log("starting subprocess");
+            console.log(cwd);
+
+            const shellArgs: string[] = options.shellArgs ?? [];
+            this.subprocess = spawn(options.shellPath, shellArgs, { cwd: cwd ?? "" });
 
             this.subprocess.stdout.on("data", (data: Buffer) => {
+                console.log(data.toString());
                 terminal.sendText(data.toString());
             });
 
             this.subprocess.stderr.on("data", (data: Buffer) => {
+                console.log(data.toString());
                 terminal.sendText(data.toString());
             });
 

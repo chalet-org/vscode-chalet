@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import * as fs from "fs";
 import { window, commands, StatusBarAlignment, ExtensionContext, StatusBarItem, workspace, Uri, Memento } from "vscode";
+import * as CommentJSON from "comment-json";
 import { TerminalController } from "./Commands";
 
 // import { helloWorld } from "./Commands";
@@ -61,7 +62,7 @@ class ChaletToolsExtension {
     terminalController: TerminalController | null = null;
     // runScriptPath: string;
 
-    workspaceRoot?: string;
+    workspaceRoot?: Uri;
     workspaceState: Memento;
 
     private addStatusBarCommand = (
@@ -119,8 +120,8 @@ class ChaletToolsExtension {
         if (vscode.window.activeTextEditor) {
             let workspaceFolder = workspace.getWorkspaceFolder(vscode.window.activeTextEditor.document.uri);
             if (workspaceFolder) {
-                this.workspaceRoot = workspaceFolder.uri.fsPath;
-                const buildJsonUri = Uri.joinPath(workspaceFolder.uri, "build.json");
+                this.workspaceRoot = workspaceFolder.uri;
+                const buildJsonUri = Uri.joinPath(this.workspaceRoot, "build.json");
                 this.handleBuildJsonChange();
 
                 fs.watchFile(buildJsonUri.fsPath, { interval: 2000 }, (_curr, _prev) => {
@@ -129,7 +130,7 @@ class ChaletToolsExtension {
                 });
             }
         }
-        console.log(this.workspaceRoot);
+        // console.log(this.workspaceRoot);
 
         // let script = Uri.joinPath(context.extensionUri, "scripts", "run-chalet.sh");
         // this.runScriptPath = script.fsPath;
@@ -172,9 +173,9 @@ class ChaletToolsExtension {
 
     private handleBuildJsonChange = () => {
         if (this.workspaceRoot) {
-            const buildJsonUri = Uri.joinPath(Uri.parse(this.workspaceRoot), "build.json");
+            const buildJsonUri = Uri.joinPath(this.workspaceRoot, "build.json");
             const rawData = fs.readFileSync(buildJsonUri.fsPath, "utf8");
-            const buildJson = JSON.parse(rawData);
+            const buildJson = CommentJSON.parse(rawData, undefined, true);
             let configurations: any = buildJson["configurations"];
             if (configurations) {
                 if (Array.isArray(configurations)) {
@@ -255,7 +256,7 @@ class ChaletToolsExtension {
         if (this.terminalController) {
             await this.terminalController.execute({
                 name: "Chalet",
-                cwd: this.workspaceRoot,
+                cwd: this.workspaceRoot?.fsPath,
                 autoClear: true,
                 shellPath: "chalet",
                 shellArgs,
