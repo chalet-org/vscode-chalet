@@ -105,7 +105,7 @@ export class TerminalController {
 
             const shellArgs: string[] = options.shellArgs ?? [];
             console.log(options.shellPath, shellArgs.join(" "));
-            let spawnOptions = {
+            let spawnOptions: any = {
                 cwd: cwd ?? "",
                 env,
             };
@@ -120,25 +120,24 @@ export class TerminalController {
             this.subprocess.stdout.on("data", (data: Buffer) => {
                 if (!this.subprocess) return;
 
-                console.log(data.toString());
+                // console.log(data.toString());
                 this.terminal?.sendText(data.toString());
             });
 
             this.subprocess.stderr.on("data", (data: Buffer) => {
                 if (!this.subprocess) return;
 
-                console.log(data.toString());
+                // console.log(data.toString());
                 this.terminal?.sendText(data.toString());
             });
 
             this.subprocess.on("close", (code: number, signal: NodeJS.Signals) => {
                 let color: number = 37;
                 if (this.interrupted) {
-                    this.writeEmitter.fire(`\x1b[1;${color}m\r\n${name} exited with code: 2 (Interrupt)\r\n\x1b[0m`);
+                    this.terminal?.sendText(`\x1b[1;${color}m\r\n${name} exited with code: 2 (Interrupt)\r\n\x1b[0m`);
                 } else {
-                    this.writeEmitter.fire(`\x1b[1;${color}m\r\n${name} exited with code: ${code}\r\n\x1b[0m`);
+                    this.terminal?.sendText(`\x1b[1;${color}m\r\n${name} exited with code: ${code}\r\n\x1b[0m`);
                 }
-                this.subprocess = null;
                 // pty.close();
                 // terminal.dispose();
             });
