@@ -341,7 +341,7 @@ class ChaletToolsExtension {
                 cwd: this.workspaceRoot?.fsPath,
                 env,
                 autoClear: true,
-                shellPath: "chalet-debug",
+                shellPath: "chalet",
                 shellArgs,
             });
         }
