@@ -7,6 +7,7 @@ import {
     Pseudoterminal,
 } from "vscode";
 import { ChildProcessWithoutNullStreams, spawn } from "child_process";
+import * as treeKill from "tree-kill";
 import { Dictionary } from "../Types";
 
 // suppress:
@@ -27,7 +28,7 @@ export class TerminalController {
     subprocess: ChildProcessWithoutNullStreams | null = null;
     writeEmitter: EventEmitter<string> = new EventEmitter<string>();
     terminal: Terminal | null = null;
-    canceled: boolean = false;
+    interrupted: boolean = false;
 
     private createTerminal = (options: VSCExtensionTerminalOptions): Terminal => {
         const { name } = options;
@@ -59,11 +60,9 @@ export class TerminalController {
     haltSubProcess = () => {
         if (this.subprocess) {
             if (!this.subprocess.killed) {
-                if (!this.subprocess.kill()) {
-                    console.error("Couldn't kill previous process");
-                } else {
-                    console.log("subprocess exited");
-                }
+                this.subprocess.stdout.pause();
+                this.subprocess.stderr.pause();
+                treeKill(this.subprocess.pid);
             }
         }
     };
@@ -73,16 +72,12 @@ export class TerminalController {
             const pty: Pseudoterminal = {
                 onDidWrite: this.writeEmitter.event,
                 handleInput: (data: string) => {
-                    if (this.canceled) return;
-                    // console.log(JSON.stringify(data));
+                    if (!this.subprocess) return;
+                    // console.log(JSON.stringify(data)); // logs escape characters
                     // CTRL+C
                     if (data === "\u0003") {
                         this.haltSubProcess();
-                        let color: number = 37;
-                        this.writeEmitter.fire(
-                            `\x1b[1;${color}m\r\n${name} exited with code: 2 (Interrupt)\r\n\x1b[0m`
-                        );
-                        this.canceled = true;
+                        this.interrupted = true;
                     } else {
                         // newline characters within data get replaced with \r somewhere in terminal.sendText
                         this.writeEmitter.fire(data.replace(/\r/g, "\r\n"));
@@ -93,7 +88,7 @@ export class TerminalController {
                     this.haltSubProcess();
                 },
             };
-            this.canceled = false;
+            this.interrupted = false;
             this.terminal = this.createTerminal({
                 name,
                 pty,
@@ -105,18 +100,15 @@ export class TerminalController {
 
             this.haltSubProcess();
 
-            console.log("starting subprocess");
-            console.log(cwd);
-            console.log(env);
+            // console.log(cwd);
+            // console.log(env);
 
             const shellArgs: string[] = options.shellArgs ?? [];
             console.log(options.shellPath, shellArgs.join(" "));
-            let spawnOptions: any = {
+            let spawnOptions = {
                 cwd: cwd ?? "",
                 env,
-                stdio: ["pipe", null, null],
             };
-            console.log(spawnOptions);
             this.subprocess = spawn(options.shellPath, shellArgs, spawnOptions);
 
             this.subprocess.on("error", (err: Error) => {
@@ -126,14 +118,14 @@ export class TerminalController {
             });
 
             this.subprocess.stdout.on("data", (data: Buffer) => {
-                if (this.canceled) return;
+                if (!this.subprocess) return;
 
                 console.log(data.toString());
                 this.terminal?.sendText(data.toString());
             });
 
             this.subprocess.stderr.on("data", (data: Buffer) => {
-                if (this.canceled) return;
+                if (!this.subprocess) return;
 
                 console.log(data.toString());
                 this.terminal?.sendText(data.toString());
@@ -141,7 +133,12 @@ export class TerminalController {
 
             this.subprocess.on("close", (code: number, signal: NodeJS.Signals) => {
                 let color: number = 37;
-                this.terminal?.sendText(`\x1b[1;${color}m\r\n${name} exited with code: ${code}\r\n\x1b[0m`);
+                if (this.interrupted) {
+                    this.writeEmitter.fire(`\x1b[1;${color}m\r\n${name} exited with code: 2 (Interrupt)\r\n\x1b[0m`);
+                } else {
+                    this.writeEmitter.fire(`\x1b[1;${color}m\r\n${name} exited with code: ${code}\r\n\x1b[0m`);
+                }
+                this.subprocess = null;
                 // pty.close();
                 // terminal.dispose();
             });

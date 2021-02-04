@@ -83,7 +83,13 @@ class ChaletToolsExtension {
     };
 
     private getTerminalEnv = (): Dictionary<string> => {
-        let out: Dictionary<string> = process.env as Dictionary<string>;
+        let out: Dictionary<string>;
+        if (this.platform === "windows") {
+            out = {};
+        } else {
+            out = process.env as Dictionary<string>;
+        }
+
         let inheritEnv: boolean = true;
         const workspaceConfig = workspace.getConfiguration("terminal");
         if (workspaceConfig["integrated"]) {
@@ -213,7 +219,6 @@ class ChaletToolsExtension {
         // let script = Uri.joinPath(context.extensionUri, "scripts", "run-chalet.sh");
         // this.runScriptPath = script.fsPath;
 
-        // update status bar item once at start
         this.updateStatusBarItems();
     }
 
@@ -322,8 +327,6 @@ class ChaletToolsExtension {
     };
 
     private actionRunChalet = async () => {
-        // window.showInformationMessage("Do the thing!");
-
         let shellArgs: string[] = [];
 
         shellArgs.push(this.getCommandFromLabel(this.chaletCommand));
@@ -340,7 +343,7 @@ class ChaletToolsExtension {
                 name: "Chalet",
                 cwd: this.workspaceRoot?.fsPath,
                 env,
-                autoClear: true,
+                autoClear: false,
                 shellPath: "chalet",
                 shellArgs,
             });
