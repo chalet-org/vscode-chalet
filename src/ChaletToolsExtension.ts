@@ -346,6 +346,15 @@ class ChaletToolsExtension {
                 autoClear: false,
                 shellPath: "chalet",
                 shellArgs,
+                onStart: () => {
+                    console.log("chalet started");
+                },
+                onSuccess: () => {
+                    console.log("chalet finished");
+                },
+                onFailure: () => {
+                    console.log("chalet errored!");
+                },
             });
         }
     };

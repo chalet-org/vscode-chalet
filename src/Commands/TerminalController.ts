@@ -8,7 +8,7 @@ import {
 } from "vscode";
 import { ChildProcessWithoutNullStreams, spawn } from "child_process";
 import * as treeKill from "tree-kill";
-import { Dictionary } from "../Types";
+import { Dictionary, Optional } from "../Types";
 
 // suppress:
 // [DEP0005] DeprecationWarning: Buffer() is deprecated due to security and usability issues. Please use the Buffer.alloc(), Buffer.allocUnsafe(), or Buffer.from() methods instead.
@@ -22,6 +22,9 @@ type TerminalOptions = {
     shellArgs?: string[];
     cwd?: string;
     env?: Dictionary<string>;
+    onStart?: () => void;
+    onSuccess?: (code?: number, signal?: Optional<NodeJS.Signals>) => void;
+    onFailure?: (err?: Error) => void;
 };
 
 export class TerminalController {
@@ -67,7 +70,7 @@ export class TerminalController {
         }
     };
 
-    execute = async ({ autoClear, name, cwd, env, ...options }: TerminalOptions) => {
+    execute = async ({ autoClear, name, cwd, env, onStart, onSuccess, onFailure, ...options }: TerminalOptions) => {
         try {
             const pty: Pseudoterminal = {
                 onDidWrite: this.writeEmitter.event,
@@ -104,17 +107,22 @@ export class TerminalController {
             // console.log(env);
 
             const shellArgs: string[] = options.shellArgs ?? [];
-            console.log(options.shellPath, shellArgs.join(" "));
+            // console.log(options.shellPath, shellArgs.join(" "));
             let spawnOptions: any = {
                 cwd: cwd ?? "",
                 env,
             };
             this.subprocess = spawn(options.shellPath, shellArgs, spawnOptions);
+            onStart?.();
 
             this.subprocess.on("error", (err: Error) => {
-                console.error(err.name);
-                console.error(err.message);
-                console.error(err.stack);
+                if (onFailure) {
+                    onFailure(err);
+                } else {
+                    console.error(err.name);
+                    console.error(err.message);
+                    console.error(err.stack);
+                }
             });
 
             this.subprocess.stdout.on("data", (data: Buffer) => {
@@ -131,13 +139,16 @@ export class TerminalController {
                 this.terminal?.sendText(data.toString());
             });
 
-            this.subprocess.on("close", (code: number, signal: NodeJS.Signals) => {
+            this.subprocess.on("close", (code: number, signal: Optional<NodeJS.Signals>) => {
                 let color: number = 37;
                 if (this.interrupted) {
                     this.terminal?.sendText(`\x1b[1;${color}m\r\n${name} exited with code: 2 (Interrupt)\r\n\x1b[0m`);
                 } else {
                     this.terminal?.sendText(`\x1b[1;${color}m\r\n${name} exited with code: ${code}\r\n\x1b[0m`);
                 }
+
+                onSuccess?.(code, signal);
+
                 // pty.close();
                 // terminal.dispose();
             });
