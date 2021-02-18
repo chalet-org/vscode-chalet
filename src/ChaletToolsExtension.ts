@@ -5,37 +5,7 @@ import { window, commands, StatusBarAlignment, ExtensionContext, StatusBarItem, 
 import * as CommentJSON from "comment-json";
 import { TerminalController } from "./Commands";
 import { Dictionary } from "./Types";
-
-// import { helloWorld } from "./Commands";
-
-enum ChaletCommands {
-    BuildRun = "Build & Run",
-    Run = "Run",
-    Build = "Build",
-    Rebuild = "Rebuild",
-    Clean = "Clean",
-    Bundle = "Bundle",
-    Install = "Install",
-    Configure = "Configure",
-    Init = "Init",
-}
-
-enum BuildConfigurations {
-    Invalid = "[No valid configurations]",
-    Debug = "Debug",
-    Release = "Release",
-    RelWithDebInfo = "RelWithDebInfo",
-    MinSizeRel = "MinSizeRel",
-}
-
-enum BuildArchitecture {
-    x64 = "x64",
-    x86 = "x86",
-    ARM = "ARM",
-    ARM64 = "ARM64",
-}
-
-type VSCodePlatform = "osx" | "linux" | "windows";
+import { BuildArchitecture, BuildConfigurations, ChaletCommands, VSCodePlatform } from "./Types/Enums";
 
 class ChaletToolsExtension {
     chaletCommand: ChaletCommands;
