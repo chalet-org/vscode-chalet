@@ -35,3 +35,10 @@ export enum ChaletVersion {
     Release = "chalet",
     Debug = "chalet-debug",
 }
+
+export enum CommandId {
+    Run = "runChalet",
+    ChaletCommand = "chaletCommand",
+    BuildArchitecture = "buildArchitecture",
+    BuildConfiguration = "buildConfiguration",
+}

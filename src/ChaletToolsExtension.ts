@@ -2,7 +2,14 @@ import * as fs from "fs";
 import { window, commands, StatusBarAlignment, ExtensionContext, StatusBarItem, Memento } from "vscode";
 import * as CommentJSON from "comment-json";
 import { TerminalController } from "./Commands";
-import { BuildArchitecture, BuildConfigurations, ChaletCommands, ChaletVersion, VSCodePlatform } from "./Types/Enums";
+import {
+    BuildArchitecture,
+    BuildConfigurations,
+    ChaletCommands,
+    ChaletVersion,
+    CommandId,
+    VSCodePlatform,
+} from "./Types/Enums";
 import { getTerminalEnv } from "./Functions";
 
 class ChaletToolsExtension {
@@ -37,13 +44,13 @@ class ChaletToolsExtension {
     private addStatusBarCommand = (
         { subscriptions }: ExtensionContext,
         statusBarItem: StatusBarItem,
-        id: string,
+        id: CommandId,
         onClick: () => Promise<void>
     ) => {
-        id = `chalet-tools.${id}`;
-        subscriptions.push(commands.registerCommand(id, onClick));
+        const command: string = `chalet-tools.${id}`;
+        subscriptions.push(commands.registerCommand(command, onClick));
 
-        statusBarItem.command = id;
+        statusBarItem.command = command;
         subscriptions.push(statusBarItem);
     };
 
@@ -60,7 +67,7 @@ class ChaletToolsExtension {
         this.addStatusBarCommand(
             context,
             this.statusBarChaletCommand,
-            "chaletCommand",
+            CommandId.ChaletCommand,
             this.actionChaletCommandQuickPick
         );
 
@@ -68,7 +75,7 @@ class ChaletToolsExtension {
         this.addStatusBarCommand(
             context,
             this.statusBarBuildConfiguration,
-            "buildConfiguration",
+            CommandId.BuildConfiguration,
             this.actionBuildConfigurationQuickPick
         );
 
@@ -76,17 +83,17 @@ class ChaletToolsExtension {
         this.addStatusBarCommand(
             context,
             this.statusBarBuildArchitecture,
-            "buildArchitecture",
+            CommandId.BuildArchitecture,
             this.actionBuildArchitectureQuickPick
         );
 
         this.statusBarDoAction = window.createStatusBarItem(StatusBarAlignment.Left, 1);
-        this.addStatusBarCommand(context, this.statusBarDoAction, "runChalet", this.actionRunChalet);
+        this.addStatusBarCommand(context, this.statusBarDoAction, CommandId.Run, this.actionRunChalet);
 
-        this.chaletCommand = this.workspaceState.get("chaletCommand", ChaletCommands.BuildRun);
-        this.buildArchitecture = this.workspaceState.get("buildArchitecture", BuildArchitecture.x64);
+        this.chaletCommand = this.workspaceState.get(CommandId.ChaletCommand, ChaletCommands.BuildRun);
+        this.buildArchitecture = this.workspaceState.get(CommandId.BuildArchitecture, BuildArchitecture.x64);
 
-        this.buildConfiguration = this.workspaceState.get("buildConfiguration", null);
+        this.buildConfiguration = this.workspaceState.get(CommandId.BuildConfiguration, null);
 
         this.updateStatusBarItems();
     }
@@ -100,17 +107,17 @@ class ChaletToolsExtension {
 
     private setChaletCommand = async (value: ChaletCommands) => {
         this.chaletCommand = value;
-        await this.workspaceState.update("chaletCommand", value);
+        await this.workspaceState.update(CommandId.ChaletCommand, value);
     };
 
     private setBuildConfiguration = async (value: string | null) => {
         this.buildConfiguration = value;
-        await this.workspaceState.update("buildConfiguration", value);
+        await this.workspaceState.update(CommandId.BuildConfiguration, value);
     };
 
     private setBuildArchitecture = async (value: BuildArchitecture) => {
         this.buildArchitecture = value;
-        await this.workspaceState.update("buildArchitecture", value);
+        await this.workspaceState.update(CommandId.BuildArchitecture, value);
     };
 
     private setDefaultBuildConfigurations = () => {
