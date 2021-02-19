@@ -1,11 +1,9 @@
-import * as vscode from "vscode";
 import * as fs from "fs";
-import * as os from "os";
-import { window, commands, StatusBarAlignment, ExtensionContext, StatusBarItem, workspace, Uri, Memento } from "vscode";
+import { window, commands, StatusBarAlignment, ExtensionContext, StatusBarItem, Memento } from "vscode";
 import * as CommentJSON from "comment-json";
 import { TerminalController } from "./Commands";
-import { Dictionary } from "./Types";
-import { BuildArchitecture, BuildConfigurations, ChaletCommands, VSCodePlatform } from "./Types/Enums";
+import { BuildArchitecture, BuildConfigurations, ChaletCommands, ChaletVersion, VSCodePlatform } from "./Types/Enums";
+import { getTerminalEnv } from "./Functions";
 
 class ChaletToolsExtension {
     chaletCommand: ChaletCommands;
@@ -33,11 +31,8 @@ class ChaletToolsExtension {
     statusBarDoAction: StatusBarItem;
 
     terminalController: TerminalController | null = null;
-    // runScriptPath: string;
 
-    workspaceRoot?: Uri;
     workspaceState: Memento;
-    platform: VSCodePlatform;
 
     private addStatusBarCommand = (
         { subscriptions }: ExtensionContext,
@@ -52,89 +47,14 @@ class ChaletToolsExtension {
         subscriptions.push(statusBarItem);
     };
 
-    private getTerminalEnv = (): Dictionary<string> => {
-        let out: Dictionary<string>;
-        if (this.platform === "windows") {
-            out = {};
-        } else {
-            out = process.env as Dictionary<string>;
-        }
-
-        let inheritEnv: boolean = true;
-        const workspaceConfig = workspace.getConfiguration("terminal");
-        if (workspaceConfig["integrated"]) {
-            const integratedTerminal: any = workspaceConfig["integrated"];
-            // if (integratedTerminal["inheritEnv"]) {
-            //     inheritEnv = integratedTerminal["inheritEnv"];
-            // }
-            if (integratedTerminal["env"]) {
-                const terminalEnv: any = integratedTerminal["env"];
-                if (terminalEnv[this.platform]) {
-                    const platformEnv: Dictionary<string> = terminalEnv[this.platform];
-                    if (platformEnv) {
-                        for (const [key, value] of Object.entries(platformEnv)) {
-                            const regex = /\$\{env:(\w+)\}/g;
-                            const matches = [...value.matchAll(regex)];
-                            if (matches && matches.length > 0) {
-                                let outValue = value;
-                                for (const match of matches) {
-                                    if (match.length < 2) break;
-
-                                    const env = process.env[match[1]];
-                                    if (env) {
-                                        const re = new RegExp(match[0].replace("$", "\\$"), "g");
-                                        outValue = outValue.replace(re, env.replace(/\\/g, "/"));
-                                    }
-                                }
-                                out[key] = outValue;
-                            } else {
-                                out[key] = value;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        if (inheritEnv) {
-            const PATH_WIN = "Path";
-            const PATH_UNIX = "PATH";
-            if (this.platform === "windows") {
-                let path = process.env[PATH_WIN];
-                if (path) {
-                    path = path.replace(/\\/g, "/");
-                    if (out[PATH_WIN] && !out[PATH_WIN].includes(path)) {
-                        out[PATH_WIN] = `${out[PATH_WIN]};${path}`;
-                    }
-                }
-            } else {
-                let path = process.env[PATH_UNIX];
-                if (path) {
-                    if (out[PATH_UNIX] && !out[PATH_UNIX].includes(path)) {
-                        out[PATH_UNIX] = `${out[PATH_UNIX]}:${path}`;
-                    }
-                }
-            }
-        }
-
-        return out;
-    };
-
-    private getPlatform = (): VSCodePlatform => {
-        const nodePlatform = os.platform();
-        if (nodePlatform === "win32") {
-            return "windows";
-        } else if (nodePlatform === "darwin") {
-            return "osx";
-        } else {
-            return "linux";
-        }
-    };
-
-    constructor(context: ExtensionContext) {
+    constructor(
+        context: ExtensionContext,
+        public platform: VSCodePlatform,
+        public cwd: string,
+        public buildJsonPath: string
+    ) {
         this.terminalController = new TerminalController();
         this.workspaceState = context.workspaceState;
-        this.platform = this.getPlatform();
 
         this.statusBarChaletCommand = window.createStatusBarItem(StatusBarAlignment.Left, 4);
         this.addStatusBarCommand(
@@ -163,31 +83,10 @@ class ChaletToolsExtension {
         this.statusBarDoAction = window.createStatusBarItem(StatusBarAlignment.Left, 1);
         this.addStatusBarCommand(context, this.statusBarDoAction, "runChalet", this.actionRunChalet);
 
-        // context.subscriptions.push(window.onDidChangeActiveTextEditor(this.updateStatusBarItems));
-        // context.subscriptions.push(window.onDidChangeTextEditorSelection(this.updateStatusBarItems));
-
         this.chaletCommand = this.workspaceState.get("chaletCommand", ChaletCommands.BuildRun);
         this.buildArchitecture = this.workspaceState.get("buildArchitecture", BuildArchitecture.x64);
 
         this.buildConfiguration = this.workspaceState.get("buildConfiguration", null);
-
-        if (vscode.window.activeTextEditor) {
-            let workspaceFolder = workspace.getWorkspaceFolder(vscode.window.activeTextEditor.document.uri);
-            if (workspaceFolder) {
-                this.workspaceRoot = workspaceFolder.uri;
-                const buildJsonUri = Uri.joinPath(this.workspaceRoot, "build.json");
-                this.handleBuildJsonChange();
-
-                fs.watchFile(buildJsonUri.fsPath, { interval: 2000 }, (_curr, _prev) => {
-                    this.handleBuildJsonChange();
-                    this.updateStatusBarItems();
-                });
-            }
-        }
-        // console.log(this.workspaceRoot);
-
-        // let script = Uri.joinPath(context.extensionUri, "scripts", "run-chalet.sh");
-        // this.runScriptPath = script.fsPath;
 
         this.updateStatusBarItems();
     }
@@ -227,43 +126,39 @@ class ChaletToolsExtension {
         }
     };
 
-    private handleBuildJsonChange = () => {
-        if (this.workspaceRoot) {
-            const buildJsonUri = Uri.joinPath(this.workspaceRoot, "build.json");
-            const rawData = fs.readFileSync(buildJsonUri.fsPath, "utf8");
-            const buildJson = CommentJSON.parse(rawData, undefined, true);
-            let configurations: any = buildJson["configurations"];
-            if (configurations) {
-                if (Array.isArray(configurations)) {
-                    this.buildConfigurationMenu = configurations.reduce((out: string[], item) => {
-                        if (typeof item === "string") {
-                            if (
-                                item === BuildConfigurations.Debug ||
-                                item === BuildConfigurations.Release ||
-                                item === BuildConfigurations.RelWithDebInfo ||
-                                item === BuildConfigurations.MinSizeRel
-                            )
-                                out.push(item);
-                        } else {
-                            if (item.name) out.push(item.name);
-                        }
-                        return out;
-                    }, [] as string[]);
-
-                    if (
-                        (this.buildConfigurationMenu.length > 0 && this.buildConfiguration === null) ||
-                        (this.buildConfiguration !== null &&
-                            !this.buildConfigurationMenu.includes(this.buildConfiguration))
-                    ) {
-                        this.setBuildConfiguration(this.buildConfigurationMenu[0]);
+    handleBuildJsonChange = () => {
+        const rawData = fs.readFileSync(this.buildJsonPath, "utf8");
+        const buildJson = CommentJSON.parse(rawData, undefined, true);
+        let configurations: any = buildJson["configurations"];
+        if (configurations) {
+            if (Array.isArray(configurations)) {
+                this.buildConfigurationMenu = configurations.reduce((out: string[], item) => {
+                    if (typeof item === "string") {
+                        if (
+                            item === BuildConfigurations.Debug ||
+                            item === BuildConfigurations.Release ||
+                            item === BuildConfigurations.RelWithDebInfo ||
+                            item === BuildConfigurations.MinSizeRel
+                        )
+                            out.push(item);
+                    } else {
+                        if (item.name) out.push(item.name);
                     }
+                    return out;
+                }, [] as string[]);
 
-                    if (this.buildConfiguration !== null && this.buildConfigurationMenu.length === 0) {
-                        this.setBuildConfiguration(null);
-                    }
-
-                    return;
+                if (
+                    (this.buildConfigurationMenu.length > 0 && this.buildConfiguration === null) ||
+                    (this.buildConfiguration !== null && !this.buildConfigurationMenu.includes(this.buildConfiguration))
+                ) {
+                    this.setBuildConfiguration(this.buildConfigurationMenu[0]);
                 }
+
+                if (this.buildConfiguration !== null && this.buildConfigurationMenu.length === 0) {
+                    this.setBuildConfiguration(null);
+                }
+
+                return;
             }
         }
 
@@ -308,13 +203,13 @@ class ChaletToolsExtension {
         }
 
         if (this.terminalController) {
-            const env = this.getTerminalEnv();
+            const env = getTerminalEnv(this.platform);
             await this.terminalController.execute({
                 name: "Chalet",
-                cwd: this.workspaceRoot?.fsPath,
+                cwd: this.cwd,
                 env,
                 autoClear: false,
-                shellPath: "chalet",
+                shellPath: ChaletVersion.Debug,
                 shellArgs,
                 onStart: () => {
                     console.log("chalet started");
@@ -329,7 +224,7 @@ class ChaletToolsExtension {
         }
     };
 
-    private updateStatusBarItems = () => {
+    updateStatusBarItems = () => {
         this.updateStatusBarItem(this.statusBarChaletCommand, this.chaletCommand);
 
         if (this.usesBuildConfiguration()) {

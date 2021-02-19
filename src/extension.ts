@@ -1,21 +1,15 @@
-import * as vscode from "vscode";
 import { ExtensionContext } from "vscode";
-import { ChaletToolsExtension } from "./ChaletToolsExtension";
+import { ChaletToolsLoader } from "./ChaletToolsLoader";
 
-// import { helloWorld } from "./Commands";
-
-let chaletExtension: ChaletToolsExtension | null = null;
+let extensionLoader: ChaletToolsLoader | null = null;
 
 export function activate(context: ExtensionContext) {
-    // console.log('Congratulations, your extension "chalet-tools" is now active!');
-
-    chaletExtension = new ChaletToolsExtension(context);
+    extensionLoader = new ChaletToolsLoader(context);
 }
 
-// this method is called when your extension is deactivated
 export function deactivate() {
-    if (chaletExtension) {
-        chaletExtension.deactivate();
+    if (extensionLoader) {
+        extensionLoader.deactivate();
     }
-    chaletExtension = null;
+    extensionLoader = null;
 }
