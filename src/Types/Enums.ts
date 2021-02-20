@@ -16,6 +16,7 @@ export enum BuildConfigurations {
     Release = "Release",
     RelWithDebInfo = "RelWithDebInfo",
     MinSizeRel = "MinSizeRel",
+    Profile = "Profile",
 }
 
 export enum BuildArchitecture {

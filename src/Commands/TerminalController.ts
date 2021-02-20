@@ -83,7 +83,7 @@ export class TerminalController {
         this.writeEmitter = null;
         this.closeEmitter = null;
 
-        this.terminal?.dispose();
+        this.deactivate();
     };
 
     execute = async ({ autoClear, name, cwd, env, onStart, onSuccess, onFailure, ...options }: TerminalOptions) => {
@@ -109,7 +109,7 @@ export class TerminalController {
                     } else {
                         // newline characters within data get replaced with \r somewhere in terminal.sendText
                         data = data.replace(/\r/g, "\r\n");
-                        console.log(data);
+                        console.log(data.slice(0, data.length - 1));
                         this.writeEmitter?.fire(data);
                     }
                 },

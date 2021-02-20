@@ -126,6 +126,7 @@ class ChaletToolsExtension {
             BuildConfigurations.Release,
             BuildConfigurations.RelWithDebInfo,
             BuildConfigurations.MinSizeRel,
+            BuildConfigurations.Profile,
         ];
 
         if (this.buildConfiguration === null || !this.buildConfigurationMenu.includes(this.buildConfiguration)) {
@@ -145,7 +146,8 @@ class ChaletToolsExtension {
                             item === BuildConfigurations.Debug ||
                             item === BuildConfigurations.Release ||
                             item === BuildConfigurations.RelWithDebInfo ||
-                            item === BuildConfigurations.MinSizeRel
+                            item === BuildConfigurations.MinSizeRel ||
+                            item === BuildConfigurations.Profile
                         )
                             out.push(item);
                     } else {
