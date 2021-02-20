@@ -6,8 +6,8 @@ import {
     EventEmitter,
     Pseudoterminal,
 } from "vscode";
-import { ChildProcessWithoutNullStreams, spawn } from "child_process";
-import * as treeKill from "tree-kill";
+import * as subprocess from "child_process";
+import { ChildProcessWithoutNullStreams, SpawnOptionsWithoutStdio } from "child_process";
 import { Dictionary, Optional } from "../Types";
 
 // suppress:
@@ -28,8 +28,9 @@ type TerminalOptions = {
 };
 
 export class TerminalController {
-    subprocess: ChildProcessWithoutNullStreams | null = null;
-    writeEmitter: EventEmitter<string> = new EventEmitter<string>();
+    subprocess: Optional<ChildProcessWithoutNullStreams> = null;
+    writeEmitter: Optional<EventEmitter<string>> = null;
+    closeEmitter: Optional<EventEmitter<void | number>> = null;
     terminal: Terminal | null = null;
     interrupted: boolean = false;
 
@@ -54,26 +55,50 @@ export class TerminalController {
 
     deactivate = () => {
         this.haltSubProcess();
-        if (this.terminal) {
-            this.terminal.dispose();
-            this.terminal = null;
+        this.terminal?.dispose();
+        this.terminal = null;
+    };
+
+    haltSubProcess = (signal: Optional<NodeJS.Signals> = null) => {
+        if (this.subprocess) {
+            if (!this.subprocess.killed && this.subprocess.pid) {
+                this.subprocess.stdout.pause();
+                this.subprocess.stderr.pause();
+                if (signal) {
+                    this.subprocess.kill(signal);
+                } else {
+                    this.subprocess.kill();
+                }
+            }
+            this.subprocess = null;
         }
     };
 
-    haltSubProcess = () => {
-        if (this.subprocess) {
-            if (!this.subprocess.killed) {
-                this.subprocess.stdout.pause();
-                this.subprocess.stderr.pause();
-                treeKill(this.subprocess.pid);
-            }
-        }
+    closeTerminal = () => {
+        this.haltSubProcess();
+
+        this.writeEmitter?.dispose();
+        this.closeEmitter?.dispose();
+
+        this.writeEmitter = null;
+        this.closeEmitter = null;
+
+        this.terminal?.dispose();
     };
 
     execute = async ({ autoClear, name, cwd, env, onStart, onSuccess, onFailure, ...options }: TerminalOptions) => {
         try {
+            this.haltSubProcess();
+
+            if (this.writeEmitter === null) {
+                this.writeEmitter = new EventEmitter<string>();
+            }
+            if (this.closeEmitter === null) {
+                this.closeEmitter = new EventEmitter<void | number>();
+            }
             const pty: Pseudoterminal = {
                 onDidWrite: this.writeEmitter.event,
+                onDidClose: this.closeEmitter.event,
                 handleInput: (data: string) => {
                     if (!this.subprocess) return;
                     // console.log(JSON.stringify(data)); // logs escape characters
@@ -83,13 +108,13 @@ export class TerminalController {
                         this.interrupted = true;
                     } else {
                         // newline characters within data get replaced with \r somewhere in terminal.sendText
-                        this.writeEmitter.fire(data.replace(/\r/g, "\r\n"));
+                        data = data.replace(/\r/g, "\r\n");
+                        console.log(data);
+                        this.writeEmitter?.fire(data);
                     }
                 },
                 open: () => {},
-                close: () => {
-                    this.haltSubProcess();
-                },
+                close: this.closeTerminal,
             };
             this.interrupted = false;
             this.terminal = this.createTerminal({
@@ -101,18 +126,16 @@ export class TerminalController {
                 await commands.executeCommand("workbench.action.terminal.clear");
             }
 
-            this.haltSubProcess();
-
             // console.log(cwd);
             // console.log(env);
 
             const shellArgs: string[] = options.shellArgs ?? [];
             // console.log(options.shellPath, shellArgs.join(" "));
-            let spawnOptions: any = {
+            const spawnOptions: SpawnOptionsWithoutStdio = {
                 cwd: cwd ?? "",
                 env,
             };
-            this.subprocess = spawn(options.shellPath, shellArgs, spawnOptions);
+            this.subprocess = subprocess.spawn(options.shellPath, shellArgs, spawnOptions);
             onStart?.();
 
             this.subprocess.on("error", (err: Error) => {
@@ -123,34 +146,48 @@ export class TerminalController {
                     console.error(err.message);
                     console.error(err.stack);
                 }
+                setTimeout(this.haltSubProcess, 250);
             });
 
             this.subprocess.stdout.on("data", (data: Buffer) => {
                 if (!this.subprocess) return;
-
-                // console.log(data.toString());
-                this.terminal?.sendText(data.toString());
+                this.terminal?.sendText(data.toString(), false);
             });
 
             this.subprocess.stderr.on("data", (data: Buffer) => {
                 if (!this.subprocess) return;
-
-                // console.log(data.toString());
-                this.terminal?.sendText(data.toString());
+                this.terminal?.sendText(data.toString(), false);
             });
 
-            this.subprocess.on("close", (code: number, signal: Optional<NodeJS.Signals>) => {
+            this.subprocess.on("close", (code: Optional<number>, signal: Optional<NodeJS.Signals>) => {
                 let color: number = 37;
-                if (this.interrupted) {
-                    this.terminal?.sendText(`\x1b[1;${color}m\r\n${name} exited with code: 2 (Interrupt)\r\n\x1b[0m`);
+                if (this.terminal) {
+                    if (this.interrupted) {
+                        this.terminal.sendText(
+                            `\x1b[1;${color}m\r\n${name} exited with code: 2 (Interrupt)\r\n\x1b[0m`,
+                            false
+                        );
+                    } else if (code === null) {
+                        this.terminal.sendText(`\x1b[1;${color}m\r\n${name} exited\r\n\x1b[0m`, false);
+                    } else {
+                        if (code === -2) {
+                            this.terminal.sendText(
+                                `\x1b[1;${color}m\r\n\x1b[1;31mCritial Error:\x1b[0m ${options.shellPath} was not found in PATH\r\n\x1b[0m`,
+                                false
+                            );
+                        } else {
+                            this.terminal.sendText(
+                                `\x1b[1;${color}m\r\n${name} exited with code: ${code}\r\n\x1b[0m`,
+                                false
+                            );
+                        }
+                    }
+
+                    if (code) onSuccess?.(code, signal);
+                    setTimeout(this.haltSubProcess, 250);
                 } else {
-                    this.terminal?.sendText(`\x1b[1;${color}m\r\n${name} exited with code: ${code}\r\n\x1b[0m`);
+                    this.haltSubProcess();
                 }
-
-                onSuccess?.(code, signal);
-
-                // pty.close();
-                // terminal.dispose();
             });
 
             if (this.terminal !== window.activeTerminal) {

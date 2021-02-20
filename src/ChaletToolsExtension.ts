@@ -199,35 +199,39 @@ class ChaletToolsExtension {
     };
 
     private actionRunChalet = async () => {
-        let shellArgs: string[] = [];
+        try {
+            let shellArgs: string[] = [];
 
-        shellArgs.push(this.getCommandFromLabel(this.chaletCommand));
+            shellArgs.push(this.getCommandFromLabel(this.chaletCommand));
 
-        if (this.usesBuildConfiguration()) {
-            if (this.buildConfiguration) {
-                shellArgs.push(this.buildConfiguration);
+            if (this.usesBuildConfiguration()) {
+                if (this.buildConfiguration) {
+                    shellArgs.push(this.buildConfiguration);
+                }
             }
-        }
 
-        if (this.terminalController) {
-            const env = getTerminalEnv(this.platform);
-            await this.terminalController.execute({
-                name: "Chalet",
-                cwd: this.cwd,
-                env,
-                autoClear: false,
-                shellPath: ChaletVersion.Debug,
-                shellArgs,
-                onStart: () => {
-                    console.log("chalet started");
-                },
-                onSuccess: () => {
-                    console.log("chalet finished");
-                },
-                onFailure: () => {
-                    console.log("chalet errored!");
-                },
-            });
+            if (this.terminalController) {
+                const env = getTerminalEnv(this.platform);
+                await this.terminalController.execute({
+                    name: "Chalet",
+                    cwd: this.cwd,
+                    env,
+                    autoClear: false,
+                    shellPath: ChaletVersion.Release,
+                    shellArgs,
+                    onStart: () => {
+                        // console.log("chalet started");
+                    },
+                    onSuccess: () => {
+                        // console.log("chalet finished");
+                    },
+                    /*onFailure: () => {
+                        console.log("chalet errored!");
+                    },*/
+                });
+            }
+        } catch (err) {
+            console.error(err);
         }
     };
 

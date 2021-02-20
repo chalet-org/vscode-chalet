@@ -56,7 +56,6 @@
 		"glob": "^7.1.6",
 		"mocha": "^8.1.3",
 		"prettier": "^2.1.2",
-		"tree-kill": "^1.2.2",
 		"typescript": "^4.0.2",
 		"vscode-test": "^1.4.0"
 	}
