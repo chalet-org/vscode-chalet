@@ -18,14 +18,19 @@ class ChaletToolsLoader {
         this.context = context;
         this.platform = this.getPlatform();
 
-        context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(this.activate));
+        context.subscriptions.push(
+            vscode.window.onDidChangeActiveTextEditor((ev) => {
+                this.deactivate();
+                this.activate(ev);
+            })
+        );
 
-        this.activate();
+        this.activate(vscode.window.activeTextEditor);
     }
 
-    private activate = () => {
-        if (vscode.window.activeTextEditor) {
-            let workspaceFolder = workspace.getWorkspaceFolder(vscode.window.activeTextEditor.document.uri);
+    private activate = (editor?: vscode.TextEditor) => {
+        if (editor) {
+            let workspaceFolder = workspace.getWorkspaceFolder(editor.document.uri);
             if (workspaceFolder) {
                 const workspaceRoot = workspaceFolder.uri;
                 this.cwd = workspaceRoot.fsPath;
