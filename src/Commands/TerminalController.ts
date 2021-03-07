@@ -82,6 +82,24 @@ export class TerminalController {
         }
     };
 
+    // Terminal callbacks
+    onTerminalInput = (data: string) => {
+        if (!this.subprocess) return;
+        // console.log(JSON.stringify(data)); // logs escape characters
+        // CTRL+C
+        if (data === "\u0003") {
+            this.haltSubProcess();
+            this.interrupted = true;
+        } else {
+            // newline characters within data get replaced with \r somewhere in terminal.sendText
+            data = data.replace(/\r/g, "\r\n");
+            console.log(data.slice(0, data.length - 1));
+            this.writeEmitter?.fire(data);
+        }
+    };
+
+    openTerminal = () => {};
+
     closeTerminal = () => {
         this.haltSubProcess();
 
@@ -94,7 +112,6 @@ export class TerminalController {
         this.deactivate();
     };
 
-    // Terminal callbacks
     onTerminaStdOut = (data: Buffer) => {
         if (!this.subprocess) return;
         this.terminal?.sendText(data.toString(), false);
@@ -160,21 +177,8 @@ export class TerminalController {
             const pty: Pseudoterminal = {
                 onDidWrite: this.writeEmitter.event,
                 onDidClose: this.closeEmitter.event,
-                handleInput: (data: string) => {
-                    if (!this.subprocess) return;
-                    // console.log(JSON.stringify(data)); // logs escape characters
-                    // CTRL+C
-                    if (data === "\u0003") {
-                        this.haltSubProcess();
-                        this.interrupted = true;
-                    } else {
-                        // newline characters within data get replaced with \r somewhere in terminal.sendText
-                        data = data.replace(/\r/g, "\r\n");
-                        console.log(data.slice(0, data.length - 1));
-                        this.writeEmitter?.fire(data);
-                    }
-                },
-                open: () => {},
+                handleInput: this.onTerminalInput,
+                open: this.openTerminal,
                 close: this.closeTerminal,
             };
             this.interrupted = false;
