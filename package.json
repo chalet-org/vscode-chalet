@@ -17,8 +17,20 @@
 	"contributes": {
 		"commands": [
 			{
-				"command": "chalet-tools.helloWorld",
-				"title": "Hello World"
+				"command": "chalet-tools.runChalet",
+				"title": "Chalet Tools: Run Chalet Command"
+			},
+			{
+				"command": "chalet-tools.chaletCommand",
+				"title": "Chalet Tools: Change Chalet Command"
+			},
+			{
+				"command": "chalet-tools.buildArchitecture",
+				"title": "Chalet Tools: Change Build Architecture"
+			},
+			{
+				"command": "chalet-tools.buildConfiguration",
+				"title": "Chalet Tools: Change Build Configuration"
 			}
 		],
 		"jsonValidation": [
