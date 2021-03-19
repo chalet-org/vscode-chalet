@@ -24,11 +24,19 @@ class ChaletToolsLoader {
     }
 
     private activate = (editor?: vscode.TextEditor) => {
+        console.log("ChaletToolsLoader.activate()");
         if (editor) {
             let workspaceFolder = workspace.getWorkspaceFolder(editor.document.uri);
             if (workspaceFolder) {
+                if (this.extension === null) {
+                    this.extension = new ChaletToolsExtension(this.context, this.platform);
+                }
+                this.extension.setEnabled(true);
+
                 const workspaceRoot = workspaceFolder.uri;
-                if (this.cwd == workspaceRoot.fsPath) return; // already watching the workspace
+                if (this.cwd === workspaceRoot.fsPath) {
+                    return; // already watching the workspace
+                }
 
                 this.cwd = workspaceRoot.fsPath;
 
@@ -36,20 +44,24 @@ class ChaletToolsLoader {
                 this.buildJsonPath = buildJsonUri.fsPath;
 
                 if (fs.existsSync(this.buildJsonPath)) {
-                    this.extension = new ChaletToolsExtension(
-                        this.context,
-                        this.platform,
-                        this.cwd,
-                        this.buildJsonPath
-                    );
+                    this.extension.setWorkingDirectory(this.cwd);
+                    this.extension.setBuildJsonPath(this.buildJsonPath);
                     this.extension.handleBuildJsonChange();
 
                     fs.watchFile(this.buildJsonPath, { interval: 2000 }, this.onBuildJsonChange);
                     return;
                 }
+            } else {
+                console.log("workspaceFolder", workspaceFolder);
+                return;
             }
+        } else {
+            console.log("editor", editor);
         }
-        this.deactivate();
+
+        if (this.extension) {
+            this.extension.setEnabled(false);
+        }
     };
 
     private onBuildJsonChange = (_curr: fs.Stats, _prev: fs.Stats) => {
@@ -60,10 +72,13 @@ class ChaletToolsLoader {
     };
 
     deactivate = () => {
-        if (this.extension !== null) {
+        console.log("ChaletToolsLoader.deactivate()");
+        if (this.extension) {
             this.extension.deactivate();
             this.extension = null;
         }
+        this.buildJsonPath = null;
+        this.cwd = null;
     };
 
     private getPlatform = (): VSCodePlatform => {

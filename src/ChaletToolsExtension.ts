@@ -11,6 +11,7 @@ import {
     VSCodePlatform,
 } from "./Types/Enums";
 import { getTerminalEnv } from "./Functions";
+import { Optional } from "./Types";
 
 class ChaletToolsExtension {
     chaletCommand: ChaletCommands;
@@ -26,7 +27,7 @@ class ChaletToolsExtension {
         ChaletCommands.Configure,
     ];
 
-    buildConfiguration: string | null = null;
+    buildConfiguration: Optional<string> = null;
     statusBarBuildConfiguration: StatusBarItem;
     buildConfigurationMenu: (BuildConfigurations | string)[] = [];
 
@@ -37,9 +38,13 @@ class ChaletToolsExtension {
     doActionIcon: string = "$(play)";
     statusBarDoAction: StatusBarItem;
 
-    terminalController: TerminalController | null = null;
+    terminalController: Optional<TerminalController> = null;
 
     workspaceState: Memento;
+
+    enabled: boolean = false;
+    cwd: string = "";
+    buildJsonPath: string = "build.json";
 
     private addStatusBarCommand = (
         { subscriptions }: ExtensionContext,
@@ -51,15 +56,11 @@ class ChaletToolsExtension {
         subscriptions.push(commands.registerCommand(command, onClick));
 
         statusBarItem.command = command;
+        statusBarItem.show();
         subscriptions.push(statusBarItem);
     };
 
-    constructor(
-        context: ExtensionContext,
-        public platform: VSCodePlatform,
-        public cwd: string,
-        public buildJsonPath: string
-    ) {
+    constructor(context: ExtensionContext, public platform: VSCodePlatform) {
         this.terminalController = new TerminalController();
         this.workspaceState = context.workspaceState;
 
@@ -103,6 +104,37 @@ class ChaletToolsExtension {
             this.terminalController.haltSubProcess();
         }
         this.terminalController = null;
+
+        this.statusBarChaletCommand.dispose();
+        this.statusBarBuildConfiguration.dispose();
+        this.statusBarBuildArchitecture.dispose();
+        this.statusBarDoAction.dispose();
+    };
+
+    setEnabled = (enabled: boolean) => {
+        if (this.enabled === enabled) return;
+
+        this.enabled = enabled;
+
+        if (this.enabled) {
+            this.statusBarChaletCommand.show();
+            this.statusBarBuildConfiguration.show();
+            this.statusBarBuildArchitecture.show();
+            this.statusBarDoAction.show();
+        } else {
+            this.statusBarChaletCommand.hide();
+            this.statusBarBuildConfiguration.hide();
+            this.statusBarBuildArchitecture.hide();
+            this.statusBarDoAction.hide();
+        }
+    };
+
+    setWorkingDirectory = (cwd: string) => {
+        this.cwd = cwd;
+    };
+
+    setBuildJsonPath = (path: string) => {
+        this.buildJsonPath = path;
     };
 
     private setChaletCommand = async (value: ChaletCommands) => {
@@ -200,6 +232,18 @@ class ChaletToolsExtension {
         this.updateStatusBarItems();
     };
 
+    private onTerminalStart = () => {
+        // console.log("chalet started");
+    };
+
+    private onTerminalSuccess = () => {
+        // console.log("chalet finished");
+    };
+
+    private onTerminalFailure = () => {
+        console.log("chalet errored!");
+    };
+
     private actionRunChalet = async () => {
         try {
             let shellArgs: string[] = [];
@@ -221,15 +265,9 @@ class ChaletToolsExtension {
                     autoClear: false,
                     shellPath: ChaletVersion.Release,
                     shellArgs,
-                    onStart: () => {
-                        // console.log("chalet started");
-                    },
-                    onSuccess: () => {
-                        // console.log("chalet finished");
-                    },
-                    /*onFailure: () => {
-                        console.log("chalet errored!");
-                    },*/
+                    onStart: this.onTerminalStart,
+                    onSuccess: this.onTerminalSuccess,
+                    onFailure: this.onTerminalFailure,
                 });
             }
         } catch (err) {
