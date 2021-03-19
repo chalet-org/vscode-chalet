@@ -243,7 +243,10 @@ class ChaletToolsExtension {
         if (this.usesBuildConfiguration()) {
             this.updateStatusBarItem(
                 this.statusBarBuildConfiguration,
-                this.buildConfiguration ?? BuildConfigurations.Invalid
+                this.buildConfiguration ??
+                    (this.buildConfigurationMenu.length > 0
+                        ? this.buildConfigurationMenu[0]
+                        : BuildConfigurations.Invalid)
             );
             this.updateStatusBarItem(this.statusBarBuildArchitecture, this.buildArchitecture);
         } else {

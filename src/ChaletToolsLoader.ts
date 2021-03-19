@@ -18,12 +18,7 @@ class ChaletToolsLoader {
         this.context = context;
         this.platform = this.getPlatform();
 
-        context.subscriptions.push(
-            vscode.window.onDidChangeActiveTextEditor((ev) => {
-                this.deactivate();
-                this.activate(ev);
-            })
-        );
+        context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(this.activate));
 
         this.activate(vscode.window.activeTextEditor);
     }
@@ -33,6 +28,8 @@ class ChaletToolsLoader {
             let workspaceFolder = workspace.getWorkspaceFolder(editor.document.uri);
             if (workspaceFolder) {
                 const workspaceRoot = workspaceFolder.uri;
+                if (this.cwd == workspaceRoot.fsPath) return; // already watching the workspace
+
                 this.cwd = workspaceRoot.fsPath;
 
                 const buildJsonUri = Uri.joinPath(workspaceRoot, "build.json"); // TODO: get from local/global settings
@@ -47,17 +44,19 @@ class ChaletToolsLoader {
                     );
                     this.extension.handleBuildJsonChange();
 
-                    fs.watchFile(this.buildJsonPath, { interval: 2000 }, (_curr, _prev) => {
-                        if (this.extension) {
-                            this.extension.handleBuildJsonChange();
-                            this.extension.updateStatusBarItems();
-                        }
-                    });
+                    fs.watchFile(this.buildJsonPath, { interval: 2000 }, this.onBuildJsonChange);
                     return;
                 }
             }
         }
         this.deactivate();
+    };
+
+    private onBuildJsonChange = (_curr: fs.Stats, _prev: fs.Stats) => {
+        if (this.extension) {
+            this.extension.handleBuildJsonChange();
+            this.extension.updateStatusBarItems();
+        }
     };
 
     deactivate = () => {
