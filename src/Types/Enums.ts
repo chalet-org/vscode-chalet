@@ -42,4 +42,5 @@ export enum CommandId {
     ChaletCommand = "chaletCommand",
     BuildArchitecture = "buildArchitecture",
     BuildConfiguration = "buildConfiguration",
+    MakeDebugBuild = "makeDebugBuild",
 }

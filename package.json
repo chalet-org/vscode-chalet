@@ -31,6 +31,10 @@
 			{
 				"command": "chalet-tools.buildConfiguration",
 				"title": "Chalet Tools: Change Build Configuration"
+			},
+			{
+				"command": "chalet-tools.makeDebugBuild",
+				"title": "Chalet Tools: Make Debug Build"
 			}
 		],
 		"jsonValidation": [

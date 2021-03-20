@@ -24,7 +24,6 @@ class ChaletToolsLoader {
     }
 
     private activate = (editor?: vscode.TextEditor) => {
-        console.log("ChaletToolsLoader.activate()");
         if (editor) {
             let workspaceFolder = workspace.getWorkspaceFolder(editor.document.uri);
             if (workspaceFolder) {
@@ -47,16 +46,12 @@ class ChaletToolsLoader {
                     this.extension.setWorkingDirectory(this.cwd);
                     this.extension.setBuildJsonPath(this.buildJsonPath);
                     this.extension.handleBuildJsonChange();
+                    this.extension.updateStatusBarItems();
 
                     fs.watchFile(this.buildJsonPath, { interval: 2000 }, this.onBuildJsonChange);
                     return;
                 }
-            } else {
-                console.log("workspaceFolder", workspaceFolder);
-                return;
             }
-        } else {
-            console.log("editor", editor);
         }
 
         if (this.extension) {
@@ -72,7 +67,6 @@ class ChaletToolsLoader {
     };
 
     deactivate = () => {
-        console.log("ChaletToolsLoader.deactivate()");
         if (this.extension) {
             this.extension.deactivate();
             this.extension = null;

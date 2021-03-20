@@ -64,6 +64,11 @@ class ChaletToolsExtension {
         this.terminalController = new TerminalController();
         this.workspaceState = context.workspaceState;
 
+        {
+            const command: string = `chalet-tools.${CommandId.MakeDebugBuild}`;
+            context.subscriptions.push(commands.registerCommand(command, this.actionMakeDebugBuild));
+        }
+
         this.statusBarChaletCommand = window.createStatusBarItem(StatusBarAlignment.Left, 4);
         this.addStatusBarCommand(
             context,
@@ -95,8 +100,6 @@ class ChaletToolsExtension {
         this.buildArchitecture = this.workspaceState.get(CommandId.BuildArchitecture, BuildArchitecture.x64);
 
         this.buildConfiguration = this.workspaceState.get(CommandId.BuildConfiguration, null);
-
-        this.updateStatusBarItems();
     }
 
     deactivate = () => {
@@ -142,7 +145,7 @@ class ChaletToolsExtension {
         await this.workspaceState.update(CommandId.ChaletCommand, value);
     };
 
-    private setBuildConfiguration = async (value: string | null) => {
+    private setBuildConfiguration = async (value: Optional<string>) => {
         this.buildConfiguration = value;
         await this.workspaceState.update(CommandId.BuildConfiguration, value);
     };
@@ -244,15 +247,15 @@ class ChaletToolsExtension {
         console.log("chalet errored!");
     };
 
-    private actionRunChalet = async () => {
+    private runChalet = async (command: ChaletCommands, buildConfig: Optional<string>) => {
         try {
             let shellArgs: string[] = [];
 
-            shellArgs.push(this.getCommandFromLabel(this.chaletCommand));
+            shellArgs.push(this.getCommandFromLabel(command));
 
-            if (this.usesBuildConfiguration()) {
-                if (this.buildConfiguration) {
-                    shellArgs.push(this.buildConfiguration);
+            if (this.usesBuildConfiguration(command)) {
+                if (buildConfig) {
+                    shellArgs.push(buildConfig);
                 }
             }
 
@@ -275,10 +278,14 @@ class ChaletToolsExtension {
         }
     };
 
+    private actionRunChalet = () => this.runChalet(this.chaletCommand, this.buildConfiguration);
+
+    private actionMakeDebugBuild = () => this.runChalet(ChaletCommands.Build, BuildConfigurations.Debug);
+
     updateStatusBarItems = () => {
         this.updateStatusBarItem(this.statusBarChaletCommand, this.chaletCommand);
 
-        if (this.usesBuildConfiguration()) {
+        if (this.usesBuildConfiguration(this.chaletCommand)) {
             this.updateStatusBarItem(
                 this.statusBarBuildConfiguration,
                 this.buildConfiguration ??
@@ -300,13 +307,13 @@ class ChaletToolsExtension {
         item.show();
     };
 
-    private usesBuildConfiguration = (): boolean => {
+    private usesBuildConfiguration = (command: ChaletCommands): boolean => {
         return (
-            this.chaletCommand === ChaletCommands.Build ||
-            this.chaletCommand === ChaletCommands.Run ||
-            this.chaletCommand === ChaletCommands.BuildRun ||
-            this.chaletCommand === ChaletCommands.Rebuild ||
-            this.chaletCommand === ChaletCommands.Clean
+            command === ChaletCommands.Build ||
+            command === ChaletCommands.Run ||
+            command === ChaletCommands.BuildRun ||
+            command === ChaletCommands.Rebuild ||
+            command === ChaletCommands.Clean
         );
     };
 
