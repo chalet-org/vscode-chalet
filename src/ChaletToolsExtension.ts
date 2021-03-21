@@ -1,5 +1,5 @@
 import * as fs from "fs";
-import { window, commands, StatusBarAlignment, ExtensionContext, StatusBarItem, Memento } from "vscode";
+import { window, workspace, commands, StatusBarAlignment, ExtensionContext, StatusBarItem, Memento } from "vscode";
 import * as CommentJSON from "comment-json";
 import { TerminalController } from "./Commands";
 import {
@@ -42,6 +42,7 @@ class ChaletToolsExtension {
 
     workspaceState: Memento;
 
+    useDebugChalet: boolean = false;
     enabled: boolean = false;
     cwd: string = "";
     buildJsonPath: string = "build.json";
@@ -138,6 +139,17 @@ class ChaletToolsExtension {
 
     setBuildJsonPath = (path: string) => {
         this.buildJsonPath = path;
+    };
+
+    getExtensionSettings = () => {
+        const workbenchConfig = workspace.getConfiguration("chalet-tools");
+        const useDebugChalet = workbenchConfig.get<boolean>("useDebugChalet");
+
+        if (useDebugChalet) {
+            if (this.useDebugChalet === useDebugChalet) return;
+
+            this.useDebugChalet = useDebugChalet;
+        }
     };
 
     private setChaletCommand = async (value: ChaletCommands) => {
@@ -266,7 +278,7 @@ class ChaletToolsExtension {
                     cwd: this.cwd,
                     env,
                     autoClear: false,
-                    shellPath: ChaletVersion.Release,
+                    shellPath: this.useDebugChalet ? ChaletVersion.Debug : ChaletVersion.Release,
                     shellArgs,
                     onStart: this.onTerminalStart,
                     onSuccess: this.onTerminalSuccess,

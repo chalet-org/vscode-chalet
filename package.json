@@ -15,6 +15,16 @@
 	],
 	"main": "./out/extension.js",
 	"contributes": {
+		"configuration": {
+			"title": "Chalet Tools",
+			"properties": {
+				"chalet-tools.useDebugChalet": {
+					"type": "boolean",
+					"default": false,
+					"description": "Use chalet-debug instead of chalet in commands"
+				}
+			}
+		},
 		"commands": [
 			{
 				"command": "chalet-tools.runChalet",

@@ -31,6 +31,7 @@ class ChaletToolsLoader {
                     this.extension = new ChaletToolsExtension(this.context, this.platform);
                 }
                 this.extension.setEnabled(true);
+                this.extension.getExtensionSettings(); // Refresh settings
 
                 const workspaceRoot = workspaceFolder.uri;
                 if (this.cwd === workspaceRoot.fsPath) {
