@@ -274,7 +274,7 @@ class ChaletToolsExtension {
             if (this.terminalController) {
                 const env = getTerminalEnv(this.platform);
                 await this.terminalController.execute({
-                    name: "Chalet",
+                    name: this.useDebugChalet ? "Chalet (Debug)" : "Chalet",
                     cwd: this.cwd,
                     env,
                     autoClear: false,
