@@ -9,6 +9,7 @@ import {
 import * as subprocess from "child_process";
 import { ChildProcessWithoutNullStreams, SpawnOptionsWithoutStdio } from "child_process";
 import { Dictionary, Optional } from "../Types";
+import * as treeKill from "tree-kill";
 
 // suppress:
 // [DEP0005] DeprecationWarning: Buffer() is deprecated due to security and usability issues. Please use the Buffer.alloc(), Buffer.allocUnsafe(), or Buffer.from() methods instead.
@@ -69,13 +70,17 @@ export class TerminalController {
 
     haltSubProcess = (signal: Optional<NodeJS.Signals> = null) => {
         if (this.subprocess) {
-            if (!this.subprocess.killed && this.subprocess.pid) {
+            if (this.subprocess.pid) {
                 this.subprocess.stdout.pause();
                 this.subprocess.stderr.pause();
                 if (signal) {
-                    this.subprocess.kill(signal);
+                    treeKill(this.subprocess.pid, signal, (err) => {
+                        console.error(err);
+                    });
                 } else {
-                    this.subprocess.kill();
+                    treeKill(this.subprocess.pid, "SIGINT", (err) => {
+                        console.error(err);
+                    });
                 }
             }
             this.subprocess = null;
@@ -88,7 +93,7 @@ export class TerminalController {
         // console.log(JSON.stringify(data)); // logs escape characters
         // CTRL+C
         if (data === "\u0003") {
-            this.haltSubProcess();
+            this.onTerminalClose(null, "SIGINT");
             this.interrupted = true;
         } else {
             // newline characters within data get replaced with \r somewhere in terminal.sendText
@@ -199,6 +204,7 @@ export class TerminalController {
             const spawnOptions: SpawnOptionsWithoutStdio = {
                 cwd: cwd ?? "",
                 env,
+                detached: true,
             };
             this.subprocess = subprocess.spawn(options.shellPath, shellArgs, spawnOptions);
             onStart?.();
