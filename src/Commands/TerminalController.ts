@@ -74,11 +74,11 @@ export class TerminalController {
                 this.subprocess.stdout.pause();
                 this.subprocess.stderr.pause();
                 if (signal) {
-                    treeKill(this.subprocess.pid, signal, (err) => {
+                    treeKill(this.subprocess.pid, signal, (err?: Error) => {
                         console.error(err);
                     });
                 } else {
-                    treeKill(this.subprocess.pid, "SIGINT", (err) => {
+                    treeKill(this.subprocess.pid, "SIGINT", (err?: Error) => {
                         console.error(err);
                     });
                 }
@@ -204,7 +204,6 @@ export class TerminalController {
             const spawnOptions: SpawnOptionsWithoutStdio = {
                 cwd: cwd ?? "",
                 env,
-                detached: true,
             };
             this.subprocess = subprocess.spawn(options.shellPath, shellArgs, spawnOptions);
             onStart?.();
