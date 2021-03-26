@@ -35,6 +35,8 @@ class ChaletToolsExtension {
     statusBarBuildArchitecture: StatusBarItem;
     buildArchitectureMenu: BuildArchitecture[] = [BuildArchitecture.x64, BuildArchitecture.x86];
 
+    runProjects: string[] = [];
+
     doActionIcon: string = "$(play)";
     statusBarDoAction: StatusBarItem;
 
@@ -218,6 +220,23 @@ class ChaletToolsExtension {
             }
         }
 
+        this.runProjects = [];
+        let projects: any = buildJson["projects"];
+        if (projects) {
+            if (Array.isArray(projects)) {
+                this.runProjects = projects.reduce((out: string[], item) => {
+                    if (typeof item === "object") {
+                        if (item.kind && (item.kind === "desktopApplication" || item.kind === "consoleApplication")) {
+                            if (!!item.runProject) out.push(item.name);
+                        }
+                    }
+                    return out;
+                }, [] as string[]);
+            }
+
+            this.updateStatusBarItems();
+        }
+
         this.setDefaultBuildConfigurations();
     };
 
@@ -311,7 +330,11 @@ class ChaletToolsExtension {
             this.statusBarBuildArchitecture.hide();
         }
 
-        this.updateStatusBarItem(this.statusBarDoAction, this.doActionIcon);
+        if (this.runProjects.length > 0) {
+            this.updateStatusBarItem(this.statusBarDoAction, `${this.doActionIcon} ${this.runProjects[0]}`);
+        } else {
+            this.updateStatusBarItem(this.statusBarDoAction, this.doActionIcon);
+        }
     };
 
     private updateStatusBarItem = (item: StatusBarItem, text: string) => {
