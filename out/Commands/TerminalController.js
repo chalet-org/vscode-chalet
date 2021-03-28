@@ -47,12 +47,14 @@ class TerminalController {
                     this.subprocess.stderr.pause();
                     if (signal) {
                         treeKill(this.subprocess.pid, signal, (err) => {
-                            console.error(err);
+                            if (err)
+                                console.error(err);
                         });
                     }
                     else {
                         treeKill(this.subprocess.pid, "SIGINT", (err) => {
-                            console.error(err);
+                            if (err)
+                                console.error(err);
                         });
                     }
                 }

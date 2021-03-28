@@ -23,6 +23,7 @@ class ChaletToolsExtension {
         this.buildConfiguration = null;
         this.buildConfigurationMenu = [];
         this.buildArchitectureMenu = [Enums_1.BuildArchitecture.x64, Enums_1.BuildArchitecture.x86];
+        this.runProjects = [];
         this.doActionIcon = "$(play)";
         this.terminalController = null;
         this.useDebugChalet = false;
@@ -130,10 +131,30 @@ class ChaletToolsExtension {
                     if (this.buildConfiguration !== null && this.buildConfigurationMenu.length === 0) {
                         this.setBuildConfiguration(null);
                     }
+                    this.setRunProjectName(buildJson);
                     return;
                 }
             }
+            this.setRunProjectName(buildJson);
             this.setDefaultBuildConfigurations();
+        };
+        this.setRunProjectName = (buildJson) => {
+            this.runProjects = [];
+            let projects = buildJson["projects"];
+            if (projects) {
+                if (Array.isArray(projects)) {
+                    this.runProjects = projects.reduce((out, item) => {
+                        if (typeof item === "object") {
+                            if (item.kind && (item.kind === "desktopApplication" || item.kind === "consoleApplication")) {
+                                if (!!item.runProject)
+                                    out.push(item.name);
+                            }
+                        }
+                        return out;
+                    }, []);
+                }
+                this.updateStatusBarItems();
+            }
         };
         this.actionChaletCommandQuickPick = async () => {
             const result = await vscode_1.window.showQuickPick(this.chaletCommandMenu);
@@ -210,7 +231,12 @@ class ChaletToolsExtension {
                 this.statusBarBuildConfiguration.hide();
                 this.statusBarBuildArchitecture.hide();
             }
-            this.updateStatusBarItem(this.statusBarDoAction, this.doActionIcon);
+            if (this.runProjects.length > 0) {
+                this.updateStatusBarItem(this.statusBarDoAction, `${this.doActionIcon} ${this.runProjects[0]}`);
+            }
+            else {
+                this.updateStatusBarItem(this.statusBarDoAction, this.doActionIcon);
+            }
         };
         this.updateStatusBarItem = (item, text) => {
             item.text = text;
