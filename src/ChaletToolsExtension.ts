@@ -335,7 +335,10 @@ class ChaletToolsExtension {
             this.statusBarBuildArchitecture.hide();
         }
 
-        if (this.runProjects.length > 0) {
+        if (
+            this.runProjects.length > 0 &&
+            (this.chaletCommand === ChaletCommands.Run || this.chaletCommand === ChaletCommands.BuildRun)
+        ) {
             this.updateStatusBarItem(this.statusBarDoAction, `${this.doActionIcon} ${this.runProjects[0]}`);
         } else {
             this.updateStatusBarItem(this.statusBarDoAction, this.doActionIcon);
