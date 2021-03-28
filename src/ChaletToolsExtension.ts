@@ -216,10 +216,17 @@ class ChaletToolsExtension {
                     this.setBuildConfiguration(null);
                 }
 
+                this.setRunProjectName(buildJson);
                 return;
             }
         }
 
+        this.setRunProjectName(buildJson);
+
+        this.setDefaultBuildConfigurations();
+    };
+
+    private setRunProjectName = (buildJson: any) => {
         this.runProjects = [];
         let projects: any = buildJson["projects"];
         if (projects) {
@@ -236,8 +243,6 @@ class ChaletToolsExtension {
 
             this.updateStatusBarItems();
         }
-
-        this.setDefaultBuildConfigurations();
     };
 
     private actionChaletCommandQuickPick = async () => {
