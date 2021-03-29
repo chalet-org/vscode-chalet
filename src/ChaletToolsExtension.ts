@@ -23,7 +23,6 @@ class ChaletToolsExtension {
         ChaletCommands.Rebuild,
         ChaletCommands.Clean,
         ChaletCommands.Bundle,
-        ChaletCommands.Install,
         ChaletCommands.Configure,
     ];
 
@@ -154,22 +153,22 @@ class ChaletToolsExtension {
         }
     };
 
-    private setChaletCommand = async (value: ChaletCommands) => {
+    private setChaletCommand = async (value: ChaletCommands): Promise<void> => {
         this.chaletCommand = value;
         await this.workspaceState.update(CommandId.ChaletCommand, value);
     };
 
-    private setBuildConfiguration = async (value: Optional<string>) => {
+    private setBuildConfiguration = async (value: Optional<string>): Promise<void> => {
         this.buildConfiguration = value;
         await this.workspaceState.update(CommandId.BuildConfiguration, value);
     };
 
-    private setBuildArchitecture = async (value: BuildArchitecture) => {
+    private setBuildArchitecture = async (value: BuildArchitecture): Promise<void> => {
         this.buildArchitecture = value;
         await this.workspaceState.update(CommandId.BuildArchitecture, value);
     };
 
-    private setDefaultBuildConfigurations = () => {
+    private setDefaultBuildConfigurations = (): void => {
         this.buildConfigurationMenu = [
             BuildConfigurations.Debug,
             BuildConfigurations.Release,
@@ -183,7 +182,7 @@ class ChaletToolsExtension {
         }
     };
 
-    handleBuildJsonChange = () => {
+    handleBuildJsonChange = (): void => {
         const rawData = fs.readFileSync(this.buildJsonPath, "utf8");
         const buildJson = CommentJSON.parse(rawData, undefined, true);
         let configurations: any = buildJson["configurations"];
@@ -226,7 +225,7 @@ class ChaletToolsExtension {
         this.setDefaultBuildConfigurations();
     };
 
-    private setRunProjectName = (buildJson: any) => {
+    private setRunProjectName = (buildJson: any): void => {
         this.runProjects = [];
         let projects: any = buildJson["projects"];
         if (projects) {
@@ -245,7 +244,7 @@ class ChaletToolsExtension {
         }
     };
 
-    private actionChaletCommandQuickPick = async () => {
+    private actionChaletCommandQuickPick = async (): Promise<void> => {
         const result = await window.showQuickPick(this.chaletCommandMenu);
         if (result) {
             this.setChaletCommand(result as ChaletCommands);
@@ -253,7 +252,7 @@ class ChaletToolsExtension {
         this.updateStatusBarItems();
     };
 
-    private actionBuildConfigurationQuickPick = async () => {
+    private actionBuildConfigurationQuickPick = async (): Promise<void> => {
         if (this.buildConfiguration === null) return;
 
         const result = await window.showQuickPick(this.buildConfigurationMenu);
@@ -263,7 +262,7 @@ class ChaletToolsExtension {
         this.updateStatusBarItems();
     };
 
-    private actionBuildArchitectureQuickPick = async () => {
+    private actionBuildArchitectureQuickPick = async (): Promise<void> => {
         const result = await window.showQuickPick(this.buildArchitectureMenu);
         if (result) {
             this.setBuildArchitecture(result as BuildArchitecture);
@@ -271,19 +270,19 @@ class ChaletToolsExtension {
         this.updateStatusBarItems();
     };
 
-    private onTerminalStart = () => {
+    private onTerminalStart = (): void => {
         // console.log("chalet started");
     };
 
-    private onTerminalSuccess = () => {
+    private onTerminalSuccess = (): void => {
         // console.log("chalet finished");
     };
 
-    private onTerminalFailure = () => {
+    private onTerminalFailure = (): void => {
         console.log("chalet errored!");
     };
 
-    private runChalet = async (command: ChaletCommands, buildConfig: Optional<string>) => {
+    private runChalet = async (command: ChaletCommands, buildConfig: Optional<string>): Promise<void> => {
         try {
             let shellArgs: string[] = [];
 
@@ -318,7 +317,7 @@ class ChaletToolsExtension {
 
     private actionMakeDebugBuild = () => this.runChalet(ChaletCommands.Build, BuildConfigurations.Debug);
 
-    updateStatusBarItems = () => {
+    updateStatusBarItems = (): void => {
         this.updateStatusBarItem(this.statusBarChaletCommand, this.chaletCommand);
 
         if (this.usesBuildConfiguration(this.chaletCommand)) {
@@ -345,7 +344,7 @@ class ChaletToolsExtension {
         }
     };
 
-    private updateStatusBarItem = (item: StatusBarItem, text: string) => {
+    private updateStatusBarItem = (item: StatusBarItem, text: string): void => {
         item.text = text;
         item.show();
     };
@@ -360,7 +359,7 @@ class ChaletToolsExtension {
         );
     };
 
-    private getCommandFromLabel = (label: ChaletCommands) => {
+    private getCommandFromLabel = (label: ChaletCommands): string => {
         switch (label) {
             case ChaletCommands.BuildRun:
                 return "buildrun";
@@ -374,8 +373,6 @@ class ChaletToolsExtension {
                 return "clean";
             case ChaletCommands.Bundle:
                 return "bundle";
-            case ChaletCommands.Install:
-                return "install";
             case ChaletCommands.Configure:
                 return "configure";
             case ChaletCommands.Init:

@@ -5,7 +5,6 @@ export enum ChaletCommands {
     Rebuild = "Rebuild",
     Clean = "Clean",
     Bundle = "Bundle",
-    Install = "Install",
     Configure = "Configure",
     Init = "Init",
 }
