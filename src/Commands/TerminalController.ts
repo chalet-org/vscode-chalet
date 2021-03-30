@@ -55,6 +55,7 @@ export class TerminalController {
 
         if (terminal) {
             // might be useful to do something here
+            terminal.show();
         } else {
             terminal = window.createTerminal(options);
         }
