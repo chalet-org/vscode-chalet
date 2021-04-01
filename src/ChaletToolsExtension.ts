@@ -121,17 +121,7 @@ class ChaletToolsExtension {
 
         this.enabled = enabled;
 
-        if (this.enabled) {
-            this.statusBarChaletCommand.show();
-            this.statusBarBuildConfiguration.show();
-            this.statusBarBuildArchitecture.show();
-            this.statusBarDoAction.show();
-        } else {
-            this.statusBarChaletCommand.hide();
-            this.statusBarBuildConfiguration.hide();
-            this.statusBarBuildArchitecture.hide();
-            this.statusBarDoAction.hide();
-        }
+        this.updateStatusBarItems();
     };
 
     setWorkingDirectory = (cwd: string) => {
@@ -297,7 +287,7 @@ class ChaletToolsExtension {
             if (this.terminalController) {
                 const env = getTerminalEnv(this.platform);
                 await this.terminalController.execute({
-                    name: this.useDebugChalet ? "Chalet (Debug)" : "Chalet",
+                    name: "Chalet" + (this.useDebugChalet ? " (Debug)" : ""),
                     cwd: this.cwd,
                     env,
                     autoClear: false,
@@ -318,6 +308,17 @@ class ChaletToolsExtension {
     private actionMakeDebugBuild = () => this.runChalet(ChaletCommands.Build, BuildConfigurations.Debug);
 
     updateStatusBarItems = (): void => {
+        if (!this.enabled) {
+            this.statusBarChaletCommand.hide();
+            this.statusBarBuildConfiguration.hide();
+            this.statusBarBuildArchitecture.hide();
+            this.statusBarDoAction.hide();
+            return;
+        }
+
+        this.statusBarChaletCommand.show();
+        this.statusBarDoAction.show();
+
         this.updateStatusBarItem(this.statusBarChaletCommand, this.chaletCommand);
 
         if (this.usesBuildConfiguration(this.chaletCommand)) {
@@ -329,6 +330,8 @@ class ChaletToolsExtension {
                         : BuildConfigurations.Invalid)
             );
             this.updateStatusBarItem(this.statusBarBuildArchitecture, this.buildArchitecture);
+            this.statusBarBuildConfiguration.show();
+            this.statusBarBuildArchitecture.show();
         } else {
             this.statusBarBuildConfiguration.hide();
             this.statusBarBuildArchitecture.hide();
