@@ -35,8 +35,6 @@ class ChaletToolsExtension {
     buildArchitectureMenu: BuildArchitecture[] = [BuildArchitecture.x64, BuildArchitecture.x86];
 
     runProjects: string[] = [];
-
-    doActionIcon: string = "$(play)";
     statusBarDoAction: StatusBarItem;
 
     terminalController: Optional<TerminalController> = null;
@@ -337,13 +335,36 @@ class ChaletToolsExtension {
             this.statusBarBuildArchitecture.hide();
         }
 
+        let icon: string = this.getIcon();
+
         if (
             this.runProjects.length > 0 &&
             (this.chaletCommand === ChaletCommands.Run || this.chaletCommand === ChaletCommands.BuildRun)
         ) {
-            this.updateStatusBarItem(this.statusBarDoAction, `${this.doActionIcon} ${this.runProjects[0]}`);
+            this.updateStatusBarItem(this.statusBarDoAction, `${icon} ${this.runProjects[0]}`);
         } else {
-            this.updateStatusBarItem(this.statusBarDoAction, this.doActionIcon);
+            this.updateStatusBarItem(this.statusBarDoAction, icon);
+        }
+    };
+
+    private getIcon = (): string => {
+        switch (this.chaletCommand) {
+            case ChaletCommands.Build:
+            case ChaletCommands.Rebuild:
+                return "$(tools)";
+            case ChaletCommands.Clean:
+                return "$(trash)";
+            case ChaletCommands.Bundle:
+                return "$(package)";
+            case ChaletCommands.Configure:
+                return "$(circuit-board)";
+            case ChaletCommands.Init:
+                return "$(rocket)";
+
+            case ChaletCommands.Run:
+            case ChaletCommands.BuildRun:
+            default:
+                return "$(play)";
         }
     };
 
