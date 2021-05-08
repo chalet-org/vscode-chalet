@@ -161,10 +161,6 @@
 			"description": "true to use link-time optimization, false otherwise.",
 			"default": false
 		},
-		"configurations-name": {
-			"type": "string",
-			"description": "The name of the build configuration."
-		},
 		"configurations-optimizations": {
 			"type": "string",
 			"description": "The optimization level of the build.",
@@ -198,11 +194,6 @@
 			"description": "The SHA1 hash of the commit to checkout.",
 			"pattern": "^[0-9a-f]{7,40}$"
 		},
-		"externalDependency-name": {
-			"type": "string",
-			"description": "The destination directory name for the repository within 'externalDepDir'. If none is provided, defaults to the repository name",
-			"pattern": "^[\\w\\-\\+\\.]{3,100}$"
-		},
 		"externalDependency-tag": {
 			"type": "string",
 			"description": "The tag to checkout on the selected branch. If it's blank or not found, the head of the branch will be checked out."
@@ -225,9 +216,6 @@
 						"repository": {
 							"$ref": "#/definitions/externalDependency-repository"
 						},
-						"name": {
-							"$ref": "#/definitions/externalDependency-name"
-						},
 						"submodules": {
 							"$ref": "#/definitions/externalDependency-submodules"
 						},
@@ -244,9 +232,6 @@
 					"properties": {
 						"repository": {
 							"$ref": "#/definitions/externalDependency-repository"
-						},
-						"name": {
-							"$ref": "#/definitions/externalDependency-name"
 						},
 						"submodules": {
 							"$ref": "#/definitions/externalDependency-submodules"
@@ -418,6 +403,9 @@
 				"dumpAssembly": {
 					"$ref": "#/definitions/project-dumpAssembly"
 				},
+				"extends": {
+					"$ref": "#/definitions/project-extends"
+				},
 				"files": {
 					"$ref": "#/definitions/project-files"
 				},
@@ -429,9 +417,6 @@
 				},
 				"location": {
 					"$ref": "#/definitions/project-location"
-				},
-				"name": {
-					"$ref": "#/definitions/project-name"
 				},
 				"onlyInConfiguration": {
 					"$ref": "#/definitions/project-onlyInConfiguration"
@@ -596,23 +581,29 @@
 				"type": "string"
 			}
 		},
+		"project-cxx-includeDirs": {
+			"type": "array",
+			"uniqueItems": true,
+			"description": "A list of directories to include with the project.",
+			"items": {
+				"type": "string"
+			}
+		},
 		"project-dumpAssembly": {
 			"type": "boolean",
 			"description": "true to use include an asm dump of each file in the build, false otherwise.",
 			"default": false
 		},
+		"project-extends": {
+			"type": "string",
+			"description": "A project template to extend. Defaults to 'all' implicitly.",
+			"pattern": "^[A-Za-z_-]+$",
+			"default": "all"
+		},
 		"project-files": {
 			"type": "array",
 			"uniqueItems": true,
 			"description": "Explicitly define the source files, relative to the working directory.",
-			"items": {
-				"type": "string"
-			}
-		},
-		"project-cxx-includeDirs": {
-			"type": "array",
-			"uniqueItems": true,
-			"description": "A list of directories to include with the project.",
 			"items": {
 				"type": "string"
 			}
@@ -732,11 +723,6 @@
 			"items": {
 				"type": "string"
 			}
-		},
-		"project-name": {
-			"type": "string",
-			"description": "The name of the project.",
-			"pattern": "^[\\w\\-\\+\\.]{3,}$"
 		},
 		"project-cxx-objectiveCxx": {
 			"type": "boolean",
@@ -1191,8 +1177,16 @@
 		}
 	},
 	"properties": {
-		"allProjects": {
-			"$ref": "#/definitions/project"
+		"templates": {
+			"type": "object",
+			"additionalProperties": false,
+			"description": "A list of abstract build projects",
+			"patternProperties": {
+				"^[A-Za-z_-]+$": {
+					"description": "An abstract build project. 'all' is implicitely added to each project.",
+					"$ref": "#/definitions/project"
+				}
+			}
 		},
 		"bundle": {
 			"type": "object",
@@ -1247,57 +1241,62 @@
 			}
 		},
 		"configurations": {
-			"type": "array",
-			"uniqueItems": true,
-			"description": "An array of build configurations",
-			"items": {
-				"anyOf": [
-					{
+			"anyOf": [
+				{
+					"type": "object",
+					"additionalProperties": false,
+					"description": "A list of allowed build configurations",
+					"patternProperties": {
+						"^[\\w\\-\\+\\.]{3,}$": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"debugSymbols": {
+									"$ref": "#/definitions/configurations-debugSymbols"
+								},
+								"enableProfiling": {
+									"$ref": "#/definitions/configurations-enableProfiling"
+								},
+								"linkTimeOptimization": {
+									"$ref": "#/definitions/configurations-linkTimeOptimization"
+								},
+								"optimizations": {
+									"$ref": "#/definitions/configurations-optimizations"
+								},
+								"stripSymbols": {
+									"$ref": "#/definitions/configurations-stripSymbols"
+								}
+							}
+						}
+					}
+				},
+				{
+					"type": "array",
+					"uniqueItems": true,
+					"description": "An array of allowed build configuration presets",
+					"items": {
 						"type": "string",
 						"description": "A configuration preset",
 						"enum": [
 							"Release",
 							"Debug",
 							"RelWithDebInfo",
-							"MinSizeRel"
+							"MinSizeRel",
+							"Profile"
 						]
-					},
-					{
-						"type": "object",
-						"additionalProperties": false,
-						"required": [
-							"name"
-						],
-						"properties": {
-							"debugSymbols": {
-								"$ref": "#/definitions/configurations-debugSymbols"
-							},
-							"enableProfiling": {
-								"$ref": "#/definitions/configurations-enableProfiling"
-							},
-							"linkTimeOptimization": {
-								"$ref": "#/definitions/configurations-linkTimeOptimization"
-							},
-							"name": {
-								"$ref": "#/definitions/configurations-name"
-							},
-							"optimizations": {
-								"$ref": "#/definitions/configurations-optimizations"
-							},
-							"stripSymbols": {
-								"$ref": "#/definitions/configurations-stripSymbols"
-							}
-						}
 					}
-				]
-			}
+				}
+			]
 		},
 		"externalDependencies": {
-			"type": "array",
-			"uniqueItems": true,
-			"description": "A sequential list of externalDependencies to install prior to building or via the install command",
-			"items": {
-				"$ref": "#/definitions/externalDependency"
+			"type": "object",
+			"additionalProperties": false,
+			"description": "A sequential list of externalDependencies to install prior to building or via the configure command. The key will be the destination directory name for the repository within the folder defined in 'externalDepDir'.",
+			"patternProperties": {
+				"^[\\w\\-\\+\\.]{3,100}$": {
+					"description": "A single external dependency.",
+					"$ref": "#/definitions/externalDependency"
+				}
 			}
 		},
 		"environment": {
@@ -1329,11 +1328,14 @@
 			}
 		},
 		"projects": {
-			"type": "array",
-			"uniqueItems": true,
+			"type": "object",
+			"additionalProperties": false,
 			"description": "A sequential list of projects to build",
-			"items": {
-				"$ref": "#/definitions/project"
+			"patternProperties": {
+				"^[\\w\\-\\+\\.]{3,}$": {
+					"description": "A single build target.",
+					"$ref": "#/definitions/project"
+				}
 			}
 		},
 		"version": {
@@ -1345,6 +1347,12 @@
 			"type": "string",
 			"description": "The name of the workspace.",
 			"pattern": "^[\\w\\-\\+ ]+$"
+		}
+	},
+	"patternProperties": {
+		"^templates:[a-z]+$": {
+			"description": "An abstract build project. 'templates:all' is implicitely added to each project",
+			"$ref": "#/definitions/project"
 		}
 	}
 }

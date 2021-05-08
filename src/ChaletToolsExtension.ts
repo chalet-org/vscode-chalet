@@ -186,26 +186,34 @@ class ChaletToolsExtension {
                             item === BuildConfigurations.Profile
                         )
                             out.push(item);
-                    } else {
-                        if (item.name) out.push(item.name);
                     }
                     return out;
                 }, [] as string[]);
-
-                if (
-                    (this.buildConfigurationMenu.length > 0 && this.buildConfiguration === null) ||
-                    (this.buildConfiguration !== null && !this.buildConfigurationMenu.includes(this.buildConfiguration))
-                ) {
-                    this.setBuildConfiguration(this.buildConfigurationMenu[0]);
+            } else if (typeof configurations === "object") {
+                this.buildConfigurationMenu = [];
+                for (const [key, value] of Object.entries(configurations)) {
+                    let item: any = value;
+                    if (item && typeof item === "object") {
+                        this.buildConfigurationMenu.push(key);
+                    }
                 }
-
-                if (this.buildConfiguration !== null && this.buildConfigurationMenu.length === 0) {
-                    this.setBuildConfiguration(null);
-                }
-
-                this.setRunProjectName(buildJson);
+            } else {
                 return;
             }
+
+            if (
+                (this.buildConfigurationMenu.length > 0 && this.buildConfiguration === null) ||
+                (this.buildConfiguration !== null && !this.buildConfigurationMenu.includes(this.buildConfiguration))
+            ) {
+                this.setBuildConfiguration(this.buildConfigurationMenu[0]);
+            }
+
+            if (this.buildConfiguration !== null && this.buildConfigurationMenu.length === 0) {
+                this.setBuildConfiguration(null);
+            }
+
+            this.setRunProjectName(buildJson);
+            return;
         }
 
         this.setRunProjectName(buildJson);
@@ -216,16 +224,15 @@ class ChaletToolsExtension {
     private setRunProjectName = (buildJson: any): void => {
         this.runProjects = [];
         let projects: any = buildJson["projects"];
-        if (projects) {
-            if (Array.isArray(projects)) {
-                this.runProjects = projects.reduce((out: string[], item) => {
-                    if (typeof item === "object") {
-                        if (item.kind && (item.kind === "desktopApplication" || item.kind === "consoleApplication")) {
-                            if (!!item.runProject) out.push(item.name);
-                        }
+        if (projects && typeof projects === "object") {
+            this.runProjects = [];
+            for (const [key, value] of Object.entries(projects)) {
+                let item: any = value;
+                if (item && typeof item === "object") {
+                    if (item.kind && (item.kind === "desktopApplication" || item.kind === "consoleApplication")) {
+                        if (!!item.runProject) this.runProjects.push(key);
                     }
-                    return out;
-                }, [] as string[]);
+                }
             }
 
             this.updateStatusBarItems();
