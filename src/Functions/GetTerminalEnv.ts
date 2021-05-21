@@ -3,12 +3,13 @@ import { Dictionary } from "../Types";
 import { VSCodePlatform } from "../Types/Enums";
 
 export const getTerminalEnv = (platform: VSCodePlatform): Dictionary<string> => {
-    let out: Dictionary<string>;
-    if (platform === VSCodePlatform.Windows) {
-        out = {};
-    } else {
-        out = process.env as Dictionary<string>;
-    }
+    let out: Dictionary<string> = process.env as Dictionary<string>;
+    console.log(out);
+    // if (platform === VSCodePlatform.Windows) {
+    //     out = {};
+    // } else {
+    //     out = process.env as Dictionary<string>;
+    // }
 
     let inheritEnv: boolean = true;
     const workspaceConfig = workspace.getConfiguration("terminal");

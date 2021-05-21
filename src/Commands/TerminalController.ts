@@ -204,10 +204,7 @@ export class TerminalController {
             // console.log(options.shellPath, shellArgs.join(" "));
             const spawnOptions: SpawnOptionsWithoutStdio = {
                 cwd: cwd ?? "",
-                env: {
-                    ...process.env,
-                    ...env,
-                },
+                env,
             };
             this.subprocess = subprocess.spawn(options.shellPath, shellArgs, spawnOptions);
             onStart?.();
