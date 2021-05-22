@@ -9,12 +9,7 @@ import {
 import * as subprocess from "child_process";
 import { ChildProcessWithoutNullStreams, SpawnOptionsWithoutStdio } from "child_process";
 import { Dictionary, Optional } from "../Types";
-import * as treeKill from "tree-kill";
-
-// suppress:
-// [DEP0005] DeprecationWarning: Buffer() is deprecated due to security and usability issues. Please use the Buffer.alloc(), Buffer.allocUnsafe(), or Buffer.from() methods instead.
-// (comes from child_process)
-process.removeAllListeners("warning");
+// import * as treeKill from "tree-kill";
 
 type SucessCallback = (code?: number, signal?: Optional<NodeJS.Signals>) => void;
 type FailureCallback = (err?: Error) => void;
@@ -33,8 +28,8 @@ type TerminalOptions = {
 
 export class TerminalController {
     subprocess: Optional<ChildProcessWithoutNullStreams> = null;
-    writeEmitter: Optional<EventEmitter<string>> = null;
-    closeEmitter: Optional<EventEmitter<void | number>> = null;
+    writeEmitter: EventEmitter<string>;
+    closeEmitter: EventEmitter<void | number>;
     terminal: Terminal | null = null;
     interrupted: boolean = false;
 
@@ -43,9 +38,12 @@ export class TerminalController {
     onSuccess?: SucessCallback;
     onFailure?: FailureCallback;
 
-    private createTerminal = (options: VSCExtensionTerminalOptions): Terminal => {
-        const { name } = options;
+    constructor() {
+        this.writeEmitter = new EventEmitter<string>();
+        this.closeEmitter = new EventEmitter<void | number>();
+    }
 
+    private fetchOrMakeTerminal = (name: string): Terminal => {
         let terminal: Terminal | undefined;
         if (name && typeof name === "string") {
             terminal = window.terminals.find((term) => term.name === name);
@@ -55,9 +53,19 @@ export class TerminalController {
 
         if (terminal) {
             // might be useful to do something here
+            console.log("found existing terminal");
             terminal.show();
         } else {
-            terminal = window.createTerminal(options);
+            terminal = window.createTerminal({
+                name,
+                pty: {
+                    onDidWrite: this.writeEmitter.event,
+                    onDidClose: this.closeEmitter.event,
+                    handleInput: this.onTerminalInput,
+                    open: this.openTerminal,
+                    close: this.closeTerminal,
+                },
+            });
         }
 
         return terminal;
@@ -67,14 +75,16 @@ export class TerminalController {
         this.haltSubProcess();
         this.terminal?.dispose();
         this.terminal = null;
+
+        this.writeEmitter.dispose();
+        this.closeEmitter.dispose();
     };
 
     haltSubProcess = (signal: Optional<NodeJS.Signals> = null) => {
         if (this.subprocess) {
             if (this.subprocess.pid) {
-                this.subprocess.stdout.pause();
-                this.subprocess.stderr.pause();
-                if (signal) {
+                this.subprocess.kill(signal ?? "SIGTERM");
+                /*if (signal) {
                     treeKill(this.subprocess.pid, signal, (err?: Error) => {
                         if (err) console.error(err);
                     });
@@ -82,7 +92,7 @@ export class TerminalController {
                     treeKill(this.subprocess.pid, "SIGTERM", (err?: Error) => {
                         if (err) console.error(err);
                     });
-                }
+                }*/
             }
             this.subprocess = null;
         }
@@ -106,25 +116,7 @@ export class TerminalController {
 
     openTerminal = () => {};
 
-    closeTerminal = () => {
-        this.writeEmitter?.dispose();
-        this.closeEmitter?.dispose();
-
-        this.writeEmitter = null;
-        this.closeEmitter = null;
-
-        this.deactivate();
-    };
-
-    onTerminaStdOut = (data: Buffer) => {
-        if (!this.subprocess) return;
-        this.terminal?.sendText(data.toString(), false);
-    };
-
-    onTerminaStdErr = (data: Buffer) => {
-        if (!this.subprocess) return;
-        this.terminal?.sendText(data.toString(), false);
-    };
+    closeTerminal = this.deactivate;
 
     onTerminalClose = (code: Optional<number>, signal: Optional<NodeJS.Signals>) => {
         let color: number = 37;
@@ -157,42 +149,22 @@ export class TerminalController {
         }
     };
 
-    onTerminalError = (err: Error) => {
-        if (this.onFailure) {
-            this.onFailure(err);
-        } else {
-            console.error(err.name);
-            console.error(err.message);
-            console.error(err.stack);
-        }
-        setTimeout(this.haltSubProcess, 250);
+    clearTerminal = (): Thenable<void> => {
+        return commands.executeCommand("workbench.action.terminal.clear");
     };
 
     execute = async ({ autoClear, name, cwd, env, onStart, onSuccess, onFailure, ...options }: TerminalOptions) => {
         try {
             this.haltSubProcess();
 
-            if (this.writeEmitter === null) {
-                this.writeEmitter = new EventEmitter<string>();
-            }
-            if (this.closeEmitter === null) {
-                this.closeEmitter = new EventEmitter<void | number>();
-            }
-            const pty: Pseudoterminal = {
-                onDidWrite: this.writeEmitter.event,
-                onDidClose: this.closeEmitter.event,
-                handleInput: this.onTerminalInput,
-                open: this.openTerminal,
-                close: this.closeTerminal,
-            };
             this.interrupted = false;
-            this.terminal = this.createTerminal({
-                name,
-                pty,
-            });
+
+            if (this.terminal == null) {
+                this.terminal = this.fetchOrMakeTerminal(name);
+            }
 
             if (!!autoClear) {
-                await commands.executeCommand("workbench.action.terminal.clear");
+                await this.clearTerminal();
             }
 
             // console.log(cwd);
@@ -201,21 +173,42 @@ export class TerminalController {
             const shellArgs: string[] = options.shellArgs ?? [];
             // console.log(options.shellPath, shellArgs.join(" "));
             const spawnOptions: SpawnOptionsWithoutStdio = {
-                cwd: cwd ?? "",
+                cwd: cwd ?? process.cwd(),
                 env,
             };
-            this.subprocess = subprocess.spawn(options.shellPath, shellArgs, spawnOptions);
-            onStart?.();
 
-            this.name = name;
-            this.shellPath = options.shellPath;
-            this.onSuccess = onSuccess;
-            this.onFailure = onFailure;
+            if (this.subprocess === null) {
+                this.subprocess = subprocess.spawn(options.shellPath, shellArgs, spawnOptions);
+                onStart?.();
 
-            this.subprocess.on("error", this.onTerminalError);
-            this.subprocess.stdout.on("data", this.onTerminaStdOut);
-            this.subprocess.stderr.on("data", this.onTerminaStdErr);
-            this.subprocess.on("close", this.onTerminalClose);
+                this.name = name;
+                this.shellPath = options.shellPath;
+                this.onSuccess = onSuccess;
+                this.onFailure = onFailure;
+
+                this.subprocess.on("error", (err: Error) => {
+                    if (this.onFailure) {
+                        this.onFailure(err);
+                    } else {
+                        console.error(err.name);
+                        console.error(err.message);
+                        console.error(err.stack);
+                    }
+                    setTimeout(this.haltSubProcess, 250);
+                });
+
+                this.subprocess.stdout.on("data", (data: Buffer) => {
+                    if (!this.subprocess) return;
+                    this.terminal?.sendText(data.toString(), false);
+                });
+
+                this.subprocess.stderr.on("data", (data: Buffer) => {
+                    if (!this.subprocess) return;
+                    this.terminal?.sendText(data.toString(), false);
+                });
+
+                this.subprocess.on("close", this.onTerminalClose);
+            }
 
             if (this.terminal !== window.activeTerminal) {
                 this.terminal.show();

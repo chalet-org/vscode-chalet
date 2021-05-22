@@ -104,7 +104,7 @@ class ChaletToolsExtension {
 
     deactivate = () => {
         if (this.terminalController) {
-            this.terminalController.haltSubProcess();
+            this.terminalController.deactivate();
         }
         this.terminalController = null;
 
@@ -240,37 +240,49 @@ class ChaletToolsExtension {
     };
 
     private actionChaletCommandQuickPick = async (): Promise<void> => {
-        const result = await window.showQuickPick(this.chaletCommandMenu);
-        if (result) {
-            this.setChaletCommand(result as ChaletCommands);
+        try {
+            const result = await window.showQuickPick(this.chaletCommandMenu);
+            if (result) {
+                this.setChaletCommand(result as ChaletCommands);
+            }
+            this.updateStatusBarItems();
+        } catch (err) {
+            console.error(err);
         }
-        this.updateStatusBarItems();
     };
 
     private actionBuildConfigurationQuickPick = async (): Promise<void> => {
-        if (this.buildConfiguration === null) return;
+        try {
+            if (this.buildConfiguration === null) return;
 
-        const result = await window.showQuickPick(this.buildConfigurationMenu);
-        if (result) {
-            this.setBuildConfiguration(result);
+            const result = await window.showQuickPick(this.buildConfigurationMenu);
+            if (result) {
+                this.setBuildConfiguration(result);
+            }
+            this.updateStatusBarItems();
+        } catch (err) {
+            console.error(err);
         }
-        this.updateStatusBarItems();
     };
 
     private actionBuildArchitectureQuickPick = async (): Promise<void> => {
-        const result = await window.showQuickPick(this.buildArchitectureMenu);
-        if (result) {
-            this.setBuildArchitecture(result as BuildArchitecture);
+        try {
+            const result = await window.showQuickPick(this.buildArchitectureMenu);
+            if (result) {
+                this.setBuildArchitecture(result as BuildArchitecture);
+            }
+            this.updateStatusBarItems();
+        } catch (err) {
+            console.error(err);
         }
-        this.updateStatusBarItems();
     };
 
     private onTerminalStart = (): void => {
-        // console.log("chalet started");
+        console.log("chalet started");
     };
 
     private onTerminalSuccess = (): void => {
-        // console.log("chalet finished");
+        console.log("chalet finished");
     };
 
     private onTerminalFailure = (): void => {
@@ -300,7 +312,7 @@ class ChaletToolsExtension {
                     shellArgs,
                     onStart: this.onTerminalStart,
                     onSuccess: this.onTerminalSuccess,
-                    onFailure: this.onTerminalFailure,
+                    // onFailure: this.onTerminalFailure,
                 });
             }
         } catch (err) {

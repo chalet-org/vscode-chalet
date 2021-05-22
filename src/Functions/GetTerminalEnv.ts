@@ -7,6 +7,7 @@ const rootEnv: Dictionary<string> = process.env as Dictionary<string>;
 export const getTerminalEnv = (platform: VSCodePlatform): Dictionary<string> => {
     let out: Dictionary<string> = rootEnv;
 
+    /*
     let inheritEnv: boolean = true;
     const workspaceConfig = workspace.getConfiguration("terminal");
     if (workspaceConfig["integrated"]) {
@@ -63,8 +64,7 @@ export const getTerminalEnv = (platform: VSCodePlatform): Dictionary<string> => 
             }
         }
     }
-
-    console.log(out);
+    */
 
     return out;
 };
