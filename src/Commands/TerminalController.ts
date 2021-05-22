@@ -9,7 +9,7 @@ import {
 import * as subprocess from "child_process";
 import { ChildProcessWithoutNullStreams, SpawnOptionsWithoutStdio } from "child_process";
 import { Dictionary, Optional } from "../Types";
-// import * as treeKill from "tree-kill";
+import * as treeKill from "tree-kill";
 
 type SucessCallback = (code?: number, signal?: Optional<NodeJS.Signals>) => void;
 type FailureCallback = (err?: Error) => void;
@@ -82,9 +82,8 @@ export class TerminalController {
 
     haltSubProcess = (signal: Optional<NodeJS.Signals> = null) => {
         if (this.subprocess) {
-            if (this.subprocess.pid) {
-                this.subprocess.kill(signal ?? "SIGTERM");
-                /*if (signal) {
+            if (this.subprocess.pid && !this.subprocess.killed) {
+                if (signal) {
                     treeKill(this.subprocess.pid, signal, (err?: Error) => {
                         if (err) console.error(err);
                     });
@@ -92,7 +91,7 @@ export class TerminalController {
                     treeKill(this.subprocess.pid, "SIGTERM", (err?: Error) => {
                         if (err) console.error(err);
                     });
-                }*/
+                }
             }
             this.subprocess = null;
         }
