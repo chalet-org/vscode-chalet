@@ -14,50 +14,76 @@ class ChaletToolsLoader {
     buildJsonPath: Optional<string> = null;
     cwd: Optional<string> = null;
 
+    workspaceCount: number = 0;
+
     constructor(context: ExtensionContext) {
         this.context = context;
         this.platform = this.getPlatform();
 
-        context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(this.activate));
+        context.subscriptions.push(
+            vscode.window.onDidChangeActiveTextEditor((ev) => {
+                if (this.workspaceCount <= 1) return;
 
-        this.activate(vscode.window.activeTextEditor);
+                if (ev) {
+                    let workspaceFolder = workspace.getWorkspaceFolder(ev.document.uri);
+                    this.activate(workspaceFolder);
+                }
+            })
+        );
+
+        context.subscriptions.push(
+            vscode.workspace.onDidChangeWorkspaceFolders((ev) => {
+                if (vscode.workspace.workspaceFolders) {
+                    this.workspaceCount = vscode.workspace.workspaceFolders.length;
+                    for (const folder of vscode.workspace.workspaceFolders) {
+                        if (this.activate(folder)) break;
+                    }
+                }
+            })
+        );
+
+        if (vscode.workspace.workspaceFolders) {
+            this.workspaceCount = vscode.workspace.workspaceFolders.length;
+            for (const folder of vscode.workspace.workspaceFolders) {
+                this.activate(folder);
+            }
+        }
     }
 
-    private activate = (editor?: vscode.TextEditor) => {
-        if (editor) {
-            let workspaceFolder = workspace.getWorkspaceFolder(editor.document.uri);
-            if (workspaceFolder) {
-                if (this.extension === null) {
-                    this.extension = new ChaletToolsExtension(this.context, this.platform);
-                }
-                this.extension.setEnabled(true);
-                this.extension.getExtensionSettings(); // Refresh settings
+    private activate = (workspaceFolder?: vscode.WorkspaceFolder): boolean => {
+        if (workspaceFolder) {
+            if (this.extension === null) {
+                this.extension = new ChaletToolsExtension(this.context, this.platform);
+            }
+            this.extension.setEnabled(true);
+            this.extension.getExtensionSettings(); // Refresh settings
 
-                const workspaceRoot = workspaceFolder.uri;
-                if (this.cwd === workspaceRoot.fsPath) {
-                    return; // already watching the workspace
-                }
+            const workspaceRoot = workspaceFolder.uri;
+            if (this.cwd === workspaceRoot.fsPath) {
+                return true; // already watching the workspace
+            }
 
-                this.cwd = workspaceRoot.fsPath;
+            this.cwd = workspaceRoot.fsPath;
 
-                const buildJsonUri = Uri.joinPath(workspaceRoot, "build.json"); // TODO: get from local/global settings
-                this.buildJsonPath = buildJsonUri.fsPath;
+            const buildJsonUri = Uri.joinPath(workspaceRoot, "build.json"); // TODO: get from local/global settings
+            this.buildJsonPath = buildJsonUri.fsPath;
 
-                if (fs.existsSync(this.buildJsonPath)) {
-                    this.extension.setWorkingDirectory(this.cwd);
-                    this.extension.setBuildJsonPath(this.buildJsonPath);
-                    this.extension.handleBuildJsonChange();
-                    this.extension.updateStatusBarItems();
+            if (fs.existsSync(this.buildJsonPath)) {
+                this.extension.setWorkingDirectory(this.cwd);
+                this.extension.setBuildJsonPath(this.buildJsonPath);
+                this.extension.handleBuildJsonChange();
+                this.extension.updateStatusBarItems();
 
-                    fs.watchFile(this.buildJsonPath, { interval: 2000 }, this.onBuildJsonChange);
-                    return;
-                }
+                fs.watchFile(this.buildJsonPath, { interval: 2000 }, this.onBuildJsonChange);
+                return true;
             }
         }
 
         if (this.extension) {
             this.extension.setEnabled(false);
         }
+
+        return false;
     };
 
     private onBuildJsonChange = (_curr: fs.Stats, _prev: fs.Stats) => {
