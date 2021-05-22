@@ -79,7 +79,7 @@ export class TerminalController {
                         if (err) console.error(err);
                     });
                 } else {
-                    treeKill(this.subprocess.pid, "SIGINT", (err?: Error) => {
+                    treeKill(this.subprocess.pid, "SIGTERM", (err?: Error) => {
                         if (err) console.error(err);
                     });
                 }
@@ -94,7 +94,7 @@ export class TerminalController {
         // console.log(JSON.stringify(data)); // logs escape characters
         // CTRL+C
         if (data === "\u0003") {
-            this.onTerminalClose(null, "SIGINT");
+            this.onTerminalClose(null, "SIGTERM");
             this.interrupted = true;
         } else {
             // newline characters within data get replaced with \r somewhere in terminal.sendText
@@ -107,8 +107,6 @@ export class TerminalController {
     openTerminal = () => {};
 
     closeTerminal = () => {
-        this.haltSubProcess();
-
         this.writeEmitter?.dispose();
         this.closeEmitter?.dispose();
 

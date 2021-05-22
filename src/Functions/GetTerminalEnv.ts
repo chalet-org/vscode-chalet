@@ -2,14 +2,10 @@ import { workspace } from "vscode";
 import { Dictionary } from "../Types";
 import { VSCodePlatform } from "../Types/Enums";
 
+const rootEnv: Dictionary<string> = process.env as Dictionary<string>;
+
 export const getTerminalEnv = (platform: VSCodePlatform): Dictionary<string> => {
-    let out: Dictionary<string> = process.env as Dictionary<string>;
-    console.log(out);
-    // if (platform === VSCodePlatform.Windows) {
-    //     out = {};
-    // } else {
-    //     out = process.env as Dictionary<string>;
-    // }
+    let out: Dictionary<string> = rootEnv;
 
     let inheritEnv: boolean = true;
     const workspaceConfig = workspace.getConfiguration("terminal");
@@ -67,6 +63,8 @@ export const getTerminalEnv = (platform: VSCodePlatform): Dictionary<string> => 
             }
         }
     }
+
+    console.log(out);
 
     return out;
 };
