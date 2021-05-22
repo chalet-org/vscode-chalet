@@ -27,8 +27,8 @@ export const getTerminalEnv = (platform: VSCodePlatform): Dictionary<string> => 
                                 if (match.length < 2) break;
 
                                 if (
-                                    (match[1] != PATH_WIN && platform === VSCodePlatform.Windows) ||
-                                    (match[1] != PATH_UNIX && platform !== VSCodePlatform.Windows)
+                                    (match[1] == PATH_WIN && platform === VSCodePlatform.Windows) ||
+                                    (match[1] == PATH_UNIX && platform !== VSCodePlatform.Windows)
                                 )
                                     continue;
 
@@ -64,6 +64,12 @@ export const getTerminalEnv = (platform: VSCodePlatform): Dictionary<string> => 
             }
         }
     }
+
+    /*if (platform === VSCodePlatform.Windows) {
+        console.log(out[PATH_WIN]);
+    } else {
+        console.log(out[PATH_UNIX]);
+    }*/
 
     return out;
 };
