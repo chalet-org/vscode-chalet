@@ -65,11 +65,5 @@ export const getTerminalEnv = (platform: VSCodePlatform): Dictionary<string> => 
         }
     }
 
-    if (platform === VSCodePlatform.Windows) {
-        console.log(out[PATH_WIN]);
-    } else {
-        console.log(out[PATH_UNIX]);
-    }
-
     return out;
 };
