@@ -310,8 +310,10 @@ class ChaletToolsExtension {
             shellArgs.push("--envfile");
             shellArgs.push(this.envFile);
 
-            shellArgs.push("--arch");
-            shellArgs.push(this.buildArchitecture);
+            if (this.supportsArchitecture) {
+                shellArgs.push("--arch");
+                shellArgs.push(this.buildArchitecture);
+            }
 
             shellArgs.push(this.getCommandFromLabel(command));
 
