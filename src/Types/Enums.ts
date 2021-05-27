@@ -21,8 +21,8 @@ export enum BuildConfigurations {
 export enum BuildArchitecture {
     x64 = "x64",
     x86 = "x86",
-    ARM = "ARM",
-    ARM64 = "ARM64",
+    ARM = "arm",
+    ARM64 = "arm64",
 }
 
 export enum VSCodePlatform {

@@ -31,7 +31,7 @@ class ChaletToolsExtension {
     buildConfigurationMenu: (BuildConfigurations | string)[] = [];
 
     buildArchitecture: BuildArchitecture;
-    statusBarBuildArchitecture: StatusBarItem;
+    statusBarBuildArchitecture?: StatusBarItem;
     buildArchitectureMenu: BuildArchitecture[] = [BuildArchitecture.x64, BuildArchitecture.x86];
 
     runProjects: string[] = [];
@@ -44,7 +44,11 @@ class ChaletToolsExtension {
     useDebugChalet: boolean = false;
     enabled: boolean = false;
     cwd: string = "";
-    buildJsonPath: string = "build.json";
+    inputFile: string = "build.json";
+    outputPath: string = "build";
+    envFile: string = ".env";
+
+    supportsArchitecture: boolean;
 
     private addStatusBarCommand = (
         { subscriptions }: ExtensionContext,
@@ -85,13 +89,17 @@ class ChaletToolsExtension {
             this.actionBuildConfigurationQuickPick
         );
 
-        this.statusBarBuildArchitecture = window.createStatusBarItem(StatusBarAlignment.Left, 2);
-        this.addStatusBarCommand(
-            context,
-            this.statusBarBuildArchitecture,
-            CommandId.BuildArchitecture,
-            this.actionBuildArchitectureQuickPick
-        );
+        this.supportsArchitecture = this.platform == VSCodePlatform.Windows;
+
+        if (this.supportsArchitecture) {
+            this.statusBarBuildArchitecture = window.createStatusBarItem(StatusBarAlignment.Left, 2);
+            this.addStatusBarCommand(
+                context,
+                this.statusBarBuildArchitecture,
+                CommandId.BuildArchitecture,
+                this.actionBuildArchitectureQuickPick
+            );
+        }
 
         this.statusBarDoAction = window.createStatusBarItem(StatusBarAlignment.Left, 1);
         this.addStatusBarCommand(context, this.statusBarDoAction, CommandId.Run, this.actionRunChalet);
@@ -110,7 +118,7 @@ class ChaletToolsExtension {
 
         this.statusBarChaletCommand.dispose();
         this.statusBarBuildConfiguration.dispose();
-        this.statusBarBuildArchitecture.dispose();
+        this.statusBarBuildArchitecture?.dispose();
         this.statusBarDoAction.dispose();
     };
 
@@ -126,8 +134,8 @@ class ChaletToolsExtension {
         this.cwd = cwd;
     };
 
-    setBuildJsonPath = (path: string) => {
-        this.buildJsonPath = path;
+    setInputFile = (path: string) => {
+        this.inputFile = path;
     };
 
     getExtensionSettings = () => {
@@ -171,7 +179,7 @@ class ChaletToolsExtension {
     };
 
     handleBuildJsonChange = (): void => {
-        const rawData = fs.readFileSync(this.buildJsonPath, "utf8");
+        const rawData = fs.readFileSync(this.inputFile, "utf8");
         const buildJson = CommentJSON.parse(rawData, undefined, true);
         let configurations: any = buildJson["configurations"];
         if (configurations) {
@@ -293,6 +301,18 @@ class ChaletToolsExtension {
         try {
             let shellArgs: string[] = [];
 
+            shellArgs.push("--input-file");
+            shellArgs.push(this.inputFile);
+
+            shellArgs.push("--output-path");
+            shellArgs.push(this.outputPath);
+
+            shellArgs.push("--envfile");
+            shellArgs.push(this.envFile);
+
+            shellArgs.push("--arch");
+            shellArgs.push(this.buildArchitecture);
+
             shellArgs.push(this.getCommandFromLabel(command));
 
             if (this.usesBuildConfiguration(command)) {
@@ -328,7 +348,7 @@ class ChaletToolsExtension {
         if (!this.enabled) {
             this.statusBarChaletCommand.hide();
             this.statusBarBuildConfiguration.hide();
-            this.statusBarBuildArchitecture.hide();
+            this.statusBarBuildArchitecture?.hide();
             this.statusBarDoAction.hide();
             return;
         }
@@ -346,12 +366,16 @@ class ChaletToolsExtension {
                         ? this.buildConfigurationMenu[0]
                         : BuildConfigurations.Invalid)
             );
-            this.updateStatusBarItem(this.statusBarBuildArchitecture, this.buildArchitecture);
+
+            if (this.supportsArchitecture && this.statusBarBuildArchitecture) {
+                this.updateStatusBarItem(this.statusBarBuildArchitecture, this.buildArchitecture);
+            }
+
             this.statusBarBuildConfiguration.show();
-            this.statusBarBuildArchitecture.show();
+            this.statusBarBuildArchitecture?.show();
         } else {
             this.statusBarBuildConfiguration.hide();
-            this.statusBarBuildArchitecture.hide();
+            this.statusBarBuildArchitecture?.hide();
         }
 
         let icon: string = this.getIcon();

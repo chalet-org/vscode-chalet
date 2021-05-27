@@ -11,7 +11,7 @@ class ChaletToolsLoader {
     private platform: VSCodePlatform;
 
     extension: Optional<ChaletToolsExtension> = null;
-    buildJsonPath: Optional<string> = null;
+    inputFile: Optional<string> = null;
     cwd: Optional<string> = null;
 
     workspaceCount: number = 0;
@@ -66,15 +66,15 @@ class ChaletToolsLoader {
             this.cwd = workspaceRoot.fsPath;
 
             const buildJsonUri = Uri.joinPath(workspaceRoot, "build.json"); // TODO: get from local/global settings
-            this.buildJsonPath = buildJsonUri.fsPath;
+            this.inputFile = buildJsonUri.fsPath;
 
-            if (fs.existsSync(this.buildJsonPath)) {
+            if (fs.existsSync(this.inputFile)) {
                 this.extension.setWorkingDirectory(this.cwd);
-                this.extension.setBuildJsonPath(this.buildJsonPath);
+                this.extension.setInputFile(this.inputFile);
                 this.extension.handleBuildJsonChange();
                 this.extension.updateStatusBarItems();
 
-                fs.watchFile(this.buildJsonPath, { interval: 2000 }, this.onBuildJsonChange);
+                fs.watchFile(this.inputFile, { interval: 2000 }, this.onBuildJsonChange);
                 return true;
             }
         }
@@ -98,7 +98,7 @@ class ChaletToolsLoader {
             this.extension.deactivate();
             this.extension = null;
         }
-        this.buildJsonPath = null;
+        this.inputFile = null;
         this.cwd = null;
     };
 
