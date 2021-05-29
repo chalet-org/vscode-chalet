@@ -19,6 +19,7 @@ export enum BuildConfigurations {
 }
 
 export enum BuildArchitecture {
+    Auto = "auto",
     x64 = "x64",
     x86 = "x86",
     ARM = "arm",
