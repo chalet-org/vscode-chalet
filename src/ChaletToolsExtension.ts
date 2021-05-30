@@ -30,9 +30,10 @@ class ChaletToolsExtension {
     statusBarBuildConfiguration: StatusBarItem;
     buildConfigurationMenu: (BuildConfigurations | string)[] = [];
 
-    buildArchitecture: BuildArchitecture;
+    buildArchitecture: string;
     statusBarBuildArchitecture?: StatusBarItem;
-    buildArchitectureMenu: BuildArchitecture[] = [BuildArchitecture.x64, BuildArchitecture.x86];
+    buildArchitectureMenu: (BuildArchitecture | string)[] = [];
+    defaultArchitecture: BuildArchitecture[];
 
     runProjects: string[] = [];
     statusBarDoAction: StatusBarItem;
@@ -48,7 +49,7 @@ class ChaletToolsExtension {
     outputPath: string = "build";
     envFile: string = ".env";
 
-    supportsArchitecture: boolean;
+    targetArchitectures: string[] = [];
 
     private addStatusBarCommand = (
         { subscriptions }: ExtensionContext,
@@ -89,17 +90,19 @@ class ChaletToolsExtension {
             this.actionBuildConfigurationQuickPick
         );
 
-        this.supportsArchitecture = this.platform == VSCodePlatform.Windows;
-
-        if (this.supportsArchitecture) {
-            this.statusBarBuildArchitecture = window.createStatusBarItem(StatusBarAlignment.Left, 2);
-            this.addStatusBarCommand(
-                context,
-                this.statusBarBuildArchitecture,
-                CommandId.BuildArchitecture,
-                this.actionBuildArchitectureQuickPick
-            );
+        if (this.platform == VSCodePlatform.Windows) {
+            this.defaultArchitecture = [BuildArchitecture.x64, BuildArchitecture.x86];
+        } else {
+            this.defaultArchitecture = [BuildArchitecture.x64];
         }
+
+        this.statusBarBuildArchitecture = window.createStatusBarItem(StatusBarAlignment.Left, 2);
+        this.addStatusBarCommand(
+            context,
+            this.statusBarBuildArchitecture,
+            CommandId.BuildArchitecture,
+            this.actionBuildArchitectureQuickPick
+        );
 
         this.statusBarDoAction = window.createStatusBarItem(StatusBarAlignment.Left, 1);
         this.addStatusBarCommand(context, this.statusBarDoAction, CommandId.Run, this.actionRunChalet);
@@ -146,6 +149,13 @@ class ChaletToolsExtension {
             if (this.useDebugChalet === useDebugChalet) return;
 
             this.useDebugChalet = useDebugChalet;
+        }
+
+        const targetArchitectures = workbenchConfig.get<string[]>("targetArchitectures");
+        if (targetArchitectures) {
+            this.targetArchitectures = targetArchitectures;
+
+            this.buildArchitectureMenu = [...this.defaultArchitecture, ...this.targetArchitectures];
         }
     };
 
@@ -310,9 +320,13 @@ class ChaletToolsExtension {
             shellArgs.push("--envfile");
             shellArgs.push(this.envFile);
 
-            if (this.supportsArchitecture) {
+            if (this.buildArchitecture.length > 0 && this.buildArchitecture != BuildArchitecture.Auto) {
                 shellArgs.push("--arch");
-                shellArgs.push(this.buildArchitecture);
+                if (this.buildArchitecture === BuildArchitecture.x64 && this.platform !== VSCodePlatform.Windows) {
+                    shellArgs.push(BuildArchitecture.Auto);
+                } else {
+                    shellArgs.push(this.buildArchitecture);
+                }
             }
 
             shellArgs.push(this.getCommandFromLabel(command));
@@ -369,7 +383,7 @@ class ChaletToolsExtension {
                         : BuildConfigurations.Invalid)
             );
 
-            if (this.supportsArchitecture && this.statusBarBuildArchitecture) {
+            if (this.statusBarBuildArchitecture) {
                 this.updateStatusBarItem(this.statusBarBuildArchitecture, this.buildArchitecture);
             }
 
