@@ -3,6 +3,7 @@
 	"type": "object",
 	"additionalProperties": false,
 	"required": [
+		"settings",
 		"tools",
 		"compilerTools"
 	],
@@ -66,10 +67,6 @@
 			"type": "string",
 			"description": "The executable path to Lua",
 			"default": "/usr/local/bin/lua"
-		},
-		"tools-macosSdk": {
-			"type": "string",
-			"description": "The path to the current MacOS SDK (MacOS)"
 		},
 		"tools-make": {
 			"type": "string",
@@ -186,19 +183,7 @@
 				"type": "string"
 			}
 		},
-		"environment-architecture": {
-			"type": "string",
-			"description": "The target platform architecture",
-			"enum": [
-				"auto",
-				"x86",
-				"x64",
-				"ARM",
-				"ARM64"
-			],
-			"default": "auto"
-		},
-		"environment-strategy": {
+		"settings-strategy": {
 			"type": "string",
 			"description": "The build strategy to use.",
 			"enum": [
@@ -227,7 +212,6 @@
 				"instruments",
 				"ldd",
 				"lua",
-				"macosSdk",
 				"make",
 				"ninja",
 				"objdump",
@@ -283,9 +267,6 @@
 				"lua": {
 					"$ref": "#/definitions/tools-lua"
 				},
-				"macosSdk": {
-					"$ref": "#/definitions/tools-macosSdk"
-				},
 				"make": {
 					"$ref": "#/definitions/tools-make"
 				},
@@ -339,6 +320,10 @@
 				}
 			}
 		},
+		"applePlatformSdks": {
+			"type": "object",
+			"description": "A list of Apple platform SDK paths (MacOS)"
+		},
 		"compilerTools": {
 			"type": "object",
 			"additionalProperties": false,
@@ -379,8 +364,18 @@
 		"data": {
 			"type": "object"
 		},
-		"strategy": {
-			"$ref": "#/definitions/environment-strategy"
+		"settings": {
+			"type": "object",
+			"additionalProperties": false,
+			"description": "A list of settings central to the build",
+			"required": [
+				"strategy"
+			],
+			"properties": {
+				"strategy": {
+					"$ref": "#/definitions/settings-strategy"
+				}
+			}
 		}
 	}
 }
