@@ -41,29 +41,39 @@
 			"description": "true to strip symbols from the build, false otherwise.",
 			"default": false
 		},
-		"distribution-appName": {
-			"description": "The name of the app, if different from the workspace name",
-			"type": "string"
-		},
 		"distribution-configuration": {
-			"description": "The name of the build configuration to use for the distribution.",
-			"type": "string"
+			"type": "string",
+			"description": "The name of the build configuration to use for the distribution."
 		},
 		"distribution-dependencies": {
+			"type": "array",
+			"uniqueItems": true,
 			"items": {
 				"type": "string"
-			},
-			"uniqueItems": true,
-			"type": "array"
+			}
+		},
+		"distribution-description": {
+			"type": "string"
 		},
 		"distribution-exclude": {
+			"type": "array",
+			"uniqueItems": true,
 			"items": {
 				"type": "string"
-			},
-			"uniqueItems": true,
-			"type": "array"
+			}
+		},
+		"distribution-includeDependentSharedLibraries": {
+			"type": "boolean",
+			"default": true
 		},
 		"distribution-linux": {
+			"type": "object",
+			"description": "Variables to describe the linux application.",
+			"additionalProperties": false,
+			"required": [
+				"icon",
+				"desktopEntry"
+			],
 			"properties": {
 				"desktopEntry": {
 					"type": "string",
@@ -73,17 +83,7 @@
 					"type": "string",
 					"description": "The location to an icon to use for the application (PNG 256x256 is recommended)"
 				}
-			},
-			"required": [
-				"icon",
-				"desktopEntry"
-			],
-			"additionalProperties": false,
-			"description": "Variables to describe the linux application.",
-			"type": "object"
-		},
-		"distribution-longDescription": {
-			"type": "string"
+			}
 		},
 		"distribution-macos": {
 			"type": "object",
@@ -91,14 +91,9 @@
 			"additionalProperties": false,
 			"required": [
 				"bundleName",
-				"bundleIdentifier",
-				"icon",
 				"infoPropertyList"
 			],
 			"properties": {
-				"bundleIdentifier": {
-					"type": "string"
-				},
 				"bundleName": {
 					"type": "string"
 				},
@@ -108,6 +103,10 @@
 							"type": "string"
 						},
 						{
+							"type": "object",
+							"required": [
+								"1x"
+							],
 							"properties": {
 								"1x": {
 									"type": "string"
@@ -115,11 +114,7 @@
 								"2x": {
 									"type": "string"
 								}
-							},
-							"required": [
-								"1x"
-							],
-							"type": "object"
+							}
 						}
 					]
 				},
@@ -134,7 +129,27 @@
 					"type": "string"
 				},
 				"infoPropertyList": {
-					"type": "string"
+					"anyOf": [
+						{
+							"type": "string"
+						},
+						{
+							"type": "object",
+							"default": {
+								"CFBundleName": "${bundleName}",
+								"CFBundleDisplayName": "${name}",
+								"CFBundleIdentifier": "com.developer.app",
+								"CFBundleVersion": "${version}",
+								"CFBundleDevelopmentRegion": "en",
+								"CFBundleInfoDictionaryVersion": "6.0",
+								"CFBundlePackageType": "APPL",
+								"CFBundleSignature": "????",
+								"CFBundleExecutable": "${mainProject}",
+								"CFBundleIconFile": "${icon}",
+								"NSHighResolutionCapable": true
+							}
+						}
+					]
 				},
 				"makeDmg": {
 					"type": "boolean",
@@ -142,6 +157,10 @@
 					"default": false
 				}
 			}
+		},
+		"distribution-mainProject": {
+			"type": "string",
+			"description": "The main executable project."
 		},
 		"distribution-outDir": {
 			"type": "string",
@@ -157,9 +176,6 @@
 				"description": "The name of the project",
 				"pattern": "^[\\w\\-\\+\\.]{3,}$"
 			}
-		},
-		"distribution-shortDescription": {
-			"type": "string"
 		},
 		"distribution-windows": {
 			"type": "object",
@@ -188,35 +204,35 @@
 				"projects"
 			],
 			"properties": {
-				"appName": {
-					"$ref": "#/definitions/distribution-appName"
-				},
 				"configuration": {
 					"$ref": "#/definitions/distribution-configuration"
 				},
 				"dependencies": {
 					"$ref": "#/definitions/distribution-dependencies"
 				},
+				"description": {
+					"$ref": "#/definitions/distribution-description"
+				},
 				"exclude": {
 					"$ref": "#/definitions/distribution-exclude"
+				},
+				"includeDependentSharedLibraries": {
+					"$ref": "#/definitions/distribution-includeDependentSharedLibraries"
 				},
 				"linux": {
 					"$ref": "#/definitions/distribution-linux"
 				},
-				"longDescription": {
-					"$ref": "#/definitions/distribution-longDescription"
-				},
 				"macos": {
 					"$ref": "#/definitions/distribution-macos"
+				},
+				"mainProject": {
+					"$ref": "#/definitions/distribution-mainProject"
 				},
 				"outDir": {
 					"$ref": "#/definitions/distribution-outDir"
 				},
 				"projects": {
 					"$ref": "#/definitions/distribution-projects"
-				},
-				"shortDescription": {
-					"$ref": "#/definitions/distribution-shortDescription"
 				},
 				"windows": {
 					"$ref": "#/definitions/distribution-windows"
@@ -1287,6 +1303,9 @@
 					"oneOf": [
 						{
 							"$ref": "#/definitions/distribution-bundle"
+						},
+						{
+							"$ref": "#/definitions/target-script"
 						}
 					]
 				}
