@@ -383,16 +383,15 @@ class ChaletToolsExtension {
                         : BuildConfigurations.Invalid)
             );
 
-            if (this.statusBarBuildArchitecture) {
-                this.updateStatusBarItem(this.statusBarBuildArchitecture, this.buildArchitecture);
-            }
-
             this.statusBarBuildConfiguration.show();
-            this.statusBarBuildArchitecture?.show();
         } else {
             this.statusBarBuildConfiguration.hide();
-            this.statusBarBuildArchitecture?.hide();
         }
+
+        if (this.statusBarBuildArchitecture) {
+            this.updateStatusBarItem(this.statusBarBuildArchitecture, this.buildArchitecture);
+        }
+        this.statusBarBuildArchitecture?.show();
 
         let icon: string = this.getIcon();
 
