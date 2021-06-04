@@ -11,8 +11,17 @@ import { ChildProcessWithoutNullStreams, SpawnOptionsWithoutStdio } from "child_
 import { Dictionary, Optional } from "../Types";
 import * as treeKill from "tree-kill";
 
+export type SpawnError = Error & {
+    code?: string;
+    errno?: number;
+    message?: string;
+    path?: string;
+    spawnargs?: string[];
+    syscall?: string;
+};
+
 type SucessCallback = (code?: number, signal?: Optional<NodeJS.Signals>) => void;
-type FailureCallback = (err?: Error) => void;
+type FailureCallback = (err?: SpawnError) => void;
 
 type TerminalOptions = {
     name: string;
@@ -133,7 +142,7 @@ export class TerminalController {
                         `\x1b[1;${color}m\r\n\x1b[1;31mCritial Error:\x1b[0m ${this.shellPath} was not found in PATH\r\n\x1b[0m`,
                         false
                     );
-                } else {
+                } else if (code !== -4058 /* ENOENT */) {
                     this.terminal.sendText(
                         `\x1b[1;${color}m\r\n${this.name} exited with code: ${code}\r\n\x1b[0m`,
                         false
@@ -185,10 +194,17 @@ export class TerminalController {
                 this.onSuccess = onSuccess;
                 this.onFailure = onFailure;
 
-                this.subprocess.on("error", (err: Error) => {
+                this.subprocess.on("error", (err: SpawnError) => {
                     if (this.onFailure) {
                         this.onFailure(err);
                     } else {
+                        if (err.code == "ENOENT") {
+                            this.terminal?.sendText(
+                                `\x1b[31;1mChalet Tools Error:\n\x1b[0m   '${options.shellPath}' was not found in PATH.\n\n`,
+                                false
+                            );
+                        }
+
                         console.error(err.name);
                         console.error(err.message);
                         console.error(err.stack);

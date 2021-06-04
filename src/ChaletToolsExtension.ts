@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import { window, workspace, commands, StatusBarAlignment, ExtensionContext, StatusBarItem, Memento } from "vscode";
 import * as CommentJSON from "comment-json";
-import { TerminalController } from "./Commands";
+import { SpawnError, TerminalController } from "./Commands";
 import {
     BuildArchitecture,
     BuildConfigurations,
@@ -303,7 +303,7 @@ class ChaletToolsExtension {
         console.log("chalet finished");
     };
 
-    private onTerminalFailure = (): void => {
+    private onTerminalFailure = (err?: SpawnError): void => {
         console.log("chalet errored!");
     };
 
