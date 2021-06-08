@@ -181,15 +181,8 @@
 			"type": "object",
 			"description": "Variables to describe the windows application.",
 			"additionalProperties": false,
-			"required": [
-				"icon"
-			],
-			"properties": {
-				"icon": {
-					"type": "string",
-					"description": "The windows icon to use for the project"
-				}
-			}
+			"required": [],
+			"properties": {}
 		},
 		"distribution-bundle": {
 			"type": "object",
@@ -229,9 +222,6 @@
 				},
 				"projects": {
 					"$ref": "#/definitions/distribution-projects"
-				},
-				"windows": {
-					"$ref": "#/definitions/distribution-windows"
 				}
 			},
 			"patternProperties": {
@@ -250,8 +240,7 @@
 		},
 		"externalDependency-branch": {
 			"type": "string",
-			"description": "The branch to checkout. Defaults to 'master'",
-			"default": "master"
+			"description": "The branch to checkout. Uses the repository's default if not set."
 		},
 		"externalDependency-commit": {
 			"type": "string",
@@ -454,6 +443,9 @@
 				"windowsOutputDef": {
 					"$ref": "#/definitions/target-project-cxx-windowsOutputDef"
 				},
+				"windowsApplicationIcon": {
+					"$ref": "#/definitions/target-project-cxx-windowsApplicationIcon"
+				},
 				"windowsApplicationManifest": {
 					"$ref": "#/definitions/target-project-cxx-windowsApplicationManifest"
 				}
@@ -555,11 +547,6 @@
 					"$ref": "#/definitions/target-project-runDependencies"
 				}
 			}
-		},
-		"target-project-cxx-windowsPrefixOutputFilename": {
-			"type": "boolean",
-			"description": "Only applies to dynamic library targets (kind=sharedLibrary) on windows. If true, prefixes the output dll with 'lib'. This may not be desirable with standalone dlls.",
-			"default": true
 		},
 		"target-project-cxx-cStandard": {
 			"type": "string",
@@ -1165,13 +1152,22 @@
 			]
 		},
 		"target-project-cxx-windowsApplicationManifest": {
-			"description": "The path to a Windows application manifest to .",
+			"description": "The path to a Windows application manifest. Only applies to application (kind=[consoleApplication|desktopApplication]) and shared library (kind=sharedLibrary) targets",
 			"type": "string"
+		},
+		"target-project-cxx-windowsApplicationIcon": {
+			"type": "string",
+			"description": "The windows icon to use for the project. Only applies to application targets (kind=[consoleApplication|desktopApplication])"
 		},
 		"target-project-cxx-windowsOutputDef": {
 			"type": "boolean",
-			"description": "If true for a dynamic library (dll) target on Windows, a .def file will be created",
+			"description": "If true for a shared library (kind=sharedLibrary) target on Windows, a .def file will be created",
 			"default": false
+		},
+		"target-project-cxx-windowsPrefixOutputFilename": {
+			"type": "boolean",
+			"description": "Only applies to shared library targets (kind=sharedLibrary) on windows. If true, prefixes the output dll with 'lib'. This may not be desirable with standalone dlls.",
+			"default": true
 		},
 		"target-script": {
 			"type": "object",
@@ -1195,18 +1191,21 @@
 				}
 			}
 		},
-		"target-cmake-cmake": {
-			"type": "boolean",
-			"description": "true of Cmake project.",
-			"default": true
+		"target-type": {
+			"type": "string",
+			"description": "The target type, if not a local project or script.",
+			"enum": [
+				"CMake",
+				"Chalet"
+			]
 		},
 		"target-cmake-location": {
 			"type": "string",
-			"description": "The location of the root CMakeLists.txt for the project."
+			"description": "The folder path of the root CMakeLists.txt for the project."
 		},
-		"target-cmake-buildScript": {
+		"target-cmake-buildFile": {
 			"type": "string",
-			"description": "Pre-load a script to populate the cache. (-C)"
+			"description": "The build file to use, if not CMakeLists.txt, relative to the location. (-C)"
 		},
 		"target-cmake-defines": {
 			"type": "array",
@@ -1218,7 +1217,7 @@
 		},
 		"target-cmake-recheck": {
 			"type": "boolean",
-			"description": "If true, CMake will be invoked each time during the build. This might not be desirable (a library that doesn't get built each time), so it defaults to false.",
+			"description": "If true, CMake will be invoked each time during the build.",
 			"default": false
 		},
 		"target-cmake-toolset": {
@@ -1229,7 +1228,7 @@
 			"type": "object",
 			"additionalProperties": false,
 			"required": [
-				"cmake",
+				"type",
 				"location"
 			],
 			"description": "Build the location with cmake",
@@ -1240,11 +1239,8 @@
 				"location": {
 					"$ref": "#/definitions/target-cmake-location"
 				},
-				"buildScript": {
-					"$ref": "#/definitions/target-cmake-buildScript"
-				},
-				"cmake": {
-					"$ref": "#/definitions/target-cmake-cmake"
+				"buildFile": {
+					"$ref": "#/definitions/target-cmake-buildFile"
 				},
 				"defines": {
 					"$ref": "#/definitions/target-cmake-defines"
@@ -1254,6 +1250,9 @@
 				},
 				"recheck": {
 					"$ref": "#/definitions/target-cmake-recheck"
+				},
+				"type": {
+					"$ref": "#/definitions/target-type"
 				},
 				"onlyInConfiguration": {
 					"$ref": "#/definitions/target-onlyInConfiguration"
@@ -1272,14 +1271,69 @@
 				"^description(:debug|:!debug|)(\\.windows|\\.macos|\\.linux|\\.\\!windows|\\.\\!macos|\\.\\!linux|)$": {
 					"$ref": "#/definitions/target-description"
 				},
-				"^buildScript(:debug|:!debug|)(\\.windows|\\.macos|\\.linux|\\.\\!windows|\\.\\!macos|\\.\\!linux|)$": {
-					"$ref": "#/definitions/target-cmake-buildScript"
+				"^buildFile(:debug|:!debug|)(\\.windows|\\.macos|\\.linux|\\.\\!windows|\\.\\!macos|\\.\\!linux|)$": {
+					"$ref": "#/definitions/target-chalet-buildFile"
 				},
 				"^defines(:debug|:!debug|)(\\.windows|\\.macos|\\.linux|\\.\\!windows|\\.\\!macos|\\.\\!linux|)$": {
 					"$ref": "#/definitions/target-cmake-defines"
 				},
 				"^toolset(:debug|:!debug|)(\\.windows|\\.macos|\\.linux|\\.\\!windows|\\.\\!macos|\\.\\!linux|)$": {
 					"$ref": "#/definitions/target-cmake-toolset"
+				}
+			}
+		},
+		"target-chalet-location": {
+			"type": "string",
+			"description": "The folder path of the root build.json for the project."
+		},
+		"target-chalet-buildFile": {
+			"type": "string",
+			"description": "The build file to use, if not build.json, relative to the location."
+		},
+		"target-chalet-recheck": {
+			"type": "boolean",
+			"description": "If true, Chalet will be invoked each time during the build."
+		},
+		"target-chalet": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": [
+				"type",
+				"location"
+			],
+			"description": "Build the location with cmake",
+			"properties": {
+				"description": {
+					"$ref": "#/definitions/target-description"
+				},
+				"location": {
+					"$ref": "#/definitions/target-chalet-location"
+				},
+				"buildFile": {
+					"$ref": "#/definitions/target-chalet-buildFile"
+				},
+				"recheck": {
+					"$ref": "#/definitions/target-chalet-recheck"
+				},
+				"type": {
+					"$ref": "#/definitions/target-type"
+				},
+				"onlyInConfiguration": {
+					"$ref": "#/definitions/target-onlyInConfiguration"
+				},
+				"notInConfiguration": {
+					"$ref": "#/definitions/target-notInConfiguration"
+				},
+				"onlyInPlatform": {
+					"$ref": "#/definitions/target-onlyInPlatform"
+				},
+				"notInPlatform": {
+					"$ref": "#/definitions/target-notInPlatform"
+				}
+			},
+			"patternProperties": {
+				"^description(:debug|:!debug|)(\\.windows|\\.macos|\\.linux|\\.\\!windows|\\.\\!macos|\\.\\!linux|)$": {
+					"$ref": "#/definitions/target-description"
 				}
 			}
 		}
@@ -1385,10 +1439,41 @@
 							"$ref": "#/definitions/target-project"
 						},
 						{
-							"$ref": "#/definitions/target-cmake"
+							"$ref": "#/definitions/target-script"
 						},
 						{
-							"$ref": "#/definitions/target-script"
+							"type": "object",
+							"properties": {
+								"type": {
+									"$ref": "#/definitions/target-type"
+								}
+							},
+							"allOf": [
+								{
+									"if": {
+										"properties": {
+											"type": {
+												"const": "CMake"
+											}
+										}
+									},
+									"then": {
+										"$ref": "#/definitions/target-cmake"
+									}
+								},
+								{
+									"if": {
+										"properties": {
+											"type": {
+												"const": "Chalet"
+											}
+										}
+									},
+									"then": {
+										"$ref": "#/definitions/target-chalet"
+									}
+								}
+							]
 						}
 					]
 				}
