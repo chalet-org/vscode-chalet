@@ -89,10 +89,6 @@
 			"type": "object",
 			"description": "Variables to describe the macos application bundle.",
 			"additionalProperties": false,
-			"required": [
-				"bundleName",
-				"infoPropertyList"
-			],
 			"properties": {
 				"bundleName": {
 					"type": "string"
@@ -117,13 +113,6 @@
 							}
 						}
 					]
-				},
-				"dylibs": {
-					"items": {
-						"type": "string"
-					},
-					"uniqueItems": true,
-					"type": "array"
 				},
 				"icon": {
 					"type": "string"
@@ -1380,7 +1369,7 @@
 					"additionalProperties": false,
 					"description": "A list of allowed build configurations",
 					"patternProperties": {
-						"^[\\w\\-\\+\\.]{3,}$": {
+						"^[A-Za-z]{3,}$": {
 							"type": "object",
 							"additionalProperties": false,
 							"properties": {
