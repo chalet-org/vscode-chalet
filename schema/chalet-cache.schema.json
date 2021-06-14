@@ -4,181 +4,240 @@
 	"additionalProperties": false,
 	"required": [
 		"settings",
-		"tools",
-		"compilerTools"
+		"ancillaryTools",
+		"toolchains"
 	],
 	"definitions": {
-		"tools-bash": {
+		"ancillaryTools-bash": {
 			"type": "string",
 			"description": "The executable path to GNU bash",
 			"default": "/usr/bin/bash"
 		},
-		"tools-brew": {
+		"ancillaryTools-brew": {
 			"type": "string",
 			"description": "The executable path to brew command-line utility (MacOS)",
 			"default": "/usr/local/bin/brew"
 		},
-		"tools-cmake": {
-			"type": "string",
-			"description": "The executable path to CMake",
-			"default": "/usr/local/bin/cmake"
-		},
-		"tools-command_prompt": {
+		"ancillaryTools-command_prompt": {
 			"type": "string",
 			"description": "The executable path to Command Prompt (Windows)",
 			"default": "C:/Windows/System32/cmd.exe"
 		},
-		"tools-codesign": {
+		"ancillaryTools-codesign": {
 			"type": "string",
 			"description": "The executable path to codesign command-line utility (MacOS)",
 			"default": "/usr/bin/codesign"
 		},
-		"tools-git": {
+		"ancillaryTools-git": {
 			"type": "string",
 			"description": "The executable path to git.",
 			"default": "/usr/bin/git"
 		},
-		"tools-gprof": {
+		"ancillaryTools-gprof": {
 			"type": "string",
 			"description": "The executable path to gprof.",
 			"default": "/usr/bin/gprof"
 		},
-		"tools-hdiutil": {
+		"ancillaryTools-hdiutil": {
 			"type": "string",
 			"description": "The executable path to Apple's hdiutil command-line utility (MacOS)",
 			"default": "/usr/bin/hdiutil"
 		},
-		"tools-install_name_tool": {
+		"ancillaryTools-install_name_tool": {
 			"type": "string",
 			"description": "The executable path to Apple's install_name_tool command-line utility (MacOS)",
 			"default": "/usr/bin/install_name_tool"
 		},
-		"tools-instruments": {
+		"ancillaryTools-instruments": {
 			"type": "string",
 			"description": "The executable path to Apple's instruments command-line utility (MacOS)",
 			"default": "/usr/bin/instruments"
 		},
-		"tools-ldd": {
+		"ancillaryTools-ldd": {
 			"type": "string",
 			"description": "The executable path to ldd.",
 			"default": "/usr/bin/ldd"
 		},
-		"tools-lipo": {
+		"ancillaryTools-lipo": {
 			"type": "string",
 			"description": "The executable path to Apple's lipo utility (MacOS)",
 			"default": "/usr/bin/lipo"
 		},
-		"tools-lua": {
+		"ancillaryTools-lua": {
 			"type": "string",
 			"description": "The executable path to Lua",
 			"default": "/usr/local/bin/lua"
 		},
-		"tools-make": {
-			"type": "string",
-			"description": "The executable path to GNU make utility.",
-			"default": "/usr/bin/make"
-		},
-		"tools-ninja": {
-			"type": "string",
-			"description": "The executable path to ninja."
-		},
-		"tools-objdump": {
-			"type": "string",
-			"description": "The executable path to objdump."
-		},
-		"tools-osascript": {
+		"ancillaryTools-osascript": {
 			"type": "string",
 			"description": "The executable path to Apple's osascript command-line utility (MacOS)",
 			"default": "/usr/bin/osascript"
 		},
-		"tools-otool": {
+		"ancillaryTools-otool": {
 			"type": "string",
 			"description": "The executable path to Apple's otool command-line utility (MacOS)",
 			"default": "/usr/bin/otool"
 		},
-		"tools-perl": {
+		"ancillaryTools-perl": {
 			"type": "string",
 			"description": "The executable path to Perl",
 			"default": "/usr/local/bin/perl"
 		},
-		"tools-plutil": {
+		"ancillaryTools-plutil": {
 			"type": "string",
 			"description": "The executable path to Apple's plutil command-line utility (MacOS)",
 			"default": "/usr/bin/plutil"
 		},
-		"tools-powershell": {
+		"ancillaryTools-powershell": {
 			"type": "string",
 			"description": "The executable path to Powershell (Windows)",
 			"default": "C:/Windows/System32/WindowsPowerShell/v1.0/powershell.exe"
 		},
-		"tools-python": {
+		"ancillaryTools-python": {
 			"type": "string",
 			"description": "The executable path to Python 2",
 			"default": "/usr/bin/python"
 		},
-		"tools-python3": {
+		"ancillaryTools-python3": {
 			"type": "string",
 			"description": "The executable path to Python 3",
 			"default": "/usr/local/bin/python3"
 		},
-		"tools-ruby": {
+		"ancillaryTools-ruby": {
 			"type": "string",
 			"description": "The executable path to ruby.",
 			"default": "/usr/bin/ruby"
 		},
-		"tools-sample": {
+		"ancillaryTools-sample": {
 			"type": "string",
 			"description": "The executable path to Apple's sample command-line utility (MacOS)",
 			"default": "/usr/bin/sample"
 		},
-		"tools-sips": {
+		"ancillaryTools-sips": {
 			"type": "string",
 			"description": "The executable path to Apple's sips command-line utility (MacOS)",
 			"default": "/usr/bin/sips"
 		},
-		"tools-tiffutil": {
+		"ancillaryTools-tiffutil": {
 			"type": "string",
 			"description": "The executable path to tiffutil",
 			"default": "/usr/bin/tiffutil"
 		},
-		"tools-xcodebuild": {
+		"ancillaryTools-xcodebuild": {
 			"type": "string",
 			"description": "The executable path to Apple's xcodebuild command-line utility (MacOS)",
 			"default": "/usr/bin/xcodebuild"
 		},
-		"tools-xcodegen": {
+		"ancillaryTools-xcodegen": {
 			"type": "string",
 			"description": "The executable path to the xcodegen Homebrew application (MacOS)",
 			"default": "/usr/local/bin/xcodegen"
 		},
-		"tools-xcrun": {
+		"ancillaryTools-xcrun": {
 			"type": "string",
 			"description": "The executable path to Apple's xcrun command-line utility (MacOS)",
 			"default": "/usr/bin/xcrun"
 		},
-		"compilerTools-archiver": {
+		"toolchains-archiver": {
 			"type": "string",
 			"description": "The executable path to the toolchain's static library archive utility",
 			"default": "/usr/bin/ar"
 		},
-		"compilerTools-cpp": {
+		"toolchains-cpp": {
 			"type": "string",
 			"description": "The executable path to the toolchain's C++ compiler",
 			"default": "/usr/bin/c++"
 		},
-		"compilerTools-c": {
+		"toolchains-c": {
 			"type": "string",
 			"description": "The executable path to the toolchain's C compiler",
 			"default": "/usr/bin/cc"
 		},
-		"compilerTools-linker": {
+		"toolchains-cmake": {
+			"type": "string",
+			"description": "The executable path to CMake",
+			"default": "/usr/local/bin/cmake"
+		},
+		"toolchains-linker": {
 			"type": "string",
 			"description": "The executable path to the toolchain's linker",
 			"default": "/usr/bin/ld"
 		},
-		"compilerTools-windowsResource": {
+		"toolchains-make": {
+			"type": "string",
+			"description": "The executable path to GNU make utility.",
+			"default": "/usr/bin/make"
+		},
+		"toolchains-ninja": {
+			"type": "string",
+			"description": "The executable path to ninja."
+		},
+		"toolchains-objdump": {
+			"type": "string",
+			"description": "The executable path to objdump."
+		},
+		"toolchains-windowsResource": {
 			"type": "string",
 			"description": "The executable path to the resource compiler (Windows)"
+		},
+		"toolchains-strategy": {
+			"type": "string",
+			"description": "The build strategy to use.",
+			"enum": [
+				"makefile",
+				"native-experimental",
+				"ninja"
+			],
+			"default": "makefile"
+		},
+		"toolchains": {
+			"type": "object",
+			"additionalProperties": false,
+			"description": "The list of compilers for the platform",
+			"required": [
+				"archiver",
+				"C++",
+				"C",
+				"cmake",
+				"linker",
+				"make",
+				"objdump",
+				"ninja",
+				"strategy",
+				"windowsResource"
+			],
+			"properties": {
+				"strategy": {
+					"$ref": "#/definitions/toolchains-strategy"
+				},
+				"archiver": {
+					"$ref": "#/definitions/toolchains-archiver"
+				},
+				"C++": {
+					"$ref": "#/definitions/toolchains-cpp"
+				},
+				"C": {
+					"$ref": "#/definitions/toolchains-c"
+				},
+				"cmake": {
+					"$ref": "#/definitions/toolchains-cmake"
+				},
+				"linker": {
+					"$ref": "#/definitions/toolchains-linker"
+				},
+				"make": {
+					"$ref": "#/definitions/toolchains-make"
+				},
+				"ninja": {
+					"$ref": "#/definitions/toolchains-ninja"
+				},
+				"objdump": {
+					"$ref": "#/definitions/toolchains-objdump"
+				},
+				"windowsResource": {
+					"$ref": "#/definitions/toolchains-windowsResource"
+				}
+			}
 		},
 		"settings-dumpAssembly": {
 			"type": "boolean",
@@ -190,16 +249,6 @@
 			"description": "The number of threads to run during compilation. If this number exceeds the capabilities of the processor, the processor's max will be used.",
 			"minimum": 1
 		},
-		"settings-strategy": {
-			"type": "string",
-			"description": "The build strategy to use.",
-			"enum": [
-				"makefile",
-				"native-experimental",
-				"ninja"
-			],
-			"default": "makefile"
-		},
 		"settings-showCommands": {
 			"description": "true to show the commands run during the build, false to just show the source file.",
 			"type": "boolean",
@@ -207,15 +256,14 @@
 		}
 	},
 	"properties": {
-		"tools": {
+		"ancillaryTools": {
 			"type": "object",
 			"additionalProperties": false,
-			"description": "The list of tools for the platform",
+			"description": "The list of ancillaryTools for the platform",
 			"required": [
 				"bash",
 				"brew",
 				"command_prompt",
-				"cmake",
 				"codesign",
 				"git",
 				"gprof",
@@ -225,9 +273,6 @@
 				"ldd",
 				"lipo",
 				"lua",
-				"make",
-				"ninja",
-				"objdump",
 				"osascript",
 				"otool",
 				"perl",
@@ -245,129 +290,88 @@
 			],
 			"properties": {
 				"bash": {
-					"$ref": "#/definitions/tools-bash"
+					"$ref": "#/definitions/ancillaryTools-bash"
 				},
 				"brew": {
-					"$ref": "#/definitions/tools-brew"
-				},
-				"cmake": {
-					"$ref": "#/definitions/tools-cmake"
+					"$ref": "#/definitions/ancillaryTools-brew"
 				},
 				"command_prompt": {
-					"$ref": "#/definitions/tools-command_prompt"
+					"$ref": "#/definitions/ancillaryTools-command_prompt"
 				},
 				"codesign": {
-					"$ref": "#/definitions/tools-codesign"
+					"$ref": "#/definitions/ancillaryTools-codesign"
 				},
 				"git": {
-					"$ref": "#/definitions/tools-git"
+					"$ref": "#/definitions/ancillaryTools-git"
 				},
 				"gprof": {
-					"$ref": "#/definitions/tools-gprof"
+					"$ref": "#/definitions/ancillaryTools-gprof"
 				},
 				"hdiutil": {
-					"$ref": "#/definitions/tools-hdiutil"
+					"$ref": "#/definitions/ancillaryTools-hdiutil"
 				},
 				"install_name_tool": {
-					"$ref": "#/definitions/tools-install_name_tool"
+					"$ref": "#/definitions/ancillaryTools-install_name_tool"
 				},
 				"instruments": {
-					"$ref": "#/definitions/tools-instruments"
+					"$ref": "#/definitions/ancillaryTools-instruments"
 				},
 				"ldd": {
-					"$ref": "#/definitions/tools-ldd"
+					"$ref": "#/definitions/ancillaryTools-ldd"
 				},
 				"lipo": {
-					"$ref": "#/definitions/tools-lipo"
+					"$ref": "#/definitions/ancillaryTools-lipo"
 				},
 				"lua": {
-					"$ref": "#/definitions/tools-lua"
-				},
-				"make": {
-					"$ref": "#/definitions/tools-make"
-				},
-				"ninja": {
-					"$ref": "#/definitions/tools-ninja"
-				},
-				"objdump": {
-					"$ref": "#/definitions/tools-objdump"
+					"$ref": "#/definitions/ancillaryTools-lua"
 				},
 				"osascript": {
-					"$ref": "#/definitions/tools-osascript"
+					"$ref": "#/definitions/ancillaryTools-osascript"
 				},
 				"otool": {
-					"$ref": "#/definitions/tools-otool"
+					"$ref": "#/definitions/ancillaryTools-otool"
 				},
 				"perl": {
-					"$ref": "#/definitions/tools-perl"
+					"$ref": "#/definitions/ancillaryTools-perl"
 				},
 				"plutil": {
-					"$ref": "#/definitions/tools-plutil"
+					"$ref": "#/definitions/ancillaryTools-plutil"
 				},
 				"powershell": {
-					"$ref": "#/definitions/tools-powershell"
+					"$ref": "#/definitions/ancillaryTools-powershell"
 				},
 				"python": {
-					"$ref": "#/definitions/tools-python"
+					"$ref": "#/definitions/ancillaryTools-python"
 				},
 				"python3": {
-					"$ref": "#/definitions/tools-python3"
+					"$ref": "#/definitions/ancillaryTools-python3"
 				},
 				"ruby": {
-					"$ref": "#/definitions/tools-ruby"
+					"$ref": "#/definitions/ancillaryTools-ruby"
 				},
 				"sample": {
-					"$ref": "#/definitions/tools-sample"
+					"$ref": "#/definitions/ancillaryTools-sample"
 				},
 				"sips": {
-					"$ref": "#/definitions/tools-sips"
+					"$ref": "#/definitions/ancillaryTools-sips"
 				},
 				"tiffutil": {
-					"$ref": "#/definitions/tools-tiffutil"
+					"$ref": "#/definitions/ancillaryTools-tiffutil"
 				},
 				"xcodebuild": {
-					"$ref": "#/definitions/tools-xcodebuild"
+					"$ref": "#/definitions/ancillaryTools-xcodebuild"
 				},
 				"xcodegen": {
-					"$ref": "#/definitions/tools-xcodegen"
+					"$ref": "#/definitions/ancillaryTools-xcodegen"
 				},
 				"xcrun": {
-					"$ref": "#/definitions/tools-xcrun"
+					"$ref": "#/definitions/ancillaryTools-xcrun"
 				}
 			}
 		},
 		"applePlatformSdks": {
 			"type": "object",
 			"description": "A list of Apple platform SDK paths (MacOS)"
-		},
-		"compilerTools": {
-			"type": "object",
-			"additionalProperties": false,
-			"description": "The list of compilers for the platform",
-			"required": [
-				"archiver",
-				"C++",
-				"C",
-				"linker",
-				"windowsResource"
-			],
-			"properties": {
-				"archiver": {
-					"$ref": "#/definitions/compilerTools-archiver"
-				},
-				"C++": {
-					"$ref": "#/definitions/compilerTools-cpp"
-				},
-				"C": {
-					"$ref": "#/definitions/compilerTools-c"
-				},
-				"linker": {
-					"$ref": "#/definitions/compilerTools-linker"
-				},
-				"windowsResource": {
-					"$ref": "#/definitions/compilerTools-windowsResource"
-				}
-			}
 		},
 		"workingDirectory": {
 			"type": "string",
@@ -387,7 +391,6 @@
 			"required": [
 				"dumpAssembly",
 				"maxJobs",
-				"strategy",
 				"showCommands"
 			],
 			"properties": {
@@ -397,11 +400,18 @@
 				"maxJobs": {
 					"$ref": "#/definitions/settings-maxJobs"
 				},
-				"strategy": {
-					"$ref": "#/definitions/settings-strategy"
-				},
 				"showCommands": {
 					"$ref": "#/definitions/settings-showCommands"
+				}
+			}
+		},
+		"toolchains": {
+			"type": "object",
+			"additionalProperties": false,
+			"description": "A list of compiler toolchains, mapped to the ids: msvc, llvm, or gcc",
+			"patternProperties": {
+				"^[\\w\\-\\+\\.]{3,}$": {
+					"$ref": "#/definitions/toolchains"
 				}
 			}
 		}
