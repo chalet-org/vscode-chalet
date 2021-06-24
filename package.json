@@ -65,8 +65,11 @@
 				"url": "./schema/chalet.schema.json"
 			},
 			{
-				"fileMatch": "build/chalet-cache.json",
-				"url": "./schema/chalet-cache.schema.json"
+				"fileMatch": [
+					"build/chalet-config.json",
+					".chaletconfig"
+				],
+				"url": "./schema/chalet-config.schema.json"
 			}
 		]
 	},
