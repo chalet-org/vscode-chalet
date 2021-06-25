@@ -15,6 +15,17 @@
 	],
 	"main": "./out/extension.js",
 	"contributes": {
+		"languages": [
+			{
+				"id": "jsonc",
+				"extensions": [
+					".chaletrc"
+				],
+				"filenames": [
+					".chaletrc"
+				]
+			}
+		],
 		"configuration": {
 			"title": "Chalet Tools",
 			"properties": {
