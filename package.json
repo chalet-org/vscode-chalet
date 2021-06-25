@@ -66,10 +66,10 @@
 			},
 			{
 				"fileMatch": [
-					"build/chalet-config.json",
-					".chaletconfig"
+					"build/chalet-settings.json",
+					".chaletrc"
 				],
-				"url": "./schema/chalet-config.schema.json"
+				"url": "./schema/chalet-settings.schema.json"
 			}
 		]
 	},
