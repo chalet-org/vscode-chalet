@@ -191,54 +191,58 @@ class ChaletToolsExtension {
     };
 
     handleBuildJsonChange = (): void => {
-        const rawData = fs.readFileSync(this.inputFile, "utf8");
-        const buildJson = CommentJSON.parse(rawData, undefined, true);
-        let configurations: any = buildJson["configurations"];
-        if (configurations) {
-            if (Array.isArray(configurations)) {
-                this.buildConfigurationMenu = configurations.reduce((out: string[], item) => {
-                    if (typeof item === "string") {
-                        if (
-                            item === BuildConfigurations.Debug ||
-                            item === BuildConfigurations.Release ||
-                            item === BuildConfigurations.RelWithDebInfo ||
-                            item === BuildConfigurations.MinSizeRel ||
-                            item === BuildConfigurations.Profile
-                        )
-                            out.push(item);
+        try {
+            const rawData = fs.readFileSync(this.inputFile, "utf8");
+            const buildJson = CommentJSON.parse(rawData, undefined, true);
+            let configurations: any = buildJson["configurations"];
+            if (configurations) {
+                if (Array.isArray(configurations)) {
+                    this.buildConfigurationMenu = configurations.reduce((out: string[], item) => {
+                        if (typeof item === "string") {
+                            if (
+                                item === BuildConfigurations.Debug ||
+                                item === BuildConfigurations.Release ||
+                                item === BuildConfigurations.RelWithDebInfo ||
+                                item === BuildConfigurations.MinSizeRel ||
+                                item === BuildConfigurations.Profile
+                            )
+                                out.push(item);
+                        }
+                        return out;
+                    }, [] as string[]);
+                } else if (typeof configurations === "object") {
+                    this.buildConfigurationMenu = [];
+                    for (const [key, value] of Object.entries(configurations)) {
+                        let item: any = value;
+                        if (item && typeof item === "object") {
+                            this.buildConfigurationMenu.push(key);
+                        }
                     }
-                    return out;
-                }, [] as string[]);
-            } else if (typeof configurations === "object") {
-                this.buildConfigurationMenu = [];
-                for (const [key, value] of Object.entries(configurations)) {
-                    let item: any = value;
-                    if (item && typeof item === "object") {
-                        this.buildConfigurationMenu.push(key);
-                    }
+                } else {
+                    return;
                 }
-            } else {
+
+                if (
+                    (this.buildConfigurationMenu.length > 0 && this.buildConfiguration === null) ||
+                    (this.buildConfiguration !== null && !this.buildConfigurationMenu.includes(this.buildConfiguration))
+                ) {
+                    this.setBuildConfiguration(this.buildConfigurationMenu[0]);
+                }
+
+                if (this.buildConfiguration !== null && this.buildConfigurationMenu.length === 0) {
+                    this.setBuildConfiguration(null);
+                }
+
+                this.setRunProjectName(buildJson);
                 return;
             }
 
-            if (
-                (this.buildConfigurationMenu.length > 0 && this.buildConfiguration === null) ||
-                (this.buildConfiguration !== null && !this.buildConfigurationMenu.includes(this.buildConfiguration))
-            ) {
-                this.setBuildConfiguration(this.buildConfigurationMenu[0]);
-            }
-
-            if (this.buildConfiguration !== null && this.buildConfigurationMenu.length === 0) {
-                this.setBuildConfiguration(null);
-            }
-
             this.setRunProjectName(buildJson);
+
+            this.setDefaultBuildConfigurations();
+        } catch {
             return;
         }
-
-        this.setRunProjectName(buildJson);
-
-        this.setDefaultBuildConfigurations();
     };
 
     private setRunProjectName = (buildJson: any): void => {

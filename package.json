@@ -11,7 +11,20 @@
 		"Other"
 	],
 	"activationEvents": [
-		"*"
+		"onLanguage:c",
+		"onLanguage:cpp",
+		"onLanguage:objective-c",
+		"onLanguage:objective-cpp",
+		"onLanguage:cuda-cpp",
+		"onCommand:chalet-tools.runChalet",
+		"onCommand:chalet-tools.chaletCommand",
+		"onCommand:chalet-tools.buildArchitecture",
+		"onCommand:chalet-tools.buildConfiguration",
+		"onCommand:chalet-tools.makeDebugBuild",
+		"workspaceContains:**/build.json",
+		"workspaceContains:**/.chaletrc",
+		"onFileSystem:file://**/build.json",
+		"onFileSystem:file://**/.chaletrc"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
