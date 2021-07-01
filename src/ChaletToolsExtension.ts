@@ -46,7 +46,9 @@ class ChaletToolsExtension {
     enabled: boolean = false;
     cwd: string = "";
     inputFile: string = "build.json";
-    outputPath: string = "build";
+    settingsFile: string = "";
+    rootDir: string = "";
+    outputDir: string = "build";
     envFile: string = ".env";
 
     targetArchitectures: string[] = [];
@@ -314,10 +316,20 @@ class ChaletToolsExtension {
             shellArgs.push("--input-file");
             shellArgs.push(this.inputFile);
 
-            shellArgs.push("--output-path");
-            shellArgs.push(this.outputPath);
+            if (this.settingsFile.length > 0) {
+                shellArgs.push("--settings-file");
+                shellArgs.push(this.settingsFile);
+            }
 
-            shellArgs.push("--envfile");
+            if (this.rootDir.length > 0) {
+                shellArgs.push("--root-dir");
+                shellArgs.push(this.inputFile);
+            }
+
+            shellArgs.push("--output-dir");
+            shellArgs.push(this.outputDir);
+
+            shellArgs.push("--env-file");
             shellArgs.push(this.envFile);
 
             if (this.buildArchitecture.length > 0 && this.buildArchitecture != BuildArchitecture.Auto) {
