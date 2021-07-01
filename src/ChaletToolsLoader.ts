@@ -65,8 +65,8 @@ class ChaletToolsLoader {
 
             this.cwd = workspaceRoot.fsPath;
 
-            const buildJsonUri = Uri.joinPath(workspaceRoot, "build.json"); // TODO: get from local/global settings
-            this.inputFile = buildJsonUri.fsPath;
+            const chaletJsonUri = Uri.joinPath(workspaceRoot, "chalet.json"); // TODO: get from local/global settings
+            this.inputFile = chaletJsonUri.fsPath;
 
             if (fs.existsSync(this.inputFile)) {
                 this.extension.setWorkingDirectory(this.cwd);

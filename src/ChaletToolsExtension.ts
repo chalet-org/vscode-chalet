@@ -45,7 +45,7 @@ class ChaletToolsExtension {
     useDebugChalet: boolean = false;
     enabled: boolean = false;
     cwd: string = "";
-    inputFile: string = "build.json";
+    inputFile: string = "chalet.json";
     settingsFile: string = "";
     rootDir: string = "";
     outputDir: string = "build";
@@ -193,8 +193,8 @@ class ChaletToolsExtension {
     handleBuildJsonChange = (): void => {
         try {
             const rawData = fs.readFileSync(this.inputFile, "utf8");
-            const buildJson = CommentJSON.parse(rawData, undefined, true);
-            let configurations: any = buildJson["configurations"];
+            const chaletJson = CommentJSON.parse(rawData, undefined, true);
+            let configurations: any = chaletJson["configurations"];
             if (configurations) {
                 if (Array.isArray(configurations)) {
                     this.buildConfigurationMenu = configurations.reduce((out: string[], item) => {
@@ -233,11 +233,11 @@ class ChaletToolsExtension {
                     this.setBuildConfiguration(null);
                 }
 
-                this.setRunProjectName(buildJson);
+                this.setRunProjectName(chaletJson);
                 return;
             }
 
-            this.setRunProjectName(buildJson);
+            this.setRunProjectName(chaletJson);
 
             this.setDefaultBuildConfigurations();
         } catch {
@@ -245,9 +245,9 @@ class ChaletToolsExtension {
         }
     };
 
-    private setRunProjectName = (buildJson: any): void => {
+    private setRunProjectName = (chaletJson: any): void => {
         this.runProjects = [];
-        let projects: any = buildJson["projects"];
+        let projects: any = chaletJson["projects"];
         if (projects && typeof projects === "object") {
             this.runProjects = [];
             for (const [key, value] of Object.entries(projects)) {

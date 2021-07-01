@@ -21,9 +21,9 @@
 		"onCommand:chalet-tools.buildArchitecture",
 		"onCommand:chalet-tools.buildConfiguration",
 		"onCommand:chalet-tools.makeDebugBuild",
-		"workspaceContains:**/build.json",
+		"workspaceContains:**/chalet.json",
 		"workspaceContains:**/.chaletrc",
-		"onFileSystem:file://**/build.json",
+		"onFileSystem:file://**/chalet.json",
 		"onFileSystem:file://**/.chaletrc"
 	],
 	"main": "./out/extension.js",
@@ -82,9 +82,9 @@
 		"jsonValidation": [
 			{
 				"fileMatch": [
-					"build.json",
-					"build.*.json",
-					"build-*.json"
+					"chalet.json",
+					"chalet.*.json",
+					"chalet-*.json"
 				],
 				"url": "./schema/chalet.schema.json"
 			},
