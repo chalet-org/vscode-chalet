@@ -158,6 +158,7 @@
 				"maxJobs",
 				"showCommands",
 				"toolchain",
+				"architecture",
 				"signingIdentity"
 			],
 			"properties": {
@@ -180,6 +181,10 @@
 					"description": "The toolchain id to use for building, if not the previous one.",
 					"type": "string"
 				},
+				"architecture": {
+					"description": "The architecture id to use for building, if not the previous one.",
+					"type": "string"
+				},
 				"signingIdentity": {
 					"description": "The signing identity to use when bundling the macos application bundle.",
 					"type": "string"
@@ -189,7 +194,7 @@
 		"toolchains": {
 			"type": "object",
 			"additionalProperties": false,
-			"description": "A list of compiler toolchains, mapped to the ids: msvc, llvm, or gcc",
+			"description": "A list of compiler toolchains",
 			"patternProperties": {
 				"^[\\w\\-\\+\\.]{3,}$": {
 					"type": "object",
@@ -223,6 +228,8 @@
 							"type": "string",
 							"description": "The build path style. ex: build/(prefix)_Debug, build/(prefix)_Release",
 							"enum": [
+								"configuration",
+								"arch-configuration",
 								"target-triple",
 								"toolchain-name"
 							],
