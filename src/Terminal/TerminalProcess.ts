@@ -28,13 +28,13 @@ export type TerminalProcessOptions = {
 };
 
 class TerminalProcess {
-    subprocess: Optional<proc.ChildProcessWithoutNullStreams> = null;
-    interrupted: boolean = false;
+    private subprocess: Optional<proc.ChildProcessWithoutNullStreams> = null;
+    private interrupted: boolean = false;
 
-    shellPath: string = "";
-    name: string = "";
-    onSuccess?: SucessCallback;
-    onFailure?: FailureCallback;
+    private shellPath: string = "";
+    private name: string = "";
+    private onSuccess?: SucessCallback;
+    private onFailure?: FailureCallback;
 
     constructor(public onWrite: (text: string) => void) {}
 

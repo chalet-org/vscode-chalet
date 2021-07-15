@@ -18,9 +18,15 @@ export type PseudoTerminalOptions = {
 
 class CustomPsuedoTerminal implements vscode.Pseudoterminal {
     private writeEmitter = new vscode.EventEmitter<string>();
-    onDidWrite: vscode.Event<string> = this.writeEmitter.event;
-
     private closeEmitter = new vscode.EventEmitter<number>();
+
+    constructor(
+        public open: (initialDimensions?: vscode.TerminalDimensions) => void,
+        public close: () => void,
+        private onInterrupt: () => void
+    ) {}
+
+    onDidWrite: vscode.Event<string> = this.writeEmitter.event;
     onDidClose: vscode.Event<number> = this.closeEmitter.event;
 
     handleInput = (data: string) => {
@@ -31,18 +37,12 @@ class CustomPsuedoTerminal implements vscode.Pseudoterminal {
 
             default: {
                 data = data.replace(/\r/g, "\r\n");
-                console.log(data.slice(0, data.length - 1));
+                // console.log(data.slice(0, data.length - 1));
                 this.writeEmitter.fire(data);
                 break;
             }
         }
     };
-
-    constructor(
-        public open: (initialDimensions?: vscode.TerminalDimensions) => void,
-        public close: () => void,
-        private onInterrupt: () => void
-    ) {}
 
     dispose = (): void => {
         this.writeEmitter.dispose();

@@ -4,34 +4,20 @@ import { Optional } from "../Types";
 import { TerminalProcessOptions, TerminalProcess } from "./TerminalProcess";
 import { CustomPsuedoTerminal } from "./CustomPsuedoTerminal";
 
-const keys = {
-    enter: "\r",
-    backspace: "\x7f",
-};
-const actions = {
-    cursorBack: "\x1b[D",
-    deleteChar: "\x1b[P",
-    clear: "\x1b[2J\x1b[3J\x1b[;H",
-    interrupt: "\u0003",
-};
-
-export class TerminalController {
-    writeEmitter: vscode.EventEmitter<string>;
-    closeEmitter: vscode.EventEmitter<void | number>;
-    terminal: Optional<vscode.Terminal> = null;
-    process: Optional<TerminalProcess> = null;
-
-    constructor() {
-        this.writeEmitter = new vscode.EventEmitter<string>();
-        this.closeEmitter = new vscode.EventEmitter<void | number>();
-    }
+class TerminalController {
+    private view: Optional<vscode.Terminal> = null;
+    private pseudoTerminal: Optional<CustomPsuedoTerminal> = null;
+    private process: Optional<TerminalProcess> = null;
 
     dispose = () => {
         this.process?.dispose();
         this.process = null;
 
-        this.terminal?.dispose();
-        this.terminal = null;
+        this.view?.dispose();
+        this.view = null;
+
+        this.pseudoTerminal?.dispose();
+        this.pseudoTerminal = null;
     };
 
     private fetchOrMakeTerminal = (name: string): vscode.Terminal => {
@@ -47,24 +33,34 @@ export class TerminalController {
             console.log("found existing terminal");
             terminal.show();
         } else {
+            this.createPseudoTerminal();
             terminal = vscode.window.createTerminal({
                 name,
-                pty: new CustomPsuedoTerminal(this.onTerminalOpen, this.onTerminalClose, this.onTerminalInterrupt),
+                pty: this.pseudoTerminal!,
             });
         }
 
         return terminal;
     };
 
+    private createPseudoTerminal = () => {
+        if (this.pseudoTerminal === null) {
+            this.pseudoTerminal = new CustomPsuedoTerminal(
+                this.onTerminalOpen,
+                this.onTerminalClose,
+                this.onTerminalInterrupt
+            );
+        }
+    };
     private onTerminalCreate = (name: string) => {
-        if (this.terminal === null) {
-            this.terminal = this.fetchOrMakeTerminal(name);
+        if (this.view === null) {
+            this.view = this.fetchOrMakeTerminal(name);
         }
     };
     private onTerminalOpen = () => {};
     private onTerminalClose = this.dispose;
     private onTerminalInterrupt = () => this.process?.terminate();
-    private onTerminalWrite = (text: string) => this.terminal?.sendText(text, false);
+    private onTerminalWrite = (text: string) => this.view?.sendText(text, false);
     private onTerminalAutoClear = (): Thenable<void> => {
         return vscode.commands.executeCommand("workbench.action.terminal.clear");
     };
@@ -76,11 +72,13 @@ export class TerminalController {
             }
             this.process.execute(options, () => this.onTerminalCreate(options.name), this.onTerminalAutoClear);
 
-            if (this.terminal !== null && this.terminal !== vscode.window.activeTerminal) {
-                this.terminal.show();
+            if (this.view !== null && this.view !== vscode.window.activeTerminal) {
+                this.view.show();
             }
         } catch (err) {
             console.error(err);
         }
     };
 }
+
+export { TerminalController };
