@@ -79,9 +79,7 @@ class ChaletToolsLoader {
             }
         }
 
-        if (this.extension) {
-            this.extension.setEnabled(false);
-        }
+        this.extension?.setEnabled(false);
 
         return false;
     };
@@ -94,10 +92,8 @@ class ChaletToolsLoader {
     };
 
     deactivate = () => {
-        if (this.extension) {
-            this.extension.deactivate();
-            this.extension = null;
-        }
+        this.extension?.deactivate();
+        this.extension = null;
         this.inputFile = null;
         this.cwd = null;
     };

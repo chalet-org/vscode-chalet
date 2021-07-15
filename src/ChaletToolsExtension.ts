@@ -1,7 +1,6 @@
 import * as fs from "fs";
 import { window, workspace, commands, StatusBarAlignment, ExtensionContext, StatusBarItem, Memento } from "vscode";
 import * as CommentJSON from "comment-json";
-import { SpawnError, TerminalController } from "./Commands";
 import {
     BuildArchitecture,
     BuildConfigurations,
@@ -12,6 +11,8 @@ import {
 } from "./Types/Enums";
 import { getTerminalEnv } from "./Functions";
 import { Optional } from "./Types";
+import { TerminalController } from "./Terminal/TerminalController";
+import { SpawnError } from "./Terminal/TerminalProcess";
 
 class ChaletToolsExtension {
     chaletCommand: ChaletCommands;
@@ -116,9 +117,7 @@ class ChaletToolsExtension {
     }
 
     deactivate = () => {
-        if (this.terminalController) {
-            this.terminalController.deactivate();
-        }
+        this.terminalController?.dispose();
         this.terminalController = null;
 
         this.statusBarChaletCommand.dispose();
