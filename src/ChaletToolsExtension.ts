@@ -20,7 +20,7 @@ import { ChaletStatusBarCommand } from "./Commands/ChaletStatusBarCommand";
 class ChaletToolsExtension {
     chaletCommand: ChaletStatusBarCommand;
     buildConfiguration: BuildConfigurationCommand;
-    buildArchitecture: BuildArchitectureCommand;
+    // buildArchitecture: BuildArchitectureCommand;
 
     runProjects: string[] = [];
     statusBarDoAction: vscode.StatusBarItem;
@@ -67,8 +67,8 @@ class ChaletToolsExtension {
         this.buildConfiguration = new BuildConfigurationCommand(context, 3);
         this.buildConfiguration.setOnClickCallback(this.updateStatusBarItems);
 
-        this.buildArchitecture = new BuildArchitectureCommand(context, 2);
-        this.buildArchitecture.setOnClickCallback(this.updateStatusBarItems);
+        // this.buildArchitecture = new BuildArchitectureCommand(context, 2);
+        // this.buildArchitecture.setOnClickCallback(this.updateStatusBarItems);
 
         this.statusBarDoAction = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 1);
         this.addStatusBarCommand(context, this.statusBarDoAction, CommandId.Run, this.actionRunChalet);
@@ -78,7 +78,7 @@ class ChaletToolsExtension {
         try {
             await this.chaletCommand.initialize();
             await this.buildConfiguration.initialize();
-            await this.buildArchitecture.initialize();
+            // await this.buildArchitecture.initialize();
         } catch (err) {
             console.error(err.message);
         }
@@ -89,7 +89,7 @@ class ChaletToolsExtension {
 
         this.chaletCommand.dispose();
         this.buildConfiguration.dispose();
-        this.buildArchitecture.dispose();
+        // this.buildArchitecture.dispose();
 
         this.statusBarDoAction.dispose();
     };
@@ -268,7 +268,7 @@ class ChaletToolsExtension {
         if (!this.enabled) {
             this.chaletCommand.setVisible(false);
             this.buildConfiguration.setVisible(false);
-            this.buildArchitecture.setVisible(false);
+            // this.buildArchitecture.setVisible(false);
             this.statusBarDoAction.hide();
             return;
         }
@@ -278,7 +278,7 @@ class ChaletToolsExtension {
         if (chaletCommand !== null) {
             this.buildConfiguration.updateAndSetVisibility(chaletCommand);
         }
-        this.buildArchitecture.setVisible(true);
+        // this.buildArchitecture.setVisible(true);
 
         this.statusBarDoAction.show();
 
