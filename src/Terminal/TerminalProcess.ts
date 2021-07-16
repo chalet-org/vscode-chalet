@@ -79,7 +79,6 @@ class TerminalProcess {
     execute = (
         { autoClear, name, cwd, env, onStart, onSuccess, onFailure, ...options }: TerminalProcessOptions,
         onCreate: () => void,
-        onFinish: () => void,
         onAutoClear: () => Thenable<void>
     ): Promise<number> => {
         return new Promise((resolve, reject) => {
@@ -131,10 +130,7 @@ class TerminalProcess {
                         console.error(err.message);
                         console.error(err.stack);
                     }
-                    setTimeout(() => {
-                        this.haltSubProcess();
-                        onFinish();
-                    }, 250);
+                    setTimeout(this.haltSubProcess, 250);
                     reject(err);
                 });
 
@@ -143,7 +139,6 @@ class TerminalProcess {
 
                 this.subprocess.on("close", (code, signal) => {
                     this.onProcessClose(code, signal);
-                    onFinish();
                     resolve(code);
                 });
             }
