@@ -5,7 +5,7 @@
 	"version": "0.0.1",
 	"license": "UNLICENSED",
 	"engines": {
-		"vscode": "^1.57.0"
+		"vscode": "^1.58.2"
 	},
 	"categories": [
 		"Other"

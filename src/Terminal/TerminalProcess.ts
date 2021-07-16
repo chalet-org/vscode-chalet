@@ -76,19 +76,26 @@ class TerminalProcess {
         }
     };
 
-    execute = async (
+    execute = (
         { autoClear, name, cwd, env, onStart, onSuccess, onFailure, ...options }: TerminalProcessOptions,
         onCreate: () => void,
+        onFinish: () => void,
         onAutoClear: () => Thenable<void>
-    ) => {
-        try {
+    ): Promise<number> => {
+        return new Promise((resolve, reject) => {
             this.haltSubProcess();
             this.interrupted = false;
 
             onCreate();
 
             if (!!autoClear) {
-                await onAutoClear();
+                (async () => {
+                    try {
+                        await onAutoClear();
+                    } catch (err) {
+                        reject(err);
+                    }
+                })();
             }
 
             // console.log(cwd);
@@ -124,17 +131,23 @@ class TerminalProcess {
                         console.error(err.message);
                         console.error(err.stack);
                     }
-                    setTimeout(this.haltSubProcess, 250);
+                    setTimeout(() => {
+                        this.haltSubProcess();
+                        onFinish();
+                    }, 250);
+                    reject(err);
                 });
 
                 this.subprocess.stdout.on("data", (chunk: Buffer) => this.onWrite(chunk.toString()));
                 this.subprocess.stderr.on("data", (chunk: Buffer) => this.onWrite(chunk.toString()));
 
-                this.subprocess.on("close", this.onProcessClose);
+                this.subprocess.on("close", (code, signal) => {
+                    this.onProcessClose(code, signal);
+                    onFinish();
+                    resolve(code);
+                });
             }
-        } catch (err) {
-            console.error(err);
-        }
+        });
     };
 
     terminate = () => {

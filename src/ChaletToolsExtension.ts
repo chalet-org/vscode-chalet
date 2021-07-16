@@ -1,5 +1,5 @@
 import * as fs from "fs";
-import { window, workspace, commands, StatusBarAlignment, ExtensionContext, StatusBarItem, Memento } from "vscode";
+import * as vscode from "vscode";
 import * as CommentJSON from "comment-json";
 import {
     BuildArchitecture,
@@ -11,12 +11,12 @@ import {
 } from "./Types/Enums";
 import { getTerminalEnv } from "./Functions";
 import { Optional } from "./Types";
-import { TerminalController } from "./Terminal/TerminalController";
 import { SpawnError } from "./Terminal/TerminalProcess";
+import { ChaletTaskProvider } from "./Terminal/ChaletTaskProvider";
 
 class ChaletToolsExtension {
     chaletCommand: ChaletCommands;
-    statusBarChaletCommand: StatusBarItem;
+    statusBarChaletCommand: vscode.StatusBarItem;
     chaletCommandMenu: ChaletCommands[] = [
         ChaletCommands.BuildRun,
         ChaletCommands.Run,
@@ -28,20 +28,20 @@ class ChaletToolsExtension {
     ];
 
     buildConfiguration: Optional<string> = null;
-    statusBarBuildConfiguration: StatusBarItem;
+    statusBarBuildConfiguration: vscode.StatusBarItem;
     buildConfigurationMenu: (BuildConfigurations | string)[] = [];
 
     buildArchitecture: string;
-    statusBarBuildArchitecture?: StatusBarItem;
+    statusBarBuildArchitecture?: vscode.StatusBarItem;
     buildArchitectureMenu: (BuildArchitecture | string)[] = [];
     defaultArchitecture: BuildArchitecture[];
 
     runProjects: string[] = [];
-    statusBarDoAction: StatusBarItem;
+    statusBarDoAction: vscode.StatusBarItem;
 
-    terminalController: Optional<TerminalController> = null;
+    taskProvider: Optional<ChaletTaskProvider> = null;
 
-    workspaceState: Memento;
+    workspaceState: vscode.Memento;
 
     useDebugChalet: boolean = false;
     enabled: boolean = false;
@@ -54,30 +54,38 @@ class ChaletToolsExtension {
 
     targetArchitectures: string[] = [];
 
+    chaletTaskProvider: ChaletTaskProvider;
+    chaletTaskProviderDisposable: vscode.Disposable | undefined;
+
     private addStatusBarCommand = (
-        { subscriptions }: ExtensionContext,
-        statusBarItem: StatusBarItem,
+        { subscriptions }: vscode.ExtensionContext,
+        statusBarItem: vscode.StatusBarItem,
         id: CommandId,
         onClick: () => Promise<void>
     ) => {
         const command: string = `chalet-tools.${id}`;
-        subscriptions.push(commands.registerCommand(command, onClick));
+        subscriptions.push(vscode.commands.registerCommand(command, onClick));
 
         statusBarItem.command = command;
         statusBarItem.show();
         subscriptions.push(statusBarItem);
     };
 
-    constructor(context: ExtensionContext, public platform: VSCodePlatform) {
-        this.terminalController = new TerminalController();
+    constructor(context: vscode.ExtensionContext, public platform: VSCodePlatform) {
+        this.chaletTaskProvider = new ChaletTaskProvider();
+        this.chaletTaskProviderDisposable = vscode.tasks.registerTaskProvider(
+            ChaletTaskProvider.type,
+            this.chaletTaskProvider
+        );
+        this.taskProvider = new ChaletTaskProvider();
         this.workspaceState = context.workspaceState;
 
         {
             const command: string = `chalet-tools.${CommandId.MakeDebugBuild}`;
-            context.subscriptions.push(commands.registerCommand(command, this.actionMakeDebugBuild));
+            context.subscriptions.push(vscode.commands.registerCommand(command, this.actionMakeDebugBuild));
         }
 
-        this.statusBarChaletCommand = window.createStatusBarItem(StatusBarAlignment.Left, 4);
+        this.statusBarChaletCommand = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 4);
         this.addStatusBarCommand(
             context,
             this.statusBarChaletCommand,
@@ -85,7 +93,7 @@ class ChaletToolsExtension {
             this.actionChaletCommandQuickPick
         );
 
-        this.statusBarBuildConfiguration = window.createStatusBarItem(StatusBarAlignment.Left, 3);
+        this.statusBarBuildConfiguration = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 3);
         this.addStatusBarCommand(
             context,
             this.statusBarBuildConfiguration,
@@ -99,7 +107,7 @@ class ChaletToolsExtension {
             this.defaultArchitecture = [BuildArchitecture.x64];
         }
 
-        this.statusBarBuildArchitecture = window.createStatusBarItem(StatusBarAlignment.Left, 2);
+        this.statusBarBuildArchitecture = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 2);
         this.addStatusBarCommand(
             context,
             this.statusBarBuildArchitecture,
@@ -107,7 +115,7 @@ class ChaletToolsExtension {
             this.actionBuildArchitectureQuickPick
         );
 
-        this.statusBarDoAction = window.createStatusBarItem(StatusBarAlignment.Left, 1);
+        this.statusBarDoAction = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 1);
         this.addStatusBarCommand(context, this.statusBarDoAction, CommandId.Run, this.actionRunChalet);
 
         this.chaletCommand = this.workspaceState.get(CommandId.ChaletCommand, ChaletCommands.BuildRun);
@@ -117,13 +125,15 @@ class ChaletToolsExtension {
     }
 
     deactivate = () => {
-        this.terminalController?.dispose();
-        this.terminalController = null;
+        this.taskProvider?.dispose();
+        this.taskProvider = null;
 
         this.statusBarChaletCommand.dispose();
         this.statusBarBuildConfiguration.dispose();
         this.statusBarBuildArchitecture?.dispose();
         this.statusBarDoAction.dispose();
+
+        this.chaletTaskProviderDisposable?.dispose();
     };
 
     setEnabled = (enabled: boolean) => {
@@ -143,7 +153,7 @@ class ChaletToolsExtension {
     };
 
     getExtensionSettings = () => {
-        const workbenchConfig = workspace.getConfiguration("chalet-tools");
+        const workbenchConfig = vscode.workspace.getConfiguration("chalet-tools");
         const useDebugChalet = workbenchConfig.get<boolean>("useDebugChalet");
 
         if (useDebugChalet) {
@@ -264,7 +274,7 @@ class ChaletToolsExtension {
 
     private actionChaletCommandQuickPick = async (): Promise<void> => {
         try {
-            const result = await window.showQuickPick(this.chaletCommandMenu);
+            const result = await vscode.window.showQuickPick(this.chaletCommandMenu);
             if (result) {
                 this.setChaletCommand(result as ChaletCommands);
             }
@@ -278,7 +288,7 @@ class ChaletToolsExtension {
         try {
             if (this.buildConfiguration === null) return;
 
-            const result = await window.showQuickPick(this.buildConfigurationMenu);
+            const result = await vscode.window.showQuickPick(this.buildConfigurationMenu);
             if (result) {
                 this.setBuildConfiguration(result);
             }
@@ -290,7 +300,7 @@ class ChaletToolsExtension {
 
     private actionBuildArchitectureQuickPick = async (): Promise<void> => {
         try {
-            const result = await window.showQuickPick(this.buildArchitectureMenu);
+            const result = await vscode.window.showQuickPick(this.buildArchitectureMenu);
             if (result) {
                 this.setBuildArchitecture(result as BuildArchitecture);
             }
@@ -352,9 +362,9 @@ class ChaletToolsExtension {
                 }
             }
 
-            if (this.terminalController) {
+            if (this.taskProvider) {
                 const env = getTerminalEnv(this.platform);
-                await this.terminalController.execute({
+                await this.taskProvider.execute({
                     name: "Chalet" + (this.useDebugChalet ? " (Debug)" : ""),
                     cwd: this.cwd,
                     env,
@@ -441,7 +451,7 @@ class ChaletToolsExtension {
         }
     };
 
-    private updateStatusBarItem = (item: StatusBarItem, text: string): void => {
+    private updateStatusBarItem = (item: vscode.StatusBarItem, text: string): void => {
         item.text = text;
         item.show();
     };
