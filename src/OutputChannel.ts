@@ -11,34 +11,24 @@ class OutputChannel {
     };
 
     static log = (text: string): void => {
-        if (OutputChannel.output !== null) {
-            OutputChannel.output.appendLine(text);
-        }
+        OutputChannel.output?.appendLine(text);
     };
 
     static logWithName = (text: string): void => {
-        if (OutputChannel.output !== null) {
-            OutputChannel.output.appendLine(`${OutputChannel.output.name}: ${text}`);
-        }
+        OutputChannel.output?.appendLine(`${OutputChannel.output.name}: ${text}`);
     };
 
     static logCommand = (text: string): void => {
-        if (OutputChannel.output !== null) {
-            OutputChannel.output.appendLine(`> ${text}`);
-        }
+        OutputChannel.output?.appendLine(`> ${text}`);
     };
 
     static logError = (text: string): void => {
-        if (OutputChannel.output !== null) {
-            OutputChannel.output.appendLine(`Error: ${text}`);
-        }
+        OutputChannel.output?.appendLine(`Error: ${text}`);
         console.error(text);
     };
 
     static dispose = () => {
-        if (OutputChannel.output !== null) {
-            OutputChannel.output.dispose();
-        }
+        OutputChannel.output?.dispose();
         OutputChannel.output = null;
     };
 
@@ -50,9 +40,7 @@ class OutputChannel {
     };
 
     static clear = () => {
-        if (OutputChannel.output !== null) {
-            OutputChannel.output.clear();
-        }
+        OutputChannel.output?.clear();
     };
 }
 

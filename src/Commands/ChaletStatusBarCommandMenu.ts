@@ -1,9 +1,9 @@
 import * as vscode from "vscode";
 import { Optional } from "../Types";
 import { ChaletCommands, CommandId } from "../Types/Enums";
-import { StatusBarCommand } from "./StatusBarCommand";
+import { StatusBarCommandMenu } from "./StatusBarCommandMenu";
 
-class ChaletStatusBarCommand extends StatusBarCommand<ChaletCommands> {
+class ChaletStatusBarCommandMenu extends StatusBarCommandMenu<ChaletCommands> {
     constructor(context: vscode.ExtensionContext, priority: number) {
         super(CommandId.ChaletCommand, context, priority);
 
@@ -68,4 +68,4 @@ class ChaletStatusBarCommand extends StatusBarCommand<ChaletCommands> {
     };
 }
 
-export { ChaletStatusBarCommand };
+export { ChaletStatusBarCommandMenu };

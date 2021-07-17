@@ -15,12 +15,12 @@ import { SpawnError } from "./Terminal/TerminalProcess";
 import { ChaletTaskProvider } from "./Terminal/ChaletTaskProvider";
 import { BuildConfigurationCommand } from "./Commands/BuildConfigurationCommand";
 // import { BuildArchitectureCommand } from "./Commands/BuildArchitectureCommand";
-import { ChaletStatusBarCommand } from "./Commands/ChaletStatusBarCommand";
+import { ChaletStatusBarCommandMenu } from "./Commands/ChaletStatusBarCommandMenu";
 import { getCommandId } from "./Commands";
 import { OutputChannel } from "./OutputChannel";
 
 class ChaletToolsExtension {
-    chaletCommand: ChaletStatusBarCommand;
+    chaletCommand: ChaletStatusBarCommandMenu;
     buildConfiguration: BuildConfigurationCommand;
     // buildArchitecture: BuildArchitectureCommand;
 
@@ -41,7 +41,7 @@ class ChaletToolsExtension {
     outputDir: string = "build";
     envFile: string = ".env";
 
-    private addStatusBarCommand = (
+    private addStatusBarCommandMenu = (
         { subscriptions }: vscode.ExtensionContext,
         statusBarItem: vscode.StatusBarItem,
         id: CommandId,
@@ -64,7 +64,7 @@ class ChaletToolsExtension {
             context.subscriptions.push(vscode.commands.registerCommand(command, this.actionMakeDebugBuild));
         }
 
-        this.chaletCommand = new ChaletStatusBarCommand(context, 4);
+        this.chaletCommand = new ChaletStatusBarCommandMenu(context, 4);
         this.chaletCommand.setOnClickCallback(this.updateStatusBarItems);
 
         this.buildConfiguration = new BuildConfigurationCommand(context, 3);
@@ -74,7 +74,7 @@ class ChaletToolsExtension {
         // this.buildArchitecture.setOnClickCallback(this.updateStatusBarItems);
 
         this.statusBarDoAction = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 1);
-        this.addStatusBarCommand(context, this.statusBarDoAction, CommandId.Run, this.actionRunChalet);
+        this.addStatusBarCommandMenu(context, this.statusBarDoAction, CommandId.Run, this.actionRunChalet);
     }
 
     activate = async () => {
@@ -247,6 +247,7 @@ class ChaletToolsExtension {
             }
 
             const shellPath = this.useDebugChalet ? ChaletVersion.Debug : ChaletVersion.Release;
+            const name = "Chalet" + (this.useDebugChalet ? " (Debug)" : "");
             const env = getTerminalEnv(this.platform);
 
             OutputChannel.logCommand(`${shellPath} ${shellArgs.join(" ")}`);
@@ -254,7 +255,7 @@ class ChaletToolsExtension {
             // OutputChannel.logCommand(`env: ${JSON.stringify(env, undefined, 3)}`);
 
             await this.taskProvider.execute({
-                name: "Chalet" + (this.useDebugChalet ? " (Debug)" : ""),
+                name,
                 cwd: this.cwd,
                 env,
                 autoClear: false,

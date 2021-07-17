@@ -2,9 +2,9 @@ import * as vscode from "vscode";
 import { Optional } from "../Types";
 import { BuildConfigurations, ChaletCommands, CommandId } from "../Types/Enums";
 
-import { StatusBarCommand } from "./StatusBarCommand";
+import { StatusBarCommandMenu } from "./StatusBarCommandMenu";
 
-class BuildConfigurationCommand extends StatusBarCommand<BuildConfigurations | string> {
+class BuildConfigurationCommand extends StatusBarCommandMenu<BuildConfigurations | string> {
     constructor(context: vscode.ExtensionContext, priority: number) {
         super(CommandId.BuildConfiguration, context, priority);
     }

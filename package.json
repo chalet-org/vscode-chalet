@@ -15,7 +15,6 @@
 		"onLanguage:cpp",
 		"onLanguage:objective-c",
 		"onLanguage:objective-cpp",
-		"onLanguage:cuda-cpp",
 		"onCommand:chalet-tools.runChalet",
 		"onCommand:chalet-tools.chaletCommand",
 		"onCommand:chalet-tools.buildArchitecture",

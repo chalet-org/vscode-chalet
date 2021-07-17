@@ -1,8 +1,8 @@
 import * as vscode from "vscode";
 import { BuildArchitecture, CommandId } from "../Types/Enums";
-import { StatusBarCommand } from "./StatusBarCommand";
+import { StatusBarCommandMenu } from "./StatusBarCommandMenu";
 
-class BuildArchitectureCommand extends StatusBarCommand<BuildArchitecture> {
+class BuildArchitectureCommand extends StatusBarCommandMenu<BuildArchitecture> {
     constructor(context: vscode.ExtensionContext, priority: number) {
         super(CommandId.BuildArchitecture, context, priority);
 

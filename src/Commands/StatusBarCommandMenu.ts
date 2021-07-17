@@ -7,15 +7,14 @@ import { getCommandId } from "./GetCommandId";
 
 type ClickCallback = Optional<() => void>;
 
-abstract class StatusBarCommand<T extends string> {
-    protected value: Optional<T> = null;
-    protected menu: T[] = [];
-
+abstract class StatusBarCommandMenu<T extends string> {
     private visible: boolean = true;
     private clickCallback: ClickCallback = null;
 
     protected workspaceState: vscode.Memento;
     protected item: vscode.StatusBarItem;
+    protected value: Optional<T> = null;
+    protected menu: T[] = [];
 
     private onClick = async (): Promise<void> => {
         try {
@@ -96,4 +95,4 @@ abstract class StatusBarCommand<T extends string> {
     };
 }
 
-export { StatusBarCommand };
+export { StatusBarCommandMenu };
