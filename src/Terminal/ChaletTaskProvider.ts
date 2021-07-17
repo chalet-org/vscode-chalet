@@ -35,6 +35,7 @@ class ChaletTaskProvider {
             terminal = vscode.window.createTerminal({
                 name,
                 pty,
+                iconPath: new vscode.ThemeIcon("home"),
             });
         }
 

@@ -139,7 +139,7 @@ class TerminalProcess {
 
                 this.subprocess.on("close", (code, signal) => {
                     this.onProcessClose(code, signal);
-                    resolve(code);
+                    resolve(code ?? -1);
                 });
             }
         });

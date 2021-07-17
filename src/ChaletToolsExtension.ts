@@ -2,7 +2,7 @@ import * as fs from "fs";
 import * as vscode from "vscode";
 import * as CommentJSON from "comment-json";
 import {
-    BuildArchitecture,
+    // BuildArchitecture,
     BuildConfigurations,
     ChaletCommands,
     ChaletVersion,
@@ -14,16 +14,18 @@ import { Optional } from "./Types";
 import { SpawnError } from "./Terminal/TerminalProcess";
 import { ChaletTaskProvider } from "./Terminal/ChaletTaskProvider";
 import { BuildConfigurationCommand } from "./Commands/BuildConfigurationCommand";
-import { BuildArchitectureCommand } from "./Commands/BuildArchitectureCommand";
+// import { BuildArchitectureCommand } from "./Commands/BuildArchitectureCommand";
 import { ChaletStatusBarCommand } from "./Commands/ChaletStatusBarCommand";
+import { getCommandId } from "./Commands";
 
 class ChaletToolsExtension {
     chaletCommand: ChaletStatusBarCommand;
     buildConfiguration: BuildConfigurationCommand;
     // buildArchitecture: BuildArchitectureCommand;
 
-    runProjects: string[] = [];
     statusBarDoAction: vscode.StatusBarItem;
+
+    runProjects: string[] = [];
 
     taskProvider: ChaletTaskProvider;
 
@@ -57,7 +59,7 @@ class ChaletToolsExtension {
         this.workspaceState = context.workspaceState;
 
         {
-            const command: string = `chalet-tools.${CommandId.MakeDebugBuild}`;
+            const command = getCommandId(CommandId.MakeDebugBuild);
             context.subscriptions.push(vscode.commands.registerCommand(command, this.actionMakeDebugBuild));
         }
 
