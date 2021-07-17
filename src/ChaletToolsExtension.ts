@@ -15,7 +15,7 @@ import {
     getChaletPlatform,
 } from "./Types";
 import { SpawnError } from "./Terminal/TerminalProcess";
-import { ChaletTaskProvider } from "./Terminal/ChaletTaskProvider";
+import { ChaletTerminal } from "./Terminal/ChaletTerminal";
 import {
     // BuildArchitectureCommandMenu,
     BuildConfigurationCommandMenu,
@@ -34,7 +34,7 @@ class ChaletToolsExtension {
 
     private runProjects: string[] = [];
 
-    private taskProvider: ChaletTaskProvider;
+    private taskProvider: ChaletTerminal;
 
     private useDebugChalet: boolean = false;
     private enabled: boolean = false;
@@ -51,7 +51,7 @@ class ChaletToolsExtension {
     private onMakeDebugBuild = () => this.runChalet(ChaletCommands.Build, BuildConfigurations.Debug);
 
     constructor(context: vscode.ExtensionContext, public platform: VSCodePlatform) {
-        this.taskProvider = new ChaletTaskProvider();
+        this.taskProvider = new ChaletTerminal();
 
         {
             const command = getCommandID(CommandId.MakeDebugBuild);

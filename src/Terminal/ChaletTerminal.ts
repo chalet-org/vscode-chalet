@@ -8,7 +8,7 @@ type ExecuteOptions = TerminalProcessOptions & {
     icon: string;
 };
 
-class ChaletTaskProvider {
+class ChaletTerminal {
     private view: Optional<vscode.Terminal> = null;
     private pseudoTerminal: Optional<CustomPsuedoTerminal> = null;
     private process: Optional<TerminalProcess> = null;
@@ -81,11 +81,11 @@ class ChaletTaskProvider {
             () => this.onTerminalCreate(options.name),
             this.onTerminalAutoClear
         );
-        if (this.view !== null && this.view !== vscode.window.activeTerminal) {
+        if (this.view !== null) {
             this.view.show();
         }
         return promise;
     };
 }
 
-export { ChaletTaskProvider };
+export { ChaletTerminal };
