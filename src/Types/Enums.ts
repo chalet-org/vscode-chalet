@@ -26,12 +26,6 @@ export enum BuildArchitecture {
     ARM64 = "arm64",
 }
 
-export enum VSCodePlatform {
-    MacOS = "osx",
-    Linux = "linux",
-    Windows = "windows",
-}
-
 export enum ChaletVersion {
     Release = "chalet",
     Debug = "chalet-debug",

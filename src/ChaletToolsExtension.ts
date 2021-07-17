@@ -12,6 +12,7 @@ import {
     CommandId,
     VSCodePlatform,
     Optional,
+    getChaletPlatform,
 } from "./Types";
 import { SpawnError } from "./Terminal/TerminalProcess";
 import { ChaletTaskProvider } from "./Terminal/ChaletTaskProvider";
@@ -100,6 +101,10 @@ class ChaletToolsExtension {
 
         if (this.envFile.length === 0) {
             this.envFile = path.join(this.cwd, ".env");
+            const platformEnv = `${this.envFile}.${getChaletPlatform(this.platform)}`;
+            if (fs.existsSync(platformEnv)) {
+                this.envFile = platformEnv;
+            }
         }
     };
 

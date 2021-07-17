@@ -9,3 +9,4 @@ export type Dictionary<T> = {
 };
 
 export * from "./Enums";
+export * from "./Platform";
