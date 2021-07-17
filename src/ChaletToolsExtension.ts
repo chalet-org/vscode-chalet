@@ -20,8 +20,9 @@ import {
     ChaletStatusBarCommandMenu,
     RunChaletCommandButton,
 } from "./Commands";
-import { getCommandId } from "./Functions";
+import { getCommandID } from "./Functions";
 import { OutputChannel } from "./OutputChannel";
+import { EXTENSION_ID } from "./ExtensionID";
 
 class ChaletToolsExtension {
     chaletCommand: ChaletStatusBarCommandMenu;
@@ -49,7 +50,7 @@ class ChaletToolsExtension {
         this.taskProvider = new ChaletTaskProvider();
 
         {
-            const command = getCommandId(CommandId.MakeDebugBuild);
+            const command = getCommandID(CommandId.MakeDebugBuild);
             context.subscriptions.push(vscode.commands.registerCommand(command, this.onMakeDebugBuild));
         }
 
@@ -100,7 +101,7 @@ class ChaletToolsExtension {
     };
 
     getExtensionSettings = () => {
-        const workbenchConfig = vscode.workspace.getConfiguration("chalet-tools");
+        const workbenchConfig = vscode.workspace.getConfiguration(EXTENSION_ID);
         const useDebugChalet = workbenchConfig.get<boolean>("useDebugChalet");
 
         if (useDebugChalet) {
@@ -162,10 +163,10 @@ class ChaletToolsExtension {
 
     private setRunProjectName = (chaletJson: any): void => {
         this.runProjects = [];
-        let projects: any = chaletJson["projects"];
-        if (projects && typeof projects === "object") {
+        let targets: any = chaletJson["targets"];
+        if (targets && typeof targets === "object") {
             this.runProjects = [];
-            for (const [key, value] of Object.entries(projects)) {
+            for (const [key, value] of Object.entries(targets)) {
                 let item: any = value;
                 if (item && typeof item === "object") {
                     if (item.kind && (item.kind === "desktopApplication" || item.kind === "consoleApplication")) {

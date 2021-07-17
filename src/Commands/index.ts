@@ -1,4 +1,3 @@
-export * from "./HelloWorld";
 export * from "./BuildArchitectureCommandMenu";
 export * from "./BuildConfigurationCommandMenu";
 export * from "./ChaletStatusBarCommandMenu";

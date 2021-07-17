@@ -1,2 +1,2 @@
 export * from "./GetTerminalEnv";
-export * from "./GetCommandId";
+export * from "./GetCommandID";

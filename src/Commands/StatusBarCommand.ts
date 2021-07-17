@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 
-import { getCommandId } from "../Functions";
+import { getCommandID } from "../Functions";
 import { CommandId } from "../Types";
 
 abstract class StatusBarCommand {
@@ -20,7 +20,7 @@ abstract class StatusBarCommand {
     }
 
     private registerCommand = (id: CommandId, context: vscode.ExtensionContext) => {
-        const command = getCommandId(id);
+        const command = getCommandID(id);
         this.item.command = command;
 
         context.subscriptions.push(vscode.commands.registerCommand(command, this.onClick), this.item);
