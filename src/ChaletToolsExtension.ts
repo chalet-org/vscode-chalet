@@ -61,14 +61,10 @@ class ChaletToolsExtension {
     }
 
     activate = async () => {
-        try {
-            await this.chaletCommand.initialize();
-            await this.buildConfiguration.initialize();
-            // await this.buildArchitecture.initialize();
-            this.updateStatusBarItems();
-        } catch (err) {
-            OutputChannel.logError(err);
-        }
+        await this.chaletCommand.initialize();
+        await this.buildConfiguration.initialize();
+        // await this.buildArchitecture.initialize();
+        this.updateStatusBarItems();
     };
 
     deactivate = () => {
@@ -156,8 +152,8 @@ class ChaletToolsExtension {
             this.setRunProjectName(chaletJson);
 
             this.buildConfiguration.setDefaultMenu();
-        } catch {
-            return;
+        } catch (err) {
+            OutputChannel.logError(err);
         }
     };
 
@@ -188,9 +184,7 @@ class ChaletToolsExtension {
     };
 
     private onTerminalFailure = (err?: SpawnError): void => {
-        if (err) {
-            OutputChannel.logError(err);
-        }
+        OutputChannel.logError(err);
     };
 
     private runChalet = async (command: Optional<ChaletCommands>, buildConfig: Optional<string>): Promise<void> => {
@@ -236,7 +230,7 @@ class ChaletToolsExtension {
             }
 
             const shellPath = this.useDebugChalet ? ChaletVersion.Debug : ChaletVersion.Release;
-            const name = "Chalet" + (this.useDebugChalet ? " (Debug)" : "");
+            const name = `Chalet${this.useDebugChalet ? " (Debug)" : ""}`;
             const env = getTerminalEnv(this.platform);
             const icon = this.chaletCommand.getIcon();
 
@@ -264,15 +258,8 @@ class ChaletToolsExtension {
     updateStatusBarItems = async (): Promise<void> => {
         if (!this.enabled) return;
 
-        const chaletCommand = this.chaletCommand.getValue();
-        if (chaletCommand !== null) {
-            this.buildConfiguration.requiredForVisibility(chaletCommand);
-        }
-
-        this.runChaletButton.updateLabelFromChaletCommand(
-            this.chaletCommand,
-            this.runProjects.length > 0 ? this.runProjects[0] : null
-        );
+        await this.buildConfiguration.requiredForVisibility(this.chaletCommand.getValue());
+        this.runChaletButton.updateLabelFromChaletCommand(this.chaletCommand, this.runProjects[0]);
     };
 }
 

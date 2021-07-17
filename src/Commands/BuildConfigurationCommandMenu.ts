@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import { bind } from "bind-decorator";
 
-import { BuildConfigurations, ChaletCommands, CommandId } from "../Types";
+import { BuildConfigurations, ChaletCommands, CommandId, Optional } from "../Types";
 import { StatusBarCommandMenu, ValueChangeCallback } from "./StatusBarCommandMenu";
 
 type MenuType = BuildConfigurations | string;
@@ -22,11 +22,13 @@ class BuildConfigurationCommandMenu extends StatusBarCommandMenu<MenuType> {
         ];
     }
 
-    requiredForVisibility = (command: ChaletCommands): void => {
+    requiredForVisibility = async (command: Optional<ChaletCommands>): Promise<void> => {
+        if (command === null) return;
+
         const required: boolean = this.required(command);
         if (required) {
             const value = this.value ?? (this.menu.length > 0 ? this.menu[0] : BuildConfigurations.Invalid);
-            this.setValue(value);
+            await this.setValue(value);
         }
 
         this.setVisible(required);
