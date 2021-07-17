@@ -27,25 +27,25 @@ import { OutputChannel } from "./OutputChannel";
 import { EXTENSION_ID } from "./ExtensionID";
 
 class ChaletToolsExtension {
-    chaletCommand: ChaletStatusBarCommandMenu;
-    buildConfiguration: BuildConfigurationCommandMenu;
-    // buildArchitecture: BuildArchitectureCommandMenu;
-    runChaletButton: RunChaletCommandButton;
+    private chaletCommand: ChaletStatusBarCommandMenu;
+    private buildConfiguration: BuildConfigurationCommandMenu;
+    // private buildArchitecture: BuildArchitectureCommandMenu;
+    private runChaletButton: RunChaletCommandButton;
 
-    runProjects: string[] = [];
+    private runProjects: string[] = [];
 
-    taskProvider: ChaletTaskProvider;
+    private taskProvider: ChaletTaskProvider;
 
-    useDebugChalet: boolean = false;
-    enabled: boolean = false;
-    cwd: string = "";
+    private useDebugChalet: boolean = false;
+    private enabled: boolean = false;
+    private cwd: string = "";
 
-    inputFile: string = "";
-    settingsFile: string = "";
-    envFile: string = "";
+    private inputFile: string = "";
+    private settingsFile: string = "";
+    private envFile: string = "";
 
-    rootDir: string = "";
-    outputDir: string = "build";
+    private rootDir: string = "";
+    private outputDir: string = "";
 
     private onRunChalet = () => this.runChalet(this.chaletCommand.getValue(), this.buildConfiguration.getValue());
     private onMakeDebugBuild = () => this.runChalet(ChaletCommands.Build, BuildConfigurations.Debug);
@@ -94,18 +94,6 @@ class ChaletToolsExtension {
 
     setWorkingDirectory = (cwd: string) => {
         this.cwd = cwd;
-
-        if (this.settingsFile.length === 0) {
-            this.settingsFile = path.join(this.cwd, ".chaletrc");
-        }
-
-        if (this.envFile.length === 0) {
-            this.envFile = path.join(this.cwd, ".env");
-            const platformEnv = `${this.envFile}.${getChaletPlatform(this.platform)}`;
-            if (fs.existsSync(platformEnv)) {
-                this.envFile = platformEnv;
-            }
-        }
     };
 
     setInputFile = (inPath: string) => {
@@ -224,17 +212,19 @@ class ChaletToolsExtension {
                 shellArgs.push(this.stripCwd(this.settingsFile));
             }
 
+            if (this.envFile.length > 0 && fs.existsSync(this.envFile)) {
+                shellArgs.push("--env-file");
+                shellArgs.push(this.stripCwd(this.envFile));
+            }
+
             if (this.rootDir.length > 0) {
                 shellArgs.push("--root-dir");
                 shellArgs.push(this.stripCwd(this.rootDir));
             }
 
-            shellArgs.push("--output-dir");
-            shellArgs.push(this.stripCwd(this.outputDir));
-
-            if (this.envFile.length > 0 && fs.existsSync(this.envFile)) {
-                shellArgs.push("--env-file");
-                shellArgs.push(this.stripCwd(this.envFile));
+            if (this.outputDir.length > 0) {
+                shellArgs.push("--output-dir");
+                shellArgs.push(this.stripCwd(this.outputDir));
             }
 
             /*if (this.buildArchitecture.length > 0 && this.buildArchitecture != BuildArchitecture.Auto) {
