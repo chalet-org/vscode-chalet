@@ -180,11 +180,11 @@ class ChaletToolsExtension {
     };
 
     private onTerminalStart = (): void => {
-        OutputChannel.logWithName("process started");
+        OutputChannel.logCommand("process started");
     };
 
     private onTerminalSuccess = (code?: Optional<number>, signal?: Optional<NodeJS.Signals>): void => {
-        OutputChannel.logWithName(`process exited with code: ${code}`);
+        OutputChannel.logCommand(`process exited with code: ${code}`);
     };
 
     private onTerminalFailure = (err?: SpawnError): void => {
