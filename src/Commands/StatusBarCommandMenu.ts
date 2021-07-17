@@ -5,12 +5,20 @@ import { OutputChannel } from "../OutputChannel";
 import { Optional, CommandId } from "../Types";
 import { StatusBarCommand } from "./StatusBarCommand";
 
-abstract class StatusBarCommandMenu<T extends string> extends StatusBarCommand<T> {
+export type ValueChangeCallback = Optional<() => Promise<void>>;
+
+abstract class StatusBarCommandMenu<T extends string> extends StatusBarCommand {
+    protected value: Optional<T> = null;
     protected menu: T[] = [];
 
     protected abstract getDefaultMenu(): T[];
 
-    constructor(id: CommandId, context: vscode.ExtensionContext, priority: number) {
+    constructor(
+        id: CommandId,
+        private onClickCallback: ValueChangeCallback,
+        context: vscode.ExtensionContext,
+        priority: number
+    ) {
         super(id, context, priority);
     }
 
@@ -23,7 +31,7 @@ abstract class StatusBarCommandMenu<T extends string> extends StatusBarCommand<T
             if (result) {
                 await this.setValue(result as T);
             }
-            this.clickCallback?.();
+            await this.onClickCallback?.();
         } catch (err) {
             OutputChannel.logError(err);
         }
@@ -39,10 +47,27 @@ abstract class StatusBarCommandMenu<T extends string> extends StatusBarCommand<T
         }
     }
 
-    @bind
-    getStateValue(defaultValue: Optional<T> = null): Optional<T> {
-        return super.getStateValue(this.menu.length > 0 ? this.menu[0] : defaultValue);
-    }
+    getStateValue = (defaultValue: Optional<T> = null): Optional<T> => {
+        return this.workspaceState.get(this.id, defaultValue);
+    };
+
+    setValue = async (value: Optional<T>): Promise<void> => {
+        try {
+            if (this.value === value) return;
+
+            this.value = value;
+            if (this.value !== null) {
+                this.setLabel(this.value);
+            }
+            await this.workspaceState.update(this.id, this.value);
+        } catch (err) {
+            OutputChannel.logError(err);
+        }
+    };
+
+    getValue = (): Optional<T> => {
+        return this.value;
+    };
 
     resetMenu = (): void => {
         this.menu = [];

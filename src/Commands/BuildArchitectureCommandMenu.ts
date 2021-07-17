@@ -1,17 +1,21 @@
 import * as vscode from "vscode";
-import bind from "bind-decorator";
+import { bind } from "bind-decorator";
 
-import { Optional, BuildArchitecture, CommandId } from "../Types";
-import { StatusBarCommandMenu } from "./StatusBarCommandMenu";
+import { BuildArchitecture, CommandId } from "../Types";
+import { StatusBarCommandMenu, ValueChangeCallback } from "./StatusBarCommandMenu";
 
 class BuildArchitectureCommandMenu extends StatusBarCommandMenu<BuildArchitecture> {
-    constructor(context: vscode.ExtensionContext, priority: number) {
-        super(CommandId.BuildArchitecture, context, priority);
+    constructor(onClick: ValueChangeCallback, context: vscode.ExtensionContext, priority: number) {
+        super(CommandId.BuildArchitecture, onClick, context, priority);
     }
 
     @bind
     protected getDefaultMenu(): BuildArchitecture[] {
-        return [BuildArchitecture.x64, BuildArchitecture.x86];
+        return [
+            //
+            BuildArchitecture.x64,
+            BuildArchitecture.x86,
+        ];
     }
 }
 

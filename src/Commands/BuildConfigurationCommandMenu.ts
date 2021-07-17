@@ -1,14 +1,14 @@
 import * as vscode from "vscode";
 import { bind } from "bind-decorator";
 
-import { Optional, BuildConfigurations, ChaletCommands, CommandId } from "../Types";
-import { StatusBarCommandMenu } from "./StatusBarCommandMenu";
+import { BuildConfigurations, ChaletCommands, CommandId } from "../Types";
+import { StatusBarCommandMenu, ValueChangeCallback } from "./StatusBarCommandMenu";
 
 type MenuType = BuildConfigurations | string;
 
 class BuildConfigurationCommandMenu extends StatusBarCommandMenu<MenuType> {
-    constructor(context: vscode.ExtensionContext, priority: number) {
-        super(CommandId.BuildConfiguration, context, priority);
+    constructor(onClick: ValueChangeCallback, context: vscode.ExtensionContext, priority: number) {
+        super(CommandId.BuildConfiguration, onClick, context, priority);
     }
 
     @bind

@@ -1,19 +1,13 @@
 import * as vscode from "vscode";
-import { bind } from "bind-decorator";
 
 import { getCommandId } from "../Functions";
-import { Optional, CommandId } from "../Types";
-import { OutputChannel } from "../OutputChannel";
+import { CommandId } from "../Types";
 
-type ClickCallback = Optional<() => void>;
-
-abstract class StatusBarCommand<T extends string> {
-    protected clickCallback: ClickCallback = null;
-
+abstract class StatusBarCommand {
+    protected label: string = "";
     protected visible: boolean = false;
     protected workspaceState: vscode.Memento;
     protected item: vscode.StatusBarItem;
-    protected value: Optional<T> = null;
 
     protected abstract onClick(): Promise<void>;
     protected abstract initialize(): Promise<void>;
@@ -36,11 +30,6 @@ abstract class StatusBarCommand<T extends string> {
         this.item.dispose();
     };
 
-    @bind
-    getStateValue(defaultValue: Optional<T> = null): Optional<T> {
-        return this.workspaceState.get(this.id, defaultValue);
-    }
-
     setVisible = (value: boolean): void => {
         this.visible = value;
 
@@ -48,26 +37,13 @@ abstract class StatusBarCommand<T extends string> {
         else this.item.hide();
     };
 
-    setValue = async (value: Optional<T>): Promise<void> => {
-        try {
-            if (this.value === value) return;
-
-            this.value = value;
-            if (this.value !== null) {
-                this.item.text = this.value;
-            }
-            await this.workspaceState.update(this.id, this.value);
-        } catch (err) {
-            OutputChannel.logError(err);
-        }
+    setLabel = (value: string): void => {
+        this.label = value;
+        this.item.text = this.label;
     };
 
-    getValue = (): Optional<T> => {
-        return this.value;
-    };
-
-    setOnClickCallback = (value: ClickCallback) => {
-        this.clickCallback = value;
+    getLabel = (): string => {
+        return this.label;
     };
 }
 

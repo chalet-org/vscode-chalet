@@ -14,9 +14,12 @@ import {
 } from "./Types";
 import { SpawnError } from "./Terminal/TerminalProcess";
 import { ChaletTaskProvider } from "./Terminal/ChaletTaskProvider";
-import { BuildConfigurationCommandMenu } from "./Commands/BuildConfigurationCommandMenu";
-// import { BuildArchitectureCommandMenu } from "./Commands/BuildArchitectureCommandMenu";
-import { ChaletStatusBarCommandMenu } from "./Commands/ChaletStatusBarCommandMenu";
+import {
+    // BuildArchitectureCommandMenu,
+    BuildConfigurationCommandMenu,
+    ChaletStatusBarCommandMenu,
+    RunChaletCommandButton,
+} from "./Commands";
 import { getCommandId } from "./Functions";
 import { OutputChannel } from "./OutputChannel";
 
@@ -24,14 +27,11 @@ class ChaletToolsExtension {
     chaletCommand: ChaletStatusBarCommandMenu;
     buildConfiguration: BuildConfigurationCommandMenu;
     // buildArchitecture: BuildArchitectureCommandMenu;
-
-    statusBarDoAction: vscode.StatusBarItem;
+    runChaletButton: RunChaletCommandButton;
 
     runProjects: string[] = [];
 
     taskProvider: ChaletTaskProvider;
-
-    workspaceState: vscode.Memento;
 
     useDebugChalet: boolean = false;
     enabled: boolean = false;
@@ -42,40 +42,21 @@ class ChaletToolsExtension {
     outputDir: string = "build";
     envFile: string = ".env";
 
-    private addStatusBarCommandMenu = (
-        { subscriptions }: vscode.ExtensionContext,
-        statusBarItem: vscode.StatusBarItem,
-        id: CommandId,
-        onClick: () => Promise<void>
-    ) => {
-        const command: string = `chalet-tools.${id}`;
-        subscriptions.push(vscode.commands.registerCommand(command, onClick));
-
-        statusBarItem.command = command;
-        statusBarItem.show();
-        subscriptions.push(statusBarItem);
-    };
+    private onRunChalet = () => this.runChalet(this.chaletCommand.getValue(), this.buildConfiguration.getValue());
+    private onMakeDebugBuild = () => this.runChalet(ChaletCommands.Build, BuildConfigurations.Debug);
 
     constructor(context: vscode.ExtensionContext, public platform: VSCodePlatform) {
         this.taskProvider = new ChaletTaskProvider();
-        this.workspaceState = context.workspaceState;
 
         {
             const command = getCommandId(CommandId.MakeDebugBuild);
-            context.subscriptions.push(vscode.commands.registerCommand(command, this.actionMakeDebugBuild));
+            context.subscriptions.push(vscode.commands.registerCommand(command, this.onMakeDebugBuild));
         }
 
-        this.chaletCommand = new ChaletStatusBarCommandMenu(context, 4);
-        this.chaletCommand.setOnClickCallback(this.updateStatusBarItems);
-
-        this.buildConfiguration = new BuildConfigurationCommandMenu(context, 3);
-        this.buildConfiguration.setOnClickCallback(this.updateStatusBarItems);
-
-        // this.buildArchitecture = new BuildArchitectureCommandMenu(context, 2);
-        // this.buildArchitecture.setOnClickCallback(this.updateStatusBarItems);
-
-        this.statusBarDoAction = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 1);
-        this.addStatusBarCommandMenu(context, this.statusBarDoAction, CommandId.Run, this.actionRunChalet);
+        this.chaletCommand = new ChaletStatusBarCommandMenu(this.updateStatusBarItems, context, 4);
+        this.buildConfiguration = new BuildConfigurationCommandMenu(this.updateStatusBarItems, context, 3);
+        // this.buildArchitecture = new BuildArchitectureCommandMenu(this.updateStatusBarItems, context, 2);
+        this.runChaletButton = new RunChaletCommandButton(this.onRunChalet, context, 1);
     }
 
     activate = async () => {
@@ -95,8 +76,7 @@ class ChaletToolsExtension {
         this.chaletCommand.dispose();
         this.buildConfiguration.dispose();
         // this.buildArchitecture.dispose();
-
-        this.statusBarDoAction.dispose();
+        this.runChaletButton.dispose();
     };
 
     setEnabled = (enabled: boolean) => {
@@ -106,6 +86,7 @@ class ChaletToolsExtension {
         this.chaletCommand.setVisible(this.enabled);
         this.buildConfiguration.setVisible(this.enabled);
         // this.buildArchitecture.setVisible(this.enabled);
+        this.runChaletButton.setVisible(this.enabled);
 
         this.updateStatusBarItems();
     };
@@ -279,34 +260,18 @@ class ChaletToolsExtension {
         }
     };
 
-    private actionRunChalet = () => this.runChalet(this.chaletCommand.getValue(), this.buildConfiguration.getValue());
-
-    private actionMakeDebugBuild = () => this.runChalet(ChaletCommands.Build, BuildConfigurations.Debug);
-
-    updateStatusBarItems = (): void => {
-        if (!this.enabled) {
-            this.statusBarDoAction.hide();
-            return;
-        }
+    updateStatusBarItems = async (): Promise<void> => {
+        if (!this.enabled) return;
 
         const chaletCommand = this.chaletCommand.getValue();
         if (chaletCommand !== null) {
             this.buildConfiguration.requiredForVisibility(chaletCommand);
         }
 
-        this.statusBarDoAction.show();
-
-        const icon: string = this.chaletCommand.getIcon();
-        if (this.runProjects.length > 0 && this.chaletCommand.willRun()) {
-            this.updateStatusBarItem(this.statusBarDoAction, `$(${icon}) ${this.runProjects[0]}`);
-        } else {
-            this.updateStatusBarItem(this.statusBarDoAction, `$(${icon})`);
-        }
-    };
-
-    private updateStatusBarItem = (item: vscode.StatusBarItem, text: string): void => {
-        item.text = text;
-        item.show();
+        this.runChaletButton.updateLabelFromChaletCommand(
+            this.chaletCommand,
+            this.runProjects.length > 0 ? this.runProjects[0] : null
+        );
     };
 }
 

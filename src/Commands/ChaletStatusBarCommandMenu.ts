@@ -1,12 +1,12 @@
-import bind from "bind-decorator";
 import * as vscode from "vscode";
+import { bind } from "bind-decorator";
 
 import { Optional, ChaletCommands, CommandId } from "../Types";
-import { StatusBarCommandMenu } from "./StatusBarCommandMenu";
+import { StatusBarCommandMenu, ValueChangeCallback } from "./StatusBarCommandMenu";
 
 class ChaletStatusBarCommandMenu extends StatusBarCommandMenu<ChaletCommands> {
-    constructor(context: vscode.ExtensionContext, priority: number) {
-        super(CommandId.ChaletCommand, context, priority);
+    constructor(onClick: ValueChangeCallback, context: vscode.ExtensionContext, priority: number) {
+        super(CommandId.ChaletCommand, onClick, context, priority);
     }
 
     @bind
