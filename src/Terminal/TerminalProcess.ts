@@ -13,7 +13,7 @@ export type SpawnError = Error & {
     syscall?: string;
 };
 
-type SucessCallback = (code?: number, signal?: Optional<NodeJS.Signals>) => void;
+type SucessCallback = (code?: Optional<number>, signal?: Optional<NodeJS.Signals>) => void;
 type FailureCallback = (err?: SpawnError) => void;
 
 export type TerminalProcessOptions = {
@@ -34,8 +34,6 @@ class TerminalProcess {
 
     private shellPath: string = "";
     private name: string = "";
-    private onSuccess?: SucessCallback;
-    private onFailure?: FailureCallback;
 
     constructor(public onWrite: (text: string) => void) {}
 
@@ -55,8 +53,6 @@ class TerminalProcess {
             }
         }
 
-        if (code) this.onSuccess?.(code, signal);
-
         this.haltSubProcess(signal);
     };
 
@@ -65,11 +61,11 @@ class TerminalProcess {
             if (this.subprocess.pid && !this.subprocess.killed) {
                 if (signal) {
                     treeKill(this.subprocess.pid, signal, (err?: Error) => {
-                        if (err) OutputChannel.logError(err.message);
+                        if (err) OutputChannel.logError(err);
                     });
                 } else {
                     treeKill(this.subprocess.pid, "SIGTERM", (err?: Error) => {
-                        if (err) OutputChannel.logError(err.message);
+                        if (err) OutputChannel.logError(err);
                     });
                 }
             }
@@ -114,21 +110,17 @@ class TerminalProcess {
 
                 this.name = name;
                 this.shellPath = options.shellPath;
-                this.onSuccess = onSuccess;
-                this.onFailure = onFailure;
 
                 this.subprocess.on("error", (err: SpawnError) => {
-                    if (this.onFailure) {
-                        this.onFailure(err);
+                    if (onFailure) {
+                        onFailure(err);
                     } else {
                         if (err.code == "ENOENT") {
                             this.onWrite(
                                 `\x1b[31;1mChalet Tools Error:\n\x1b[0m   '${options.shellPath}' was not found in PATH.\n\n`
                             );
                         }
-                        OutputChannel.logError(err.name);
-                        OutputChannel.logError(err.message);
-                        if (err.stack) OutputChannel.logError(err.stack);
+                        OutputChannel.logError(err);
                     }
                     setTimeout(this.haltSubProcess, 250);
                     reject(err);
@@ -139,7 +131,8 @@ class TerminalProcess {
 
                 this.subprocess.on("close", (code, signal) => {
                     this.onProcessClose(code, signal);
-                    resolve(code ?? -1);
+                    onSuccess?.(code ?? 0, signal);
+                    resolve(code ?? 0);
                 });
             }
         });

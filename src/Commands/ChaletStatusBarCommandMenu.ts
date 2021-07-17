@@ -6,8 +6,10 @@ import { StatusBarCommandMenu } from "./StatusBarCommandMenu";
 class ChaletStatusBarCommandMenu extends StatusBarCommandMenu<ChaletCommands> {
     constructor(context: vscode.ExtensionContext, priority: number) {
         super(CommandId.ChaletCommand, context, priority);
+    }
 
-        this.setMenu([
+    initialize = async (defaultValue: Optional<ChaletCommands> = null): Promise<void> => {
+        await this.setMenu([
             ChaletCommands.BuildRun,
             ChaletCommands.Run,
             ChaletCommands.Build,
@@ -16,8 +18,8 @@ class ChaletStatusBarCommandMenu extends StatusBarCommandMenu<ChaletCommands> {
             ChaletCommands.Bundle,
             ChaletCommands.Configure,
         ]);
-    }
-
+        await this.setValue(this.getStateValue(defaultValue));
+    };
     willRun = (): boolean => {
         return this.value === ChaletCommands.Run || this.value === ChaletCommands.BuildRun;
     };
@@ -26,20 +28,20 @@ class ChaletStatusBarCommandMenu extends StatusBarCommandMenu<ChaletCommands> {
         switch (this.value) {
             case ChaletCommands.Build:
             case ChaletCommands.Rebuild:
-                return "$(tools)";
+                return "tools";
             case ChaletCommands.Clean:
-                return "$(trash)";
+                return "trash";
             case ChaletCommands.Bundle:
-                return "$(package)";
+                return "package";
             case ChaletCommands.Configure:
-                return "$(circuit-board)";
+                return "circuit-board";
             case ChaletCommands.Init:
-                return "$(rocket)";
+                return "rocket";
 
             case ChaletCommands.Run:
             case ChaletCommands.BuildRun:
             default:
-                return "$(play)";
+                return "play";
         }
     };
 

@@ -54,6 +54,7 @@ class ChaletToolsLoader {
         if (workspaceFolder) {
             if (this.extension === null) {
                 this.extension = new ChaletToolsExtension(this.context, this.platform);
+                this.extension.activate();
             }
             this.extension.setEnabled(true);
             this.extension.getExtensionSettings(); // Refresh settings

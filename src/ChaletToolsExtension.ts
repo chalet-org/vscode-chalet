@@ -13,16 +13,16 @@ import { getTerminalEnv } from "./Functions";
 import { Optional } from "./Types";
 import { SpawnError } from "./Terminal/TerminalProcess";
 import { ChaletTaskProvider } from "./Terminal/ChaletTaskProvider";
-import { BuildConfigurationCommand } from "./Commands/BuildConfigurationCommand";
-// import { BuildArchitectureCommand } from "./Commands/BuildArchitectureCommand";
+import { BuildConfigurationCommandMenu } from "./Commands/BuildConfigurationCommandMenu";
+// import { BuildArchitectureCommandMenu } from "./Commands/BuildArchitectureCommandMenu";
 import { ChaletStatusBarCommandMenu } from "./Commands/ChaletStatusBarCommandMenu";
 import { getCommandId } from "./Commands";
 import { OutputChannel } from "./OutputChannel";
 
 class ChaletToolsExtension {
     chaletCommand: ChaletStatusBarCommandMenu;
-    buildConfiguration: BuildConfigurationCommand;
-    // buildArchitecture: BuildArchitectureCommand;
+    buildConfiguration: BuildConfigurationCommandMenu;
+    // buildArchitecture: BuildArchitectureCommandMenu;
 
     statusBarDoAction: vscode.StatusBarItem;
 
@@ -67,10 +67,10 @@ class ChaletToolsExtension {
         this.chaletCommand = new ChaletStatusBarCommandMenu(context, 4);
         this.chaletCommand.setOnClickCallback(this.updateStatusBarItems);
 
-        this.buildConfiguration = new BuildConfigurationCommand(context, 3);
+        this.buildConfiguration = new BuildConfigurationCommandMenu(context, 3);
         this.buildConfiguration.setOnClickCallback(this.updateStatusBarItems);
 
-        // this.buildArchitecture = new BuildArchitectureCommand(context, 2);
+        // this.buildArchitecture = new BuildArchitectureCommandMenu(context, 2);
         // this.buildArchitecture.setOnClickCallback(this.updateStatusBarItems);
 
         this.statusBarDoAction = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 1);
@@ -82,8 +82,9 @@ class ChaletToolsExtension {
             await this.chaletCommand.initialize();
             await this.buildConfiguration.initialize();
             // await this.buildArchitecture.initialize();
+            this.updateStatusBarItems();
         } catch (err) {
-            OutputChannel.logError(err.message);
+            OutputChannel.logError(err);
         }
     };
 
@@ -193,15 +194,17 @@ class ChaletToolsExtension {
     };
 
     private onTerminalStart = (): void => {
-        // console.log("chalet started");
+        OutputChannel.logWithName("process started");
     };
 
-    private onTerminalSuccess = (): void => {
-        // console.log("chalet finished");
+    private onTerminalSuccess = (code?: Optional<number>, signal?: Optional<NodeJS.Signals>): void => {
+        OutputChannel.logWithName(`process exited with code: ${code}`);
     };
 
     private onTerminalFailure = (err?: SpawnError): void => {
-        // console.log("chalet errored!");
+        if (err) {
+            OutputChannel.logError(err);
+        }
     };
 
     private runChalet = async (command: Optional<ChaletCommands>, buildConfig: Optional<string>): Promise<void> => {
@@ -249,6 +252,7 @@ class ChaletToolsExtension {
             const shellPath = this.useDebugChalet ? ChaletVersion.Debug : ChaletVersion.Release;
             const name = "Chalet" + (this.useDebugChalet ? " (Debug)" : "");
             const env = getTerminalEnv(this.platform);
+            const icon = this.chaletCommand.getIcon();
 
             OutputChannel.logCommand(`${shellPath} ${shellArgs.join(" ")}`);
             OutputChannel.logCommand(`cwd: ${this.cwd}`);
@@ -256,17 +260,18 @@ class ChaletToolsExtension {
 
             await this.taskProvider.execute({
                 name,
-                cwd: this.cwd,
-                env,
                 autoClear: false,
                 shellPath,
                 shellArgs,
+                cwd: this.cwd,
+                env,
+                icon,
                 onStart: this.onTerminalStart,
                 onSuccess: this.onTerminalSuccess,
-                // onFailure: this.onTerminalFailure,
+                onFailure: this.onTerminalFailure,
             });
         } catch (err) {
-            OutputChannel.logError(err.message);
+            OutputChannel.logError(err);
         }
     };
 
@@ -294,9 +299,9 @@ class ChaletToolsExtension {
 
         const icon: string = this.chaletCommand.getIcon();
         if (this.runProjects.length > 0 && this.chaletCommand.willRun()) {
-            this.updateStatusBarItem(this.statusBarDoAction, `${icon} ${this.runProjects[0]}`);
+            this.updateStatusBarItem(this.statusBarDoAction, `$(${icon}) ${this.runProjects[0]}`);
         } else {
-            this.updateStatusBarItem(this.statusBarDoAction, icon);
+            this.updateStatusBarItem(this.statusBarDoAction, `$(${icon})`);
         }
     };
 

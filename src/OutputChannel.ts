@@ -22,9 +22,9 @@ class OutputChannel {
         OutputChannel.output?.appendLine(`> ${text}`);
     };
 
-    static logError = (text: string): void => {
-        OutputChannel.output?.appendLine(`Error: ${text}`);
-        console.error(text);
+    static logError = (err: Error): void => {
+        OutputChannel.output?.appendLine(`Error: ${err.message}`);
+        console.error(err);
     };
 
     static dispose = () => {

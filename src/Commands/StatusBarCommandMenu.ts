@@ -8,7 +8,7 @@ import { getCommandId } from "./GetCommandId";
 type ClickCallback = Optional<() => void>;
 
 abstract class StatusBarCommandMenu<T extends string> {
-    private visible: boolean = true;
+    private visible: boolean = false;
     private clickCallback: ClickCallback = null;
 
     protected workspaceState: vscode.Memento;
@@ -26,7 +26,7 @@ abstract class StatusBarCommandMenu<T extends string> {
             }
             this.clickCallback?.();
         } catch (err) {
-            OutputChannel.logError(err.message);
+            OutputChannel.logError(err);
         }
     };
 
@@ -36,13 +36,12 @@ abstract class StatusBarCommandMenu<T extends string> {
 
         const command = getCommandId(id);
         this.item.command = command;
-        this.item.show();
 
         context.subscriptions.push(vscode.commands.registerCommand(command, this.onClick), this.item);
     }
 
-    initialize = (defaultValue: Optional<T> = null): Thenable<void> => {
-        return this.setValue(this.workspaceState.get(this.id, this.menu.length > 0 ? this.menu[0] : defaultValue));
+    getStateValue = (defaultValue: Optional<T> = null): Optional<T> => {
+        return this.workspaceState.get(this.id, this.menu.length > 0 ? this.menu[0] : defaultValue);
     };
 
     dispose = (): void => {

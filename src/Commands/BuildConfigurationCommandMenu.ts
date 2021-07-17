@@ -4,14 +4,14 @@ import { BuildConfigurations, ChaletCommands, CommandId } from "../Types/Enums";
 
 import { StatusBarCommandMenu } from "./StatusBarCommandMenu";
 
-class BuildConfigurationCommand extends StatusBarCommandMenu<BuildConfigurations | string> {
+class BuildConfigurationCommandMenu extends StatusBarCommandMenu<BuildConfigurations | string> {
     constructor(context: vscode.ExtensionContext, priority: number) {
         super(CommandId.BuildConfiguration, context, priority);
     }
 
     initialize = async (defaultValue: Optional<BuildConfigurations | string> = null): Promise<void> => {
         await this.setDefaults();
-        return await super.initialize(defaultValue);
+        await this.setValue(this.getStateValue(defaultValue));
     };
 
     updateAndSetVisibility = (command: ChaletCommands): void => {
@@ -66,4 +66,4 @@ class BuildConfigurationCommand extends StatusBarCommandMenu<BuildConfigurations
     };
 }
 
-export { BuildConfigurationCommand };
+export { BuildConfigurationCommandMenu };

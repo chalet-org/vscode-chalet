@@ -4,10 +4,15 @@ import { Optional } from "../Types";
 import { TerminalProcessOptions, TerminalProcess } from "./TerminalProcess";
 import { CustomPsuedoTerminal } from "./CustomPsuedoTerminal";
 
+type ExecuteOptions = TerminalProcessOptions & {
+    icon: string;
+};
+
 class ChaletTaskProvider {
     private view: Optional<vscode.Terminal> = null;
     private pseudoTerminal: Optional<CustomPsuedoTerminal> = null;
     private process: Optional<TerminalProcess> = null;
+    private icon: string = "home";
 
     dispose = () => {
         this.process?.dispose();
@@ -35,7 +40,7 @@ class ChaletTaskProvider {
             terminal = vscode.window.createTerminal({
                 name,
                 pty,
-                iconPath: new vscode.ThemeIcon("home"),
+                iconPath: new vscode.ThemeIcon(this.icon),
             });
         }
 
@@ -65,7 +70,9 @@ class ChaletTaskProvider {
         return vscode.commands.executeCommand("workbench.action.terminal.clear");
     };
 
-    execute = (options: TerminalProcessOptions) => {
+    execute = ({ icon, ...options }: ExecuteOptions) => {
+        this.icon = icon;
+
         if (this.process === null) {
             this.process = new TerminalProcess(this.onTerminalWrite);
         }
