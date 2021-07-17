@@ -17,6 +17,7 @@ import { BuildConfigurationCommand } from "./Commands/BuildConfigurationCommand"
 // import { BuildArchitectureCommand } from "./Commands/BuildArchitectureCommand";
 import { ChaletStatusBarCommand } from "./Commands/ChaletStatusBarCommand";
 import { getCommandId } from "./Commands";
+import { OutputChannel } from "./OutputChannel";
 
 class ChaletToolsExtension {
     chaletCommand: ChaletStatusBarCommand;
@@ -245,13 +246,16 @@ class ChaletToolsExtension {
                 }
             }
 
+            const shellPath = this.useDebugChalet ? ChaletVersion.Debug : ChaletVersion.Release;
+
+            OutputChannel.logCommand(`${shellPath} ${shellArgs.join(" ")}`);
             const env = getTerminalEnv(this.platform);
             await this.taskProvider.execute({
                 name: "Chalet" + (this.useDebugChalet ? " (Debug)" : ""),
                 cwd: this.cwd,
                 env,
                 autoClear: false,
-                shellPath: this.useDebugChalet ? ChaletVersion.Debug : ChaletVersion.Release,
+                shellPath,
                 shellArgs,
                 onStart: this.onTerminalStart,
                 onSuccess: this.onTerminalSuccess,
