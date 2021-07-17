@@ -11,11 +11,6 @@ const actions = {
     interrupt: "\u0003",
 };
 
-export type PseudoTerminalOptions = {
-    onOpen: (initialDimensions?: vscode.TerminalDimensions) => void;
-    onClose: () => void;
-};
-
 class CustomPsuedoTerminal implements vscode.Pseudoterminal {
     private writeEmitter = new vscode.EventEmitter<string>();
     private nameEmitter = new vscode.EventEmitter<string>();
