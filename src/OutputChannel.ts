@@ -28,6 +28,13 @@ class OutputChannel {
         }
     };
 
+    static logError = (text: string): void => {
+        if (OutputChannel.output !== null) {
+            OutputChannel.output.appendLine(`Error: ${text}`);
+        }
+        console.error(text);
+    };
+
     static dispose = () => {
         if (OutputChannel.output !== null) {
             OutputChannel.output.dispose();

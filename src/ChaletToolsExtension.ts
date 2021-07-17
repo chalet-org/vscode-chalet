@@ -83,7 +83,7 @@ class ChaletToolsExtension {
             await this.buildConfiguration.initialize();
             // await this.buildArchitecture.initialize();
         } catch (err) {
-            console.error(err.message);
+            OutputChannel.logError(err.message);
         }
     };
 
@@ -247,9 +247,12 @@ class ChaletToolsExtension {
             }
 
             const shellPath = this.useDebugChalet ? ChaletVersion.Debug : ChaletVersion.Release;
+            const env = getTerminalEnv(this.platform);
 
             OutputChannel.logCommand(`${shellPath} ${shellArgs.join(" ")}`);
-            const env = getTerminalEnv(this.platform);
+            OutputChannel.logCommand(`cwd: ${this.cwd}`);
+            // OutputChannel.logCommand(`env: ${JSON.stringify(env, undefined, 3)}`);
+
             await this.taskProvider.execute({
                 name: "Chalet" + (this.useDebugChalet ? " (Debug)" : ""),
                 cwd: this.cwd,
@@ -262,7 +265,7 @@ class ChaletToolsExtension {
                 // onFailure: this.onTerminalFailure,
             });
         } catch (err) {
-            console.error(err);
+            OutputChannel.logError(err.message);
         }
     };
 

@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import { OutputChannel } from "../OutputChannel";
 import { Optional } from "../Types";
 
 import { CommandId } from "../Types/Enums";
@@ -26,7 +27,7 @@ abstract class StatusBarCommand<T extends string> {
             }
             this.clickCallback?.();
         } catch (err) {
-            console.error(err);
+            OutputChannel.logError(err.message);
         }
     };
 

@@ -1,5 +1,6 @@
 import * as proc from "child_process";
 import * as treeKill from "tree-kill";
+import { OutputChannel } from "../OutputChannel";
 
 import { Dictionary, Optional } from "../Types";
 
@@ -64,11 +65,11 @@ class TerminalProcess {
             if (this.subprocess.pid && !this.subprocess.killed) {
                 if (signal) {
                     treeKill(this.subprocess.pid, signal, (err?: Error) => {
-                        if (err) console.error(err);
+                        if (err) OutputChannel.logError(err.message);
                     });
                 } else {
                     treeKill(this.subprocess.pid, "SIGTERM", (err?: Error) => {
-                        if (err) console.error(err);
+                        if (err) OutputChannel.logError(err.message);
                     });
                 }
             }
@@ -125,10 +126,9 @@ class TerminalProcess {
                                 `\x1b[31;1mChalet Tools Error:\n\x1b[0m   '${options.shellPath}' was not found in PATH.\n\n`
                             );
                         }
-
-                        console.error(err.name);
-                        console.error(err.message);
-                        console.error(err.stack);
+                        OutputChannel.logError(err.name);
+                        OutputChannel.logError(err.message);
+                        if (err.stack) OutputChannel.logError(err.stack);
                     }
                     setTimeout(this.haltSubProcess, 250);
                     reject(err);
