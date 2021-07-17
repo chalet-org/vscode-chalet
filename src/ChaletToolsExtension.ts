@@ -1,6 +1,7 @@
 import * as fs from "fs";
 import * as vscode from "vscode";
 import * as CommentJSON from "comment-json";
+import * as path from "path";
 
 import { getTerminalEnv } from "./Functions";
 import {
@@ -37,11 +38,13 @@ class ChaletToolsExtension {
     useDebugChalet: boolean = false;
     enabled: boolean = false;
     cwd: string = "";
-    inputFile: string = "chalet.json";
+
+    inputFile: string = "";
     settingsFile: string = "";
+    envFile: string = "";
+
     rootDir: string = "";
     outputDir: string = "build";
-    envFile: string = ".env";
 
     private onRunChalet = () => this.runChalet(this.chaletCommand.getValue(), this.buildConfiguration.getValue());
     private onMakeDebugBuild = () => this.runChalet(ChaletCommands.Build, BuildConfigurations.Debug);
@@ -90,10 +93,18 @@ class ChaletToolsExtension {
 
     setWorkingDirectory = (cwd: string) => {
         this.cwd = cwd;
+
+        if (this.settingsFile.length === 0) {
+            this.settingsFile = path.join(this.cwd, ".chaletrc");
+        }
+
+        if (this.envFile.length === 0) {
+            this.envFile = path.join(this.cwd, ".env");
+        }
     };
 
-    setInputFile = (path: string) => {
-        this.inputFile = path;
+    setInputFile = (inPath: string) => {
+        this.inputFile = inPath;
     };
 
     getExtensionSettings = () => {
@@ -187,30 +198,39 @@ class ChaletToolsExtension {
         OutputChannel.logError(err);
     };
 
+    private stripCwd = (inPath: string): string => {
+        const pathSeparator = this.platform === VSCodePlatform.Windows ? "\\" : "/";
+        return inPath.replaceAll(`${this.cwd}${pathSeparator}`, "");
+    };
+
     private runChalet = async (command: Optional<ChaletCommands>, buildConfig: Optional<string>): Promise<void> => {
         try {
             if (command === null) return;
 
             let shellArgs: string[] = [];
 
-            shellArgs.push("--input-file");
-            shellArgs.push(this.inputFile);
+            if (this.inputFile.length > 0 && fs.existsSync(this.inputFile)) {
+                shellArgs.push("--input-file");
+                shellArgs.push(this.stripCwd(this.inputFile));
+            }
 
-            if (this.settingsFile.length > 0) {
+            if (this.settingsFile.length > 0 && fs.existsSync(this.settingsFile)) {
                 shellArgs.push("--settings-file");
-                shellArgs.push(this.settingsFile);
+                shellArgs.push(this.stripCwd(this.settingsFile));
             }
 
             if (this.rootDir.length > 0) {
                 shellArgs.push("--root-dir");
-                shellArgs.push(this.inputFile);
+                shellArgs.push(this.stripCwd(this.rootDir));
             }
 
             shellArgs.push("--output-dir");
-            shellArgs.push(this.outputDir);
+            shellArgs.push(this.stripCwd(this.outputDir));
 
-            shellArgs.push("--env-file");
-            shellArgs.push(this.envFile);
+            if (this.envFile.length > 0 && fs.existsSync(this.envFile)) {
+                shellArgs.push("--env-file");
+                shellArgs.push(this.stripCwd(this.envFile));
+            }
 
             /*if (this.buildArchitecture.length > 0 && this.buildArchitecture != BuildArchitecture.Auto) {
                 shellArgs.push("--arch");
