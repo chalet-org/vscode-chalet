@@ -71,7 +71,7 @@ class ChaletTaskProvider {
     };
 
     execute = ({ icon, ...options }: ExecuteOptions) => {
-        this.icon = icon;
+        // this.icon = icon;
 
         if (this.process === null) {
             this.process = new TerminalProcess(this.onTerminalWrite);

@@ -1,6 +1,7 @@
+import bind from "bind-decorator";
 import * as vscode from "vscode";
-import { Optional } from "../Types";
-import { ChaletCommands, CommandId } from "../Types/Enums";
+
+import { Optional, ChaletCommands, CommandId } from "../Types";
 import { StatusBarCommandMenu } from "./StatusBarCommandMenu";
 
 class ChaletStatusBarCommandMenu extends StatusBarCommandMenu<ChaletCommands> {
@@ -8,8 +9,9 @@ class ChaletStatusBarCommandMenu extends StatusBarCommandMenu<ChaletCommands> {
         super(CommandId.ChaletCommand, context, priority);
     }
 
-    initialize = async (defaultValue: Optional<ChaletCommands> = null): Promise<void> => {
-        await this.setMenu([
+    @bind
+    protected getDefaultMenu(): ChaletCommands[] {
+        return [
             ChaletCommands.BuildRun,
             ChaletCommands.Run,
             ChaletCommands.Build,
@@ -17,9 +19,9 @@ class ChaletStatusBarCommandMenu extends StatusBarCommandMenu<ChaletCommands> {
             ChaletCommands.Clean,
             ChaletCommands.Bundle,
             ChaletCommands.Configure,
-        ]);
-        await this.setValue(this.getStateValue(defaultValue));
-    };
+        ];
+    }
+
     willRun = (): boolean => {
         return this.value === ChaletCommands.Run || this.value === ChaletCommands.BuildRun;
     };

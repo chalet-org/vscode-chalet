@@ -1,22 +1,21 @@
 import * as vscode from "vscode";
+import { bind } from "bind-decorator";
+
 import { OutputChannel } from "../OutputChannel";
-import { Optional } from "../Types";
+import { Optional, CommandId } from "../Types";
+import { StatusBarCommand } from "./StatusBarCommand";
 
-import { CommandId } from "../Types/Enums";
-import { getCommandId } from "./GetCommandId";
-
-type ClickCallback = Optional<() => void>;
-
-abstract class StatusBarCommandMenu<T extends string> {
-    private visible: boolean = false;
-    private clickCallback: ClickCallback = null;
-
-    protected workspaceState: vscode.Memento;
-    protected item: vscode.StatusBarItem;
-    protected value: Optional<T> = null;
+abstract class StatusBarCommandMenu<T extends string> extends StatusBarCommand<T> {
     protected menu: T[] = [];
 
-    private onClick = async (): Promise<void> => {
+    protected abstract getDefaultMenu(): T[];
+
+    constructor(id: CommandId, context: vscode.ExtensionContext, priority: number) {
+        super(id, context, priority);
+    }
+
+    @bind
+    protected async onClick(): Promise<void> {
         try {
             if (this.value === null) return;
 
@@ -28,50 +27,22 @@ abstract class StatusBarCommandMenu<T extends string> {
         } catch (err) {
             OutputChannel.logError(err);
         }
-    };
-
-    constructor(protected id: CommandId, context: vscode.ExtensionContext, priority: number) {
-        this.workspaceState = context.workspaceState;
-        this.item = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, priority);
-
-        const command = getCommandId(id);
-        this.item.command = command;
-
-        context.subscriptions.push(vscode.commands.registerCommand(command, this.onClick), this.item);
     }
 
-    getStateValue = (defaultValue: Optional<T> = null): Optional<T> => {
-        return this.workspaceState.get(this.id, this.menu.length > 0 ? this.menu[0] : defaultValue);
-    };
-
-    dispose = (): void => {
-        this.item.dispose();
-    };
-
-    setOnClickCallback = (value: ClickCallback) => {
-        this.clickCallback = value;
-    };
-
-    setVisible = (value: boolean): void => {
-        this.visible = value;
-
-        if (this.visible) this.item.show();
-        else this.item.hide();
-    };
-
-    setValue = async (value: Optional<T>): Promise<void> => {
-        if (this.value === value) return;
-
-        this.value = value;
-        if (this.value !== null) {
-            this.item.text = this.value;
+    @bind
+    async initialize(defaultValue: Optional<T> = null): Promise<void> {
+        try {
+            await this.setDefaultMenu();
+            await this.setValue(this.getStateValue(defaultValue));
+        } catch (err) {
+            OutputChannel.logError(err);
         }
-        await this.workspaceState.update(this.id, this.value);
-    };
+    }
 
-    getValue = (): Optional<T> => {
-        return this.value;
-    };
+    @bind
+    getStateValue(defaultValue: Optional<T> = null): Optional<T> {
+        return super.getStateValue(this.menu.length > 0 ? this.menu[0] : defaultValue);
+    }
 
     resetMenu = (): void => {
         this.menu = [];
@@ -82,15 +53,45 @@ abstract class StatusBarCommandMenu<T extends string> {
     };
 
     setMenu = async (value: T[]): Promise<void> => {
-        this.menu = value;
+        try {
+            this.menu = value;
 
-        if (this.value === null || !this.menu.includes(this.value)) {
-            if (this.menu.length > 0) {
+            if (this.value === null || !this.menu.includes(this.value)) {
+                if (this.menu.length > 0) {
+                    await this.setValue(this.menu[0]);
+                } else {
+                    await this.setValue(null);
+                }
+            }
+        } catch (err) {
+            OutputChannel.logError(err);
+        }
+    };
+
+    refreshMenuAndValue = async (): Promise<void> => {
+        try {
+            if (
+                (this.menu.length > 0 && this.value === null) ||
+                (this.value !== null && !this.menu.includes(this.value))
+            ) {
                 await this.setValue(this.menu[0]);
-            } else {
+            }
+
+            if (this.value !== null && this.menu.length === 0) {
                 await this.setValue(null);
             }
+        } catch (err) {
+            OutputChannel.logError(err);
         }
+    };
+
+    isDefault = (value: T): boolean => {
+        const defaults = this.getDefaultMenu();
+        return defaults.includes(value);
+    };
+
+    setDefaultMenu = (): Promise<void> => {
+        return this.setMenu(this.getDefaultMenu());
     };
 }
 

@@ -1,13 +1,12 @@
 import * as fs from "fs";
 import * as os from "os";
 import * as vscode from "vscode";
-import { ExtensionContext, Uri, workspace } from "vscode";
+
 import { ChaletToolsExtension } from "./ChaletToolsExtension";
-import { Optional } from "./Types";
-import { VSCodePlatform } from "./Types/Enums";
+import { Optional, VSCodePlatform } from "./Types";
 
 class ChaletToolsLoader {
-    private context: ExtensionContext;
+    private context: vscode.ExtensionContext;
     private platform: VSCodePlatform;
 
     extension: Optional<ChaletToolsExtension> = null;
@@ -16,7 +15,7 @@ class ChaletToolsLoader {
 
     workspaceCount: number = 0;
 
-    constructor(context: ExtensionContext) {
+    constructor(context: vscode.ExtensionContext) {
         this.context = context;
         this.platform = this.getPlatform();
 
@@ -25,7 +24,7 @@ class ChaletToolsLoader {
                 if (this.workspaceCount <= 1) return;
 
                 if (ev) {
-                    let workspaceFolder = workspace.getWorkspaceFolder(ev.document.uri);
+                    let workspaceFolder = vscode.workspace.getWorkspaceFolder(ev.document.uri);
                     this.activate(workspaceFolder);
                 }
             })
@@ -66,7 +65,7 @@ class ChaletToolsLoader {
 
             this.cwd = workspaceRoot.fsPath;
 
-            const chaletJsonUri = Uri.joinPath(workspaceRoot, "chalet.json"); // TODO: get from local/global settings
+            const chaletJsonUri = vscode.Uri.joinPath(workspaceRoot, "chalet.json"); // TODO: get from local/global settings
             this.inputFile = chaletJsonUri.fsPath;
 
             if (fs.existsSync(this.inputFile)) {

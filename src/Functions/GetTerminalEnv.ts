@@ -1,6 +1,6 @@
-import { workspace } from "vscode";
-import { Dictionary } from "../Types";
-import { VSCodePlatform } from "../Types/Enums";
+import * as vscode from "vscode";
+
+import { Dictionary, VSCodePlatform } from "../Types";
 
 const PATH_WIN = "Path";
 const PATH_UNIX = "PATH";
@@ -10,7 +10,7 @@ const rootEnv: Dictionary<string> = JSON.parse(JSON.stringify(process.env)) as D
 export const getTerminalEnv = (platform: VSCodePlatform): Dictionary<string> => {
     let out: Dictionary<string> = JSON.parse(JSON.stringify(rootEnv));
 
-    const workspaceConfig = workspace.getConfiguration("terminal");
+    const workspaceConfig = vscode.workspace.getConfiguration("terminal");
     if (workspaceConfig["integrated"]) {
         const integratedTerminal: any = workspaceConfig["integrated"];
         if (integratedTerminal["env"]) {

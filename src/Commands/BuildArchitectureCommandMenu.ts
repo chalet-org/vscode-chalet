@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
-import { Optional } from "../Types";
-import { BuildArchitecture, CommandId } from "../Types/Enums";
+import bind from "bind-decorator";
+
+import { Optional, BuildArchitecture, CommandId } from "../Types";
 import { StatusBarCommandMenu } from "./StatusBarCommandMenu";
 
 class BuildArchitectureCommandMenu extends StatusBarCommandMenu<BuildArchitecture> {
@@ -8,10 +9,10 @@ class BuildArchitectureCommandMenu extends StatusBarCommandMenu<BuildArchitectur
         super(CommandId.BuildArchitecture, context, priority);
     }
 
-    initialize = async (defaultValue: Optional<BuildArchitecture> = null): Promise<void> => {
-        await this.setMenu([BuildArchitecture.x64, BuildArchitecture.x86]);
-        await this.setValue(this.getStateValue(defaultValue));
-    };
+    @bind
+    protected getDefaultMenu(): BuildArchitecture[] {
+        return [BuildArchitecture.x64, BuildArchitecture.x86];
+    }
 }
 
 export { BuildArchitectureCommandMenu };

@@ -1,6 +1,8 @@
 import * as fs from "fs";
 import * as vscode from "vscode";
 import * as CommentJSON from "comment-json";
+
+import { getTerminalEnv } from "./Functions";
 import {
     // BuildArchitecture,
     BuildConfigurations,
@@ -8,15 +10,14 @@ import {
     ChaletVersion,
     CommandId,
     VSCodePlatform,
-} from "./Types/Enums";
-import { getTerminalEnv } from "./Functions";
-import { Optional } from "./Types";
+    Optional,
+} from "./Types";
 import { SpawnError } from "./Terminal/TerminalProcess";
 import { ChaletTaskProvider } from "./Terminal/ChaletTaskProvider";
 import { BuildConfigurationCommandMenu } from "./Commands/BuildConfigurationCommandMenu";
 // import { BuildArchitectureCommandMenu } from "./Commands/BuildArchitectureCommandMenu";
 import { ChaletStatusBarCommandMenu } from "./Commands/ChaletStatusBarCommandMenu";
-import { getCommandId } from "./Commands";
+import { getCommandId } from "./Functions";
 import { OutputChannel } from "./OutputChannel";
 
 class ChaletToolsExtension {
@@ -102,6 +103,9 @@ class ChaletToolsExtension {
         if (this.enabled === enabled) return;
 
         this.enabled = enabled;
+        this.chaletCommand.setVisible(this.enabled);
+        this.buildConfiguration.setVisible(this.enabled);
+        // this.buildArchitecture.setVisible(this.enabled);
 
         this.updateStatusBarItems();
     };
@@ -142,7 +146,7 @@ class ChaletToolsExtension {
                     this.buildConfiguration.setMenu(
                         configurations.reduce((out: string[], item) => {
                             if (typeof item === "string") {
-                                if (this.buildConfiguration.valid(item)) {
+                                if (this.buildConfiguration.isDefault(item)) {
                                     out.push(item);
                                 }
                             }
@@ -169,7 +173,7 @@ class ChaletToolsExtension {
 
             this.setRunProjectName(chaletJson);
 
-            this.buildConfiguration.setDefaults();
+            this.buildConfiguration.setDefaultMenu();
         } catch {
             return;
         }
@@ -281,19 +285,14 @@ class ChaletToolsExtension {
 
     updateStatusBarItems = (): void => {
         if (!this.enabled) {
-            this.chaletCommand.setVisible(false);
-            this.buildConfiguration.setVisible(false);
-            // this.buildArchitecture.setVisible(false);
             this.statusBarDoAction.hide();
             return;
         }
 
-        this.chaletCommand.setVisible(true);
         const chaletCommand = this.chaletCommand.getValue();
         if (chaletCommand !== null) {
-            this.buildConfiguration.updateAndSetVisibility(chaletCommand);
+            this.buildConfiguration.requiredForVisibility(chaletCommand);
         }
-        // this.buildArchitecture.setVisible(true);
 
         this.statusBarDoAction.show();
 
