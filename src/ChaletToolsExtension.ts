@@ -270,8 +270,8 @@ class ChaletToolsExtension {
             if (!this.enabled) return;
 
             await this.buildConfiguration.requiredForVisibility(this.chaletCommand.getValue());
-            const isConfigure = this.chaletCommand.isConfigure();
-            this.buildToolchain.setVisible(isConfigure);
+            // const isConfigure = this.chaletCommand.isConfigure();
+            this.buildToolchain.setVisible(true);
             await this.buildArchitecture.setToolchainAndVisibility(this.buildToolchain.getValue(), true);
             this.runChaletButton.updateLabelFromChaletCommand(this.chaletCommand);
         } catch (err) {
