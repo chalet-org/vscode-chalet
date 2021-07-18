@@ -50,6 +50,7 @@ class BuildConfigurationCommandMenu extends StatusBarCommandMenu<MenuType> {
 
     parseJsonConfigurations = async (chaletJson: any): Promise<boolean> => {
         try {
+            let result: boolean = false;
             let configurations: any = chaletJson["configurations"];
             if (configurations) {
                 if (Array.isArray(configurations)) {
@@ -63,6 +64,7 @@ class BuildConfigurationCommandMenu extends StatusBarCommandMenu<MenuType> {
                             return out;
                         }, [] as string[])
                     );
+                    result = true;
                 } else if (typeof configurations === "object") {
                     this.resetMenu();
                     for (const [key, value] of Object.entries(configurations)) {
@@ -71,22 +73,20 @@ class BuildConfigurationCommandMenu extends StatusBarCommandMenu<MenuType> {
                             this.addToMenu(key);
                         }
                     }
-                } else {
-                    this.setDefaultMenu();
-                    return false;
+                    result = true;
                 }
+            }
 
+            if (result) {
                 await this.refreshMenuAndValue();
                 return true;
-            } else {
-                this.setDefaultMenu();
-                return false;
             }
         } catch (err) {
             OutputChannel.logError(err);
-            this.setDefaultMenu();
-            return false;
         }
+
+        this.setDefaultMenu();
+        return false;
     };
 }
 

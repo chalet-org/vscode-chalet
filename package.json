@@ -13,6 +13,7 @@
 	"activationEvents": [
 		"onCommand:chalet-tools.runChalet",
 		"onCommand:chalet-tools.chaletCommand",
+		"onCommand:chalet-tools.buildToolchain",
 		"onCommand:chalet-tools.buildArchitecture",
 		"onCommand:chalet-tools.buildConfiguration",
 		"onCommand:chalet-tools.makeDebugBuild",
@@ -58,6 +59,10 @@
 			{
 				"command": "chalet-tools.chaletCommand",
 				"title": "Chalet Tools: Change Chalet Command"
+			},
+			{
+				"command": "chalet-tools.buildToolchain",
+				"title": "Chalet Tools: Change Build Toolchain"
 			},
 			{
 				"command": "chalet-tools.buildArchitecture",

@@ -10,6 +10,7 @@ class ChaletToolsLoader {
 
     extension: Optional<ChaletToolsExtension> = null;
     inputFile: Optional<string> = null;
+    settingsFile: Optional<string> = null;
     cwd: Optional<string> = null;
 
     workspaceCount: number = 0;
@@ -53,35 +54,59 @@ class ChaletToolsLoader {
     private activate = async (workspaceFolder?: vscode.WorkspaceFolder): Promise<boolean> => {
         try {
             if (workspaceFolder) {
-                if (this.extension === null) {
-                    this.extension = new ChaletToolsExtension(this.context, this.platform);
-                    await this.extension.activate();
-                }
-                this.extension.setEnabled(true);
-                this.extension.getExtensionSettings(); // Refresh settings
-
                 const workspaceRoot = workspaceFolder.uri;
-                if (this.cwd === workspaceRoot.fsPath) {
+                const inputFileBlank = this.inputFile === null;
+                const settingsFileBlank = this.settingsFile === null;
+                if (this.cwd === workspaceRoot.fsPath && !inputFileBlank && !settingsFileBlank) {
                     return true; // already watching the workspace
                 }
 
                 this.cwd = workspaceRoot.fsPath;
 
-                const chaletJsonUri = vscode.Uri.joinPath(workspaceRoot, "chalet.json"); // TODO: get from local/global settings
-                this.inputFile = chaletJsonUri.fsPath;
-
-                if (fs.existsSync(this.inputFile)) {
-                    this.extension.setWorkingDirectory(this.cwd);
-                    this.extension.setInputFile(this.inputFile);
-                    await this.extension.handleChaletJsonChange();
-                    await this.extension.updateStatusBarItems();
-
-                    fs.watchFile(this.inputFile, { interval: 2000 }, this.onChaletJsonChange);
-                    return true;
+                if (this.extension === null) {
+                    this.extension = new ChaletToolsExtension(this.context, this.platform);
+                    await this.extension.activate();
                 }
+                await this.extension.setEnabled(true);
+                this.extension.setWorkingDirectory(this.cwd);
+                this.extension.refreshExtensionSettings();
+
+                // TODO: get from local/global settings
+
+                let result = !inputFileBlank;
+                if (inputFileBlank) {
+                    const chaletJsonUri = vscode.Uri.joinPath(workspaceRoot, "chalet.json");
+                    this.inputFile = chaletJsonUri.fsPath;
+
+                    if (fs.existsSync(this.inputFile)) {
+                        this.extension.setInputFile(this.inputFile);
+                        await this.extension.handleChaletJsonChange();
+
+                        fs.watchFile(this.inputFile, { interval: 2000 }, this.onChaletJsonChange);
+                        result = true;
+                    } else {
+                        this.inputFile = null;
+                    }
+                }
+
+                if (settingsFileBlank) {
+                    const settingsJsonUri = vscode.Uri.joinPath(workspaceRoot, ".chaletrc");
+                    this.settingsFile = settingsJsonUri.fsPath;
+
+                    if (fs.existsSync(this.settingsFile)) {
+                        this.extension.setSettingsFile(this.settingsFile);
+                        await this.extension.handleSettingsJsonChange();
+
+                        fs.watchFile(this.settingsFile, { interval: 2000 }, this.onSettingsJsonChange);
+                    } else {
+                        this.settingsFile = null;
+                    }
+                }
+
+                return result;
             }
 
-            this.extension?.setEnabled(false);
+            await this.extension?.setEnabled(false);
 
             return false;
         } catch (err) {
@@ -92,10 +117,15 @@ class ChaletToolsLoader {
 
     private onChaletJsonChange = async (_curr: fs.Stats, _prev: fs.Stats) => {
         try {
-            if (this.extension) {
-                await this.extension.handleChaletJsonChange();
-                await this.extension.updateStatusBarItems();
-            }
+            await this.extension?.handleChaletJsonChange();
+        } catch (err) {
+            OutputChannel.logError(err);
+        }
+    };
+
+    private onSettingsJsonChange = async (_curr: fs.Stats, _prev: fs.Stats) => {
+        try {
+            await this.extension?.handleSettingsJsonChange();
         } catch (err) {
             OutputChannel.logError(err);
         }

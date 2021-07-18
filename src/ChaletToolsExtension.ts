@@ -15,10 +15,11 @@ import {
 import { SpawnError } from "./Terminal/TerminalProcess";
 import { ChaletTerminal } from "./Terminal/ChaletTerminal";
 import {
-    // BuildArchitectureCommandMenu,
+    BuildToolchainCommandMenu,
     BuildConfigurationCommandMenu,
-    ChaletStatusBarCommandMenu,
+    ChaletCmdCommandMenu,
     RunChaletCommandButton,
+    BuildArchitectureCommandMenu,
 } from "./Commands";
 import { getCommandID } from "./Functions";
 import { OutputChannel } from "./OutputChannel";
@@ -33,9 +34,10 @@ class ChaletCliSettings {
 }
 
 class ChaletToolsExtension {
-    private chaletCommand: ChaletStatusBarCommandMenu;
+    private chaletCommand: ChaletCmdCommandMenu;
     private buildConfiguration: BuildConfigurationCommandMenu;
-    // private buildArchitecture: BuildArchitectureCommandMenu;
+    private buildArchitecture: BuildArchitectureCommandMenu;
+    private buildToolchain: BuildToolchainCommandMenu;
     private runChaletButton: RunChaletCommandButton;
 
     private chaletTerminal: ChaletTerminal;
@@ -44,23 +46,24 @@ class ChaletToolsExtension {
     private enabled: boolean = false;
     private cwd: string = "";
 
-    private settings: ChaletCliSettings;
+    private cli: ChaletCliSettings;
 
     private onRunChalet = () =>
-        this.runChalet(this.chaletCommand.getValue(), this.buildConfiguration.getValue(), this.settings);
-    private onMakeDebugBuild = () => this.runChalet(ChaletCommands.Build, BuildConfigurations.Debug, this.settings);
+        this.runChalet(this.chaletCommand.getValue(), this.buildConfiguration.getValue(), this.cli);
+    private onMakeDebugBuild = () => this.runChalet(ChaletCommands.Build, BuildConfigurations.Debug, this.cli);
 
     constructor(context: vscode.ExtensionContext, public platform: VSCodePlatform) {
         this.chaletTerminal = new ChaletTerminal();
-        this.settings = new ChaletCliSettings();
+        this.cli = new ChaletCliSettings();
 
         context.subscriptions.push(
             vscode.commands.registerCommand(getCommandID(CommandId.MakeDebugBuild), this.onMakeDebugBuild)
         );
 
-        this.chaletCommand = new ChaletStatusBarCommandMenu(this.updateStatusBarItems, context, 4);
-        this.buildConfiguration = new BuildConfigurationCommandMenu(this.updateStatusBarItems, context, 3);
-        // this.buildArchitecture = new BuildArchitectureCommandMenu(this.updateStatusBarItems, context, 2);
+        this.chaletCommand = new ChaletCmdCommandMenu(this.updateStatusBarItems, context, 5);
+        this.buildConfiguration = new BuildConfigurationCommandMenu(this.updateStatusBarItems, context, 4);
+        this.buildToolchain = new BuildToolchainCommandMenu(this.updateStatusBarItems, context, 3, this.platform);
+        this.buildArchitecture = new BuildArchitectureCommandMenu(this.updateStatusBarItems, context, 2, this.platform);
         this.runChaletButton = new RunChaletCommandButton(this.onRunChalet, context, 1);
     }
 
@@ -68,8 +71,9 @@ class ChaletToolsExtension {
         try {
             await this.chaletCommand.initialize();
             await this.buildConfiguration.initialize();
-            // await this.buildArchitecture.initialize();
-            this.updateStatusBarItems();
+            await this.buildToolchain.initialize();
+            await this.buildArchitecture.initialize();
+            await this.updateStatusBarItems();
         } catch (err) {
             OutputChannel.logError(err);
         }
@@ -80,20 +84,26 @@ class ChaletToolsExtension {
 
         this.chaletCommand.dispose();
         this.buildConfiguration.dispose();
-        // this.buildArchitecture.dispose();
+        this.buildToolchain.dispose();
+        this.buildArchitecture.dispose();
         this.runChaletButton.dispose();
     };
 
-    setEnabled = (enabled: boolean) => {
-        if (this.enabled === enabled) return;
+    setEnabled = async (enabled: boolean): Promise<void> => {
+        try {
+            if (this.enabled === enabled) return;
 
-        this.enabled = enabled;
-        this.chaletCommand.setVisible(this.enabled);
-        this.buildConfiguration.setVisible(this.enabled);
-        // this.buildArchitecture.setVisible(this.enabled);
-        this.runChaletButton.setVisible(this.enabled);
+            this.enabled = enabled;
+            this.chaletCommand.setVisible(this.enabled);
+            this.buildConfiguration.setVisible(this.enabled);
+            this.buildToolchain.setVisible(this.enabled);
+            this.buildArchitecture.setVisible(this.enabled);
+            this.runChaletButton.setVisible(this.enabled);
 
-        this.updateStatusBarItems();
+            await this.updateStatusBarItems();
+        } catch (err) {
+            OutputChannel.logError(err);
+        }
     };
 
     setWorkingDirectory = (cwd: string) => {
@@ -101,10 +111,14 @@ class ChaletToolsExtension {
     };
 
     setInputFile = (inPath: string) => {
-        this.settings.inputFile = inPath;
+        this.cli.inputFile = inPath;
     };
 
-    getExtensionSettings = () => {
+    setSettingsFile = (inPath: string) => {
+        this.cli.settingsFile = inPath;
+    };
+
+    refreshExtensionSettings = () => {
         const workbenchConfig = vscode.workspace.getConfiguration(EXTENSION_ID);
         const useDebugChalet = workbenchConfig.get<boolean>("useDebugChalet");
 
@@ -113,22 +127,29 @@ class ChaletToolsExtension {
 
             this.useDebugChalet = useDebugChalet;
         }
-
-        // const targetArchitectures = workbenchConfig.get<string[]>("targetArchitectures");
-        // if (targetArchitectures) {
-        //     this.targetArchitectures = targetArchitectures;
-
-        // this.buildArchitectureMenu = [...this.defaultArchitecture, ...this.targetArchitectures];
-        // }
     };
 
     handleChaletJsonChange = async (): Promise<void> => {
         try {
-            const rawData = fs.readFileSync(this.settings.inputFile, "utf8");
+            const rawData = fs.readFileSync(this.cli.inputFile, "utf8");
             const chaletJson = CommentJSON.parse(rawData, undefined, true);
 
             await this.buildConfiguration.parseJsonConfigurations(chaletJson);
             this.runChaletButton.parseJsonRunProjects(chaletJson);
+
+            await this.updateStatusBarItems();
+        } catch (err) {
+            OutputChannel.logError(err);
+        }
+    };
+
+    handleSettingsJsonChange = async (): Promise<void> => {
+        try {
+            const rawData = fs.readFileSync(this.cli.settingsFile, "utf8");
+            const settingsJson = CommentJSON.parse(rawData, undefined, true);
+            console.log(settingsJson);
+
+            await this.buildToolchain.parseJsonToolchains(settingsJson);
 
             await this.updateStatusBarItems();
         } catch (err) {
@@ -189,6 +210,18 @@ class ChaletToolsExtension {
                 shellArgs.push(this.stripCwd(settings.outputDir));
             }
 
+            const toolchain = this.buildToolchain.getValue();
+            if (!!toolchain) {
+                shellArgs.push("--toolchain");
+                shellArgs.push(toolchain);
+            }
+
+            const arch = this.buildArchitecture.getValue();
+            if (!!arch) {
+                shellArgs.push("--arch");
+                shellArgs.push(arch);
+            }
+
             /*if (this.buildArchitecture.length > 0 && this.buildArchitecture != BuildArchitecture.Auto) {
                 shellArgs.push("--arch");
                 if (this.buildArchitecture === BuildArchitecture.x64 && this.platform !== VSCodePlatform.Windows) {
@@ -232,11 +265,14 @@ class ChaletToolsExtension {
         }
     };
 
-    updateStatusBarItems = async (): Promise<void> => {
+    private updateStatusBarItems = async (): Promise<void> => {
         try {
             if (!this.enabled) return;
 
             await this.buildConfiguration.requiredForVisibility(this.chaletCommand.getValue());
+            const isConfigure = this.chaletCommand.isConfigure();
+            this.buildToolchain.setVisible(isConfigure);
+            await this.buildArchitecture.setToolchainAndVisibility(this.buildToolchain.getValue(), true);
             this.runChaletButton.updateLabelFromChaletCommand(this.chaletCommand);
         } catch (err) {
             OutputChannel.logError(err);

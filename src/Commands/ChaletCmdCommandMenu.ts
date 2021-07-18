@@ -4,7 +4,7 @@ import { bind } from "bind-decorator";
 import { Optional, ChaletCommands, CommandId } from "../Types";
 import { StatusBarCommandMenu, ValueChangeCallback } from "./StatusBarCommandMenu";
 
-class ChaletStatusBarCommandMenu extends StatusBarCommandMenu<ChaletCommands> {
+class ChaletCmdCommandMenu extends StatusBarCommandMenu<ChaletCommands> {
     constructor(onClick: ValueChangeCallback, context: vscode.ExtensionContext, priority: number) {
         super(CommandId.ChaletCommand, onClick, context, priority);
     }
@@ -21,6 +21,10 @@ class ChaletStatusBarCommandMenu extends StatusBarCommandMenu<ChaletCommands> {
             ChaletCommands.Configure,
         ];
     }
+
+    isConfigure = (): boolean => {
+        return this.value === ChaletCommands.Configure;
+    };
 
     willRun = (): boolean => {
         return this.value === ChaletCommands.Run || this.value === ChaletCommands.BuildRun;
@@ -72,4 +76,4 @@ class ChaletStatusBarCommandMenu extends StatusBarCommandMenu<ChaletCommands> {
     };
 }
 
-export { ChaletStatusBarCommandMenu };
+export { ChaletCmdCommandMenu };

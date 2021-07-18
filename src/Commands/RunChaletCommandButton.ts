@@ -3,7 +3,7 @@ import { bind } from "bind-decorator";
 
 import { CommandId, Optional } from "../Types";
 import { CommandButtonCallback, StatusBarCommandButton } from "./StatusBarCommandButton";
-import { ChaletStatusBarCommandMenu } from "./ChaletStatusBarCommandMenu";
+import { ChaletCmdCommandMenu } from "./ChaletCmdCommandMenu";
 
 class RunChaletCommandButton extends StatusBarCommandButton {
     private runProject: Optional<string> = null;
@@ -17,7 +17,7 @@ class RunChaletCommandButton extends StatusBarCommandButton {
         return this.onInitialize();
     }
 
-    updateLabelFromChaletCommand = (commandMenu: ChaletStatusBarCommandMenu) => {
+    updateLabelFromChaletCommand = (commandMenu: ChaletCmdCommandMenu) => {
         const icon: string = commandMenu.getIcon();
         if (!!this.runProject && commandMenu.willRun()) {
             this.setLabel(`$(${icon}) ${this.runProject}`);

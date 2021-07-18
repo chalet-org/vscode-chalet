@@ -20,10 +20,18 @@ export enum BuildConfigurations {
 
 export enum BuildArchitecture {
     Auto = "auto",
-    x64 = "x64",
-    x86 = "x86",
-    ARM = "arm",
+    WindowsHostX64_X64 = "x64",
+    WindowsHostX64_X86 = "x64_x86",
+    WindowsHostX64_ARM = "x64_arm",
+    WindowsHostX64_ARM64 = "x64_arm64",
+    WindowsHostX86_X64 = "x86_x64",
+    WindowsHostX86_X86 = "x86",
+    WindowsHostX86_ARM = "x86_arm",
+    WindowsHostX86_ARM64 = "x86_arm64",
+    X86_64 = "x86_64",
+    I686 = "i686",
     ARM64 = "arm64",
+    ARM = "arm",
 }
 
 export enum ChaletVersion {
@@ -34,7 +42,16 @@ export enum ChaletVersion {
 export enum CommandId {
     Run = "runChalet",
     ChaletCommand = "chaletCommand",
+    BuildToolchain = "buildToolchain",
     BuildArchitecture = "buildArchitecture",
     BuildConfiguration = "buildConfiguration",
     MakeDebugBuild = "makeDebugBuild",
+}
+
+export enum ToolchainPreset {
+    VisualStudio = "msvc",
+    VisualStudioPreRelease = "msvc-pre",
+    LLVM = "llvm",
+    AppleLLVM = "applellvm",
+    GCC = "gcc",
 }
