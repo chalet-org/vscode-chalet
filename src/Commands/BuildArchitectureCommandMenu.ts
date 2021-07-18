@@ -54,7 +54,7 @@ class BuildArchitectureCommandMenu extends StatusBarCommandMenu<MenuType> {
                     ];
                 }
             }
-            /*case ToolchainPreset.GCC: {
+            case ToolchainPreset.GCC: {
                 if (this.platform === VSCodePlatform.Windows) {
                     return [
                         // Should be MinGW - I'm sure this will need to change at some point
@@ -63,7 +63,7 @@ class BuildArchitectureCommandMenu extends StatusBarCommandMenu<MenuType> {
                         BuildArchitecture.I686,
                     ];
                 }
-            }*/
+            }
         }
         return [
             //
