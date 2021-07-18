@@ -1,12 +1,11 @@
 import * as fs from "fs";
-import * as os from "os";
 import * as vscode from "vscode";
 
 import { ChaletToolsExtension } from "./ChaletToolsExtension";
-import { Optional, VSCodePlatform } from "./Types";
+import { OutputChannel } from "./OutputChannel";
+import { getVSCodePlatform, Optional, VSCodePlatform } from "./Types";
 
 class ChaletToolsLoader {
-    private context: vscode.ExtensionContext;
     private platform: VSCodePlatform;
 
     extension: Optional<ChaletToolsExtension> = null;
@@ -15,79 +14,90 @@ class ChaletToolsLoader {
 
     workspaceCount: number = 0;
 
-    constructor(context: vscode.ExtensionContext) {
-        this.context = context;
-        this.platform = this.getPlatform();
+    constructor(private context: vscode.ExtensionContext) {
+        this.platform = getVSCodePlatform();
 
         context.subscriptions.push(
-            vscode.window.onDidChangeActiveTextEditor((ev) => {
+            vscode.window.onDidChangeActiveTextEditor(async (ev) => {
                 if (this.workspaceCount <= 1) return;
 
                 if (ev) {
                     let workspaceFolder = vscode.workspace.getWorkspaceFolder(ev.document.uri);
-                    this.activate(workspaceFolder);
+                    await this.activate(workspaceFolder);
                 }
             })
         );
 
         context.subscriptions.push(
-            vscode.workspace.onDidChangeWorkspaceFolders((ev) => {
-                if (vscode.workspace.workspaceFolders) {
-                    this.workspaceCount = vscode.workspace.workspaceFolders.length;
-                    for (const folder of vscode.workspace.workspaceFolders) {
-                        if (this.activate(folder)) break;
-                    }
-                }
-            })
+            vscode.workspace.onDidChangeWorkspaceFolders((ev) => this.activateFromWorkspaceFolders())
         );
-
-        if (vscode.workspace.workspaceFolders) {
-            this.workspaceCount = vscode.workspace.workspaceFolders.length;
-            for (const folder of vscode.workspace.workspaceFolders) {
-                this.activate(folder);
-            }
-        }
+        this.activateFromWorkspaceFolders();
     }
 
-    private activate = (workspaceFolder?: vscode.WorkspaceFolder): boolean => {
-        if (workspaceFolder) {
-            if (this.extension === null) {
-                this.extension = new ChaletToolsExtension(this.context, this.platform);
-                this.extension.activate();
+    private activateFromWorkspaceFolders = async () => {
+        try {
+            const folders = vscode.workspace.workspaceFolders;
+            if (folders) {
+                this.workspaceCount = folders.length;
+
+                for (const folder of folders) {
+                    const activated = await this.activate(folder);
+                    if (activated) return;
+                }
             }
-            this.extension.setEnabled(true);
-            this.extension.getExtensionSettings(); // Refresh settings
-
-            const workspaceRoot = workspaceFolder.uri;
-            if (this.cwd === workspaceRoot.fsPath) {
-                return true; // already watching the workspace
-            }
-
-            this.cwd = workspaceRoot.fsPath;
-
-            const chaletJsonUri = vscode.Uri.joinPath(workspaceRoot, "chalet.json"); // TODO: get from local/global settings
-            this.inputFile = chaletJsonUri.fsPath;
-
-            if (fs.existsSync(this.inputFile)) {
-                this.extension.setWorkingDirectory(this.cwd);
-                this.extension.setInputFile(this.inputFile);
-                this.extension.handleBuildJsonChange();
-                this.extension.updateStatusBarItems();
-
-                fs.watchFile(this.inputFile, { interval: 2000 }, this.onBuildJsonChange);
-                return true;
-            }
+        } catch (err) {
+            OutputChannel.logError(err);
         }
-
-        this.extension?.setEnabled(false);
-
-        return false;
     };
 
-    private onBuildJsonChange = (_curr: fs.Stats, _prev: fs.Stats) => {
-        if (this.extension) {
-            this.extension.handleBuildJsonChange();
-            this.extension.updateStatusBarItems();
+    private activate = async (workspaceFolder?: vscode.WorkspaceFolder): Promise<boolean> => {
+        try {
+            if (workspaceFolder) {
+                if (this.extension === null) {
+                    this.extension = new ChaletToolsExtension(this.context, this.platform);
+                    await this.extension.activate();
+                }
+                this.extension.setEnabled(true);
+                this.extension.getExtensionSettings(); // Refresh settings
+
+                const workspaceRoot = workspaceFolder.uri;
+                if (this.cwd === workspaceRoot.fsPath) {
+                    return true; // already watching the workspace
+                }
+
+                this.cwd = workspaceRoot.fsPath;
+
+                const chaletJsonUri = vscode.Uri.joinPath(workspaceRoot, "chalet.json"); // TODO: get from local/global settings
+                this.inputFile = chaletJsonUri.fsPath;
+
+                if (fs.existsSync(this.inputFile)) {
+                    this.extension.setWorkingDirectory(this.cwd);
+                    this.extension.setInputFile(this.inputFile);
+                    await this.extension.handleChaletJsonChange();
+                    await this.extension.updateStatusBarItems();
+
+                    fs.watchFile(this.inputFile, { interval: 2000 }, this.onChaletJsonChange);
+                    return true;
+                }
+            }
+
+            this.extension?.setEnabled(false);
+
+            return false;
+        } catch (err) {
+            OutputChannel.logError(err);
+            return false;
+        }
+    };
+
+    private onChaletJsonChange = async (_curr: fs.Stats, _prev: fs.Stats) => {
+        try {
+            if (this.extension) {
+                await this.extension.handleChaletJsonChange();
+                await this.extension.updateStatusBarItems();
+            }
+        } catch (err) {
+            OutputChannel.logError(err);
         }
     };
 
@@ -96,17 +106,6 @@ class ChaletToolsLoader {
         this.extension = null;
         this.inputFile = null;
         this.cwd = null;
-    };
-
-    private getPlatform = (): VSCodePlatform => {
-        const nodePlatform = os.platform();
-        if (nodePlatform === "win32") {
-            return VSCodePlatform.Windows;
-        } else if (nodePlatform === "darwin") {
-            return VSCodePlatform.MacOS;
-        } else {
-            return VSCodePlatform.Linux;
-        }
     };
 }
 

@@ -11,19 +11,13 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onLanguage:c",
-		"onLanguage:cpp",
-		"onLanguage:objective-c",
-		"onLanguage:objective-cpp",
 		"onCommand:chalet-tools.runChalet",
 		"onCommand:chalet-tools.chaletCommand",
 		"onCommand:chalet-tools.buildArchitecture",
 		"onCommand:chalet-tools.buildConfiguration",
 		"onCommand:chalet-tools.makeDebugBuild",
 		"workspaceContains:**/chalet.json",
-		"workspaceContains:**/.chaletrc",
-		"onFileSystem:file://**/chalet.json",
-		"onFileSystem:file://**/.chaletrc"
+		"workspaceContains:**/.chaletrc"
 	],
 	"main": "./out/extension.js",
 	"contributes": {

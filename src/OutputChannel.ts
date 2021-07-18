@@ -1,6 +1,10 @@
 import * as vscode from "vscode";
 import { Optional } from "./Types";
 
+type OutputChannelError = Error & {
+    logged?: boolean;
+};
+
 class OutputChannel {
     private static output: Optional<vscode.OutputChannel> = null;
 
@@ -22,10 +26,11 @@ class OutputChannel {
         OutputChannel.output?.appendLine(`> ${text}`);
     };
 
-    static logError = (err?: Error): void => {
-        if (err) {
+    static logError = (err?: OutputChannelError): void => {
+        if (err && !err.logged) {
             OutputChannel.output?.appendLine(`Error: ${err.message}`);
             console.error(err);
+            err.logged = true;
         }
     };
 

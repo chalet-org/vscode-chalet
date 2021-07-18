@@ -1,7 +1,6 @@
 import * as fs from "fs";
 import * as vscode from "vscode";
 import * as CommentJSON from "comment-json";
-import * as path from "path";
 
 import { getTerminalEnv } from "./Functions";
 import {
@@ -12,7 +11,6 @@ import {
     CommandId,
     VSCodePlatform,
     Optional,
-    getChaletPlatform,
 } from "./Types";
 import { SpawnError } from "./Terminal/TerminalProcess";
 import { ChaletTerminal } from "./Terminal/ChaletTerminal";
@@ -25,6 +23,14 @@ import {
 import { getCommandID } from "./Functions";
 import { OutputChannel } from "./OutputChannel";
 import { EXTENSION_ID } from "./ExtensionID";
+
+class ChaletCliSettings {
+    inputFile: string = "";
+    settingsFile: string = "";
+    envFile: string = "";
+    rootDir: string = "";
+    outputDir: string = "";
+}
 
 class ChaletToolsExtension {
     private chaletCommand: ChaletStatusBarCommandMenu;
@@ -40,23 +46,19 @@ class ChaletToolsExtension {
     private enabled: boolean = false;
     private cwd: string = "";
 
-    private inputFile: string = "";
-    private settingsFile: string = "";
-    private envFile: string = "";
+    private settings: ChaletCliSettings;
 
-    private rootDir: string = "";
-    private outputDir: string = "";
-
-    private onRunChalet = () => this.runChalet(this.chaletCommand.getValue(), this.buildConfiguration.getValue());
-    private onMakeDebugBuild = () => this.runChalet(ChaletCommands.Build, BuildConfigurations.Debug);
+    private onRunChalet = () =>
+        this.runChalet(this.chaletCommand.getValue(), this.buildConfiguration.getValue(), this.settings);
+    private onMakeDebugBuild = () => this.runChalet(ChaletCommands.Build, BuildConfigurations.Debug, this.settings);
 
     constructor(context: vscode.ExtensionContext, public platform: VSCodePlatform) {
         this.taskProvider = new ChaletTerminal();
+        this.settings = new ChaletCliSettings();
 
-        {
-            const command = getCommandID(CommandId.MakeDebugBuild);
-            context.subscriptions.push(vscode.commands.registerCommand(command, this.onMakeDebugBuild));
-        }
+        context.subscriptions.push(
+            vscode.commands.registerCommand(getCommandID(CommandId.MakeDebugBuild), this.onMakeDebugBuild)
+        );
 
         this.chaletCommand = new ChaletStatusBarCommandMenu(this.updateStatusBarItems, context, 4);
         this.buildConfiguration = new BuildConfigurationCommandMenu(this.updateStatusBarItems, context, 3);
@@ -65,10 +67,14 @@ class ChaletToolsExtension {
     }
 
     activate = async () => {
-        await this.chaletCommand.initialize();
-        await this.buildConfiguration.initialize();
-        // await this.buildArchitecture.initialize();
-        this.updateStatusBarItems();
+        try {
+            await this.chaletCommand.initialize();
+            await this.buildConfiguration.initialize();
+            // await this.buildArchitecture.initialize();
+            this.updateStatusBarItems();
+        } catch (err) {
+            OutputChannel.logError(err);
+        }
     };
 
     deactivate = () => {
@@ -97,7 +103,7 @@ class ChaletToolsExtension {
     };
 
     setInputFile = (inPath: string) => {
-        this.inputFile = inPath;
+        this.settings.inputFile = inPath;
     };
 
     getExtensionSettings = () => {
@@ -118,44 +124,15 @@ class ChaletToolsExtension {
         // }
     };
 
-    handleBuildJsonChange = (): void => {
+    handleChaletJsonChange = async (): Promise<void> => {
         try {
-            const rawData = fs.readFileSync(this.inputFile, "utf8");
+            const rawData = fs.readFileSync(this.settings.inputFile, "utf8");
             const chaletJson = CommentJSON.parse(rawData, undefined, true);
-            let configurations: any = chaletJson["configurations"];
-            if (configurations) {
-                if (Array.isArray(configurations)) {
-                    this.buildConfiguration.setMenu(
-                        configurations.reduce((out: string[], item) => {
-                            if (typeof item === "string") {
-                                if (this.buildConfiguration.isDefault(item)) {
-                                    out.push(item);
-                                }
-                            }
-                            return out;
-                        }, [] as string[])
-                    );
-                } else if (typeof configurations === "object") {
-                    this.buildConfiguration.resetMenu();
-                    for (const [key, value] of Object.entries(configurations)) {
-                        let item: any = value;
-                        if (item && typeof item === "object") {
-                            this.buildConfiguration.addToMenu(key);
-                        }
-                    }
-                } else {
-                    return;
-                }
 
-                this.buildConfiguration.refreshMenuAndValue();
-
-                this.setRunProjectName(chaletJson);
-                return;
-            }
+            await this.buildConfiguration.parseJsonConfigurations(chaletJson);
 
             this.setRunProjectName(chaletJson);
-
-            this.buildConfiguration.setDefaultMenu();
+            await this.updateStatusBarItems();
         } catch (err) {
             OutputChannel.logError(err);
         }
@@ -174,8 +151,6 @@ class ChaletToolsExtension {
                     }
                 }
             }
-
-            this.updateStatusBarItems();
         }
     };
 
@@ -185,6 +160,7 @@ class ChaletToolsExtension {
 
     private onTerminalSuccess = (code?: Optional<number>, signal?: Optional<NodeJS.Signals>): void => {
         OutputChannel.logCommand(`process exited with code: ${code}`);
+        OutputChannel.log(new String().padStart(80, "-"));
     };
 
     private onTerminalFailure = (err?: SpawnError): void => {
@@ -196,35 +172,39 @@ class ChaletToolsExtension {
         return inPath.replaceAll(`${this.cwd}${pathSeparator}`, "");
     };
 
-    private runChalet = async (command: Optional<ChaletCommands>, buildConfig: Optional<string>): Promise<void> => {
+    private runChalet = async (
+        command: Optional<ChaletCommands>,
+        buildConfig: Optional<string>,
+        settings: ChaletCliSettings
+    ): Promise<void> => {
         try {
             if (command === null) return;
 
             let shellArgs: string[] = [];
 
-            if (this.inputFile.length > 0 && fs.existsSync(this.inputFile)) {
+            if (settings.inputFile.length > 0 && fs.existsSync(settings.inputFile)) {
                 shellArgs.push("--input-file");
-                shellArgs.push(this.stripCwd(this.inputFile));
+                shellArgs.push(this.stripCwd(settings.inputFile));
             }
 
-            if (this.settingsFile.length > 0 && fs.existsSync(this.settingsFile)) {
+            if (settings.settingsFile.length > 0 && fs.existsSync(settings.settingsFile)) {
                 shellArgs.push("--settings-file");
-                shellArgs.push(this.stripCwd(this.settingsFile));
+                shellArgs.push(this.stripCwd(settings.settingsFile));
             }
 
-            if (this.envFile.length > 0 && fs.existsSync(this.envFile)) {
+            if (settings.envFile.length > 0 && fs.existsSync(settings.envFile)) {
                 shellArgs.push("--env-file");
-                shellArgs.push(this.stripCwd(this.envFile));
+                shellArgs.push(this.stripCwd(settings.envFile));
             }
 
-            if (this.rootDir.length > 0) {
+            if (settings.rootDir.length > 0) {
                 shellArgs.push("--root-dir");
-                shellArgs.push(this.stripCwd(this.rootDir));
+                shellArgs.push(this.stripCwd(settings.rootDir));
             }
 
-            if (this.outputDir.length > 0) {
+            if (settings.outputDir.length > 0) {
                 shellArgs.push("--output-dir");
-                shellArgs.push(this.stripCwd(this.outputDir));
+                shellArgs.push(this.stripCwd(settings.outputDir));
             }
 
             /*if (this.buildArchitecture.length > 0 && this.buildArchitecture != BuildArchitecture.Auto) {
@@ -249,9 +229,9 @@ class ChaletToolsExtension {
             const env = getTerminalEnv(this.platform);
             const icon = this.chaletCommand.getIcon();
 
-            OutputChannel.logCommand(`${shellPath} ${shellArgs.join(" ")}`);
-            OutputChannel.logCommand(`cwd: ${this.cwd}`);
             // OutputChannel.logCommand(`env: ${JSON.stringify(env, undefined, 3)}`);
+            OutputChannel.logCommand(`cwd: ${this.cwd}`);
+            OutputChannel.logCommand(`${shellPath} ${shellArgs.join(" ")}`);
 
             await this.taskProvider.execute({
                 name,
@@ -271,10 +251,14 @@ class ChaletToolsExtension {
     };
 
     updateStatusBarItems = async (): Promise<void> => {
-        if (!this.enabled) return;
+        try {
+            if (!this.enabled) return;
 
-        await this.buildConfiguration.requiredForVisibility(this.chaletCommand.getValue());
-        this.runChaletButton.updateLabelFromChaletCommand(this.chaletCommand, this.runProjects[0]);
+            await this.buildConfiguration.requiredForVisibility(this.chaletCommand.getValue());
+            this.runChaletButton.updateLabelFromChaletCommand(this.chaletCommand, this.runProjects[0]);
+        } catch (err) {
+            OutputChannel.logError(err);
+        }
     };
 }
 

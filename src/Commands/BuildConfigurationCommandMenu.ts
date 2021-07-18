@@ -3,6 +3,7 @@ import { bind } from "bind-decorator";
 
 import { BuildConfigurations, ChaletCommands, CommandId, Optional } from "../Types";
 import { StatusBarCommandMenu, ValueChangeCallback } from "./StatusBarCommandMenu";
+import { OutputChannel } from "../OutputChannel";
 
 type MenuType = BuildConfigurations | string;
 
@@ -45,6 +46,47 @@ class BuildConfigurationCommandMenu extends StatusBarCommandMenu<MenuType> {
             command === ChaletCommands.Rebuild ||
             command === ChaletCommands.Clean
         );
+    };
+
+    parseJsonConfigurations = async (chaletJson: any): Promise<boolean> => {
+        try {
+            let configurations: any = chaletJson["configurations"];
+            if (configurations) {
+                if (Array.isArray(configurations)) {
+                    await this.setMenu(
+                        configurations.reduce((out: string[], item) => {
+                            if (typeof item === "string") {
+                                if (this.isDefault(item)) {
+                                    out.push(item);
+                                }
+                            }
+                            return out;
+                        }, [] as string[])
+                    );
+                } else if (typeof configurations === "object") {
+                    this.resetMenu();
+                    for (const [key, value] of Object.entries(configurations)) {
+                        let item: any = value;
+                        if (item && typeof item === "object") {
+                            this.addToMenu(key);
+                        }
+                    }
+                } else {
+                    this.setDefaultMenu();
+                    return false;
+                }
+
+                await this.refreshMenuAndValue();
+                return true;
+            } else {
+                this.setDefaultMenu();
+                return false;
+            }
+        } catch (err) {
+            OutputChannel.logError(err);
+            this.setDefaultMenu();
+            return false;
+        }
     };
 }
 
