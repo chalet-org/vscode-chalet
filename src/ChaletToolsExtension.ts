@@ -38,9 +38,7 @@ class ChaletToolsExtension {
     // private buildArchitecture: BuildArchitectureCommandMenu;
     private runChaletButton: RunChaletCommandButton;
 
-    private runProjects: string[] = [];
-
-    private taskProvider: ChaletTerminal;
+    private chaletTerminal: ChaletTerminal;
 
     private useDebugChalet: boolean = false;
     private enabled: boolean = false;
@@ -53,7 +51,7 @@ class ChaletToolsExtension {
     private onMakeDebugBuild = () => this.runChalet(ChaletCommands.Build, BuildConfigurations.Debug, this.settings);
 
     constructor(context: vscode.ExtensionContext, public platform: VSCodePlatform) {
-        this.taskProvider = new ChaletTerminal();
+        this.chaletTerminal = new ChaletTerminal();
         this.settings = new ChaletCliSettings();
 
         context.subscriptions.push(
@@ -78,7 +76,7 @@ class ChaletToolsExtension {
     };
 
     deactivate = () => {
-        this.taskProvider.dispose();
+        this.chaletTerminal.dispose();
 
         this.chaletCommand.dispose();
         this.buildConfiguration.dispose();
@@ -130,27 +128,11 @@ class ChaletToolsExtension {
             const chaletJson = CommentJSON.parse(rawData, undefined, true);
 
             await this.buildConfiguration.parseJsonConfigurations(chaletJson);
+            this.runChaletButton.parseJsonRunProjects(chaletJson);
 
-            this.setRunProjectName(chaletJson);
             await this.updateStatusBarItems();
         } catch (err) {
             OutputChannel.logError(err);
-        }
-    };
-
-    private setRunProjectName = (chaletJson: any): void => {
-        this.runProjects = [];
-        let targets: any = chaletJson["targets"];
-        if (targets && typeof targets === "object") {
-            this.runProjects = [];
-            for (const [key, value] of Object.entries(targets)) {
-                let item: any = value;
-                if (item && typeof item === "object") {
-                    if (item.kind && (item.kind === "desktopApplication" || item.kind === "consoleApplication")) {
-                        if (!!item.runProject) this.runProjects.push(key);
-                    }
-                }
-            }
         }
     };
 
@@ -233,7 +215,7 @@ class ChaletToolsExtension {
             OutputChannel.logCommand(`cwd: ${this.cwd}`);
             OutputChannel.logCommand(`${shellPath} ${shellArgs.join(" ")}`);
 
-            await this.taskProvider.execute({
+            await this.chaletTerminal.execute({
                 name,
                 autoClear: false,
                 shellPath,
@@ -255,7 +237,7 @@ class ChaletToolsExtension {
             if (!this.enabled) return;
 
             await this.buildConfiguration.requiredForVisibility(this.chaletCommand.getValue());
-            this.runChaletButton.updateLabelFromChaletCommand(this.chaletCommand, this.runProjects[0]);
+            this.runChaletButton.updateLabelFromChaletCommand(this.chaletCommand);
         } catch (err) {
             OutputChannel.logError(err);
         }
