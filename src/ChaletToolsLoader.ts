@@ -78,29 +78,21 @@ class ChaletToolsLoader {
                     const chaletJsonUri = vscode.Uri.joinPath(workspaceRoot, "chalet.json");
                     this.inputFile = chaletJsonUri.fsPath;
 
-                    if (fs.existsSync(this.inputFile)) {
-                        this.extension.setInputFile(this.inputFile);
-                        await this.extension.handleChaletJsonChange();
+                    this.extension.setInputFile(this.inputFile);
+                    await this.extension.handleChaletJsonChange();
 
-                        fs.watchFile(this.inputFile, { interval: 2000 }, this.onChaletJsonChange);
-                        result = true;
-                    } else {
-                        this.inputFile = null;
-                    }
+                    fs.watchFile(this.inputFile, { interval: 2000 }, this.onChaletJsonChange);
+                    result = true;
                 }
 
                 if (settingsFileBlank) {
                     const settingsJsonUri = vscode.Uri.joinPath(workspaceRoot, ".chaletrc");
                     this.settingsFile = settingsJsonUri.fsPath;
 
-                    if (fs.existsSync(this.settingsFile)) {
-                        this.extension.setSettingsFile(this.settingsFile);
-                        await this.extension.handleSettingsJsonChange();
+                    this.extension.setSettingsFile(this.settingsFile);
+                    await this.extension.handleSettingsJsonChange();
 
-                        fs.watchFile(this.settingsFile, { interval: 2000 }, this.onSettingsJsonChange);
-                    } else {
-                        this.settingsFile = null;
-                    }
+                    fs.watchFile(this.settingsFile, { interval: 2000 }, this.onSettingsJsonChange);
                 }
 
                 return result;
