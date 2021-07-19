@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 import { bind } from "bind-decorator";
 
 import { CommandId, ToolchainPreset, VSCodePlatform } from "../Types";
-import { StatusBarCommandMenu, ValueChangeCallback } from "./StatusBarCommandMenu";
+import { MenuItem, StatusBarCommandMenu, ValueChangeCallback } from "./StatusBarCommandMenu";
 import { OutputChannel } from "../OutputChannel";
 
 type MenuType = ToolchainPreset | string;
@@ -17,8 +17,7 @@ class BuildToolchainCommandMenu extends StatusBarCommandMenu<MenuType> {
         super(CommandId.BuildToolchain, onClick, context, priority);
     }
 
-    @bind
-    protected getDefaultMenu(): MenuType[] {
+    private getRawMenu = (): MenuType[] => {
         switch (this.platform) {
             case VSCodePlatform.Windows:
                 return [
@@ -41,6 +40,25 @@ class BuildToolchainCommandMenu extends StatusBarCommandMenu<MenuType> {
             ToolchainPreset.GCC,
             ToolchainPreset.LLVM,
         ];
+    };
+
+    private stringToMenuItem = (label: string): MenuItem<MenuType> => {
+        const enumValues: string[] = Object.values(ToolchainPreset);
+        if (enumValues.includes(label)) {
+            return {
+                label,
+                description: "$(debug-breakpoint-log-unverified)",
+            };
+        } else {
+            return {
+                label,
+            };
+        }
+    };
+
+    @bind
+    protected getDefaultMenu(): MenuItem<MenuType>[] {
+        return this.getRawMenu().map(this.stringToMenuItem);
     }
 
     parseJsonToolchains = async (settingsJson: any): Promise<void> => {
@@ -54,12 +72,12 @@ class BuildToolchainCommandMenu extends StatusBarCommandMenu<MenuType> {
                     }
                 }
             }
-            for (const item of this.getDefaultMenu()) {
+            for (const item of this.getRawMenu()) {
                 if (!menu.includes(item)) {
                     menu.push(item);
                 }
             }
-            await this.setMenu(menu);
+            await this.setMenu(menu.map(this.stringToMenuItem));
         } catch (err) {
             OutputChannel.logError(err);
         }
@@ -71,10 +89,10 @@ class BuildToolchainCommandMenu extends StatusBarCommandMenu<MenuType> {
             if (!!settings && typeof settings === "object") {
                 let toolchain: any = settings["toolchain"];
                 if (toolchain && typeof toolchain === "string") {
-                    if (this.menu.includes(toolchain)) {
-                        await this.setValue(toolchain);
+                    if (this.includesLabel(toolchain)) {
+                        await this.setValueFromString(toolchain);
                     } else {
-                        await this.setValue(this.menu[0] ?? null);
+                        await this.setFirstValueInMenu();
                     }
                 }
             }

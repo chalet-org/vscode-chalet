@@ -1,10 +1,10 @@
+import bind from "bind-decorator";
 import * as vscode from "vscode";
 
 import { getCommandID } from "../Functions";
-import { CommandId } from "../Types";
+import { CommandId, Optional } from "../Types";
 
 abstract class StatusBarCommand {
-    protected label: string = "";
     protected visible: boolean = false;
     protected workspaceState: vscode.Memento;
     protected item: vscode.StatusBarItem;
@@ -38,13 +38,13 @@ abstract class StatusBarCommand {
     };
 
     setLabel = (value: string): void => {
-        this.label = value;
-        this.item.text = this.label;
+        this.item.text = value;
     };
 
-    getLabel = (): string => {
-        return this.label;
-    };
+    @bind
+    getLabel(): Optional<string> {
+        return this.item.text;
+    }
 }
 
 export { StatusBarCommand };

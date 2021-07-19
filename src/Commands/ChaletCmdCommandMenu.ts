@@ -2,7 +2,17 @@ import * as vscode from "vscode";
 import { bind } from "bind-decorator";
 
 import { Optional, ChaletCommands, CommandId } from "../Types";
-import { StatusBarCommandMenu, ValueChangeCallback } from "./StatusBarCommandMenu";
+import { MenuItem, StatusBarCommandMenu, ValueChangeCallback } from "./StatusBarCommandMenu";
+
+const kDefaultMenu: ChaletCommands[] = [
+    ChaletCommands.BuildRun,
+    ChaletCommands.Run,
+    ChaletCommands.Build,
+    ChaletCommands.Rebuild,
+    ChaletCommands.Clean,
+    ChaletCommands.Bundle,
+    ChaletCommands.Configure,
+];
 
 class ChaletCmdCommandMenu extends StatusBarCommandMenu<ChaletCommands> {
     constructor(onClick: ValueChangeCallback, context: vscode.ExtensionContext, priority: number) {
@@ -10,28 +20,24 @@ class ChaletCmdCommandMenu extends StatusBarCommandMenu<ChaletCommands> {
     }
 
     @bind
-    protected getDefaultMenu(): ChaletCommands[] {
-        return [
-            ChaletCommands.BuildRun,
-            ChaletCommands.Run,
-            ChaletCommands.Build,
-            ChaletCommands.Rebuild,
-            ChaletCommands.Clean,
-            ChaletCommands.Bundle,
-            ChaletCommands.Configure,
-        ];
+    protected getDefaultMenu(): MenuItem<ChaletCommands>[] {
+        return kDefaultMenu.map((label) => ({
+            label,
+        }));
     }
 
     isConfigure = (): boolean => {
-        return this.value === ChaletCommands.Configure;
+        return !!this.value && this.value.label === ChaletCommands.Configure;
     };
 
     willRun = (): boolean => {
-        return this.value === ChaletCommands.Run || this.value === ChaletCommands.BuildRun;
+        return (
+            !!this.value && (this.value.label === ChaletCommands.Run || this.value.label === ChaletCommands.BuildRun)
+        );
     };
 
     getIcon = (): string => {
-        switch (this.value) {
+        switch (this.value?.label) {
             case ChaletCommands.Build:
             case ChaletCommands.Rebuild:
                 return "tools";
@@ -52,7 +58,7 @@ class ChaletCmdCommandMenu extends StatusBarCommandMenu<ChaletCommands> {
     };
 
     getCliSubCommand = (label: Optional<ChaletCommands>): string => {
-        const value = label ?? this.value;
+        const value = label ?? this.value?.label ?? null;
         if (value === null) return "";
 
         switch (value) {

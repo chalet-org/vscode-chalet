@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 import { bind } from "bind-decorator";
 
 import { BuildArchitecture, CommandId, Optional, ToolchainPreset, VSCodePlatform } from "../Types";
-import { StatusBarCommandMenu, ValueChangeCallback } from "./StatusBarCommandMenu";
+import { MenuItem, StatusBarCommandMenu, ValueChangeCallback } from "./StatusBarCommandMenu";
 import { OutputChannel } from "../OutputChannel";
 
 type MenuType = BuildArchitecture | string;
@@ -19,8 +19,7 @@ class BuildArchitectureCommandMenu extends StatusBarCommandMenu<MenuType> {
         super(CommandId.BuildArchitecture, onClick, context, priority);
     }
 
-    @bind
-    protected getDefaultMenu(): MenuType[] {
+    private getRawMenu = (): MenuType[] => {
         if (!this.toolchain) return [];
 
         switch (this.toolchain) {
@@ -73,6 +72,13 @@ class BuildArchitectureCommandMenu extends StatusBarCommandMenu<MenuType> {
             BuildArchitecture.ARM64,
             BuildArchitecture.ARM,
         ];
+    };
+
+    @bind
+    protected getDefaultMenu(): MenuItem<MenuType>[] {
+        return this.getRawMenu().map((label) => ({
+            label,
+        }));
     }
 
     setToolchainAndVisibility = async (
@@ -110,7 +116,7 @@ class BuildArchitectureCommandMenu extends StatusBarCommandMenu<MenuType> {
             if (!!settings && typeof settings === "object") {
                 let architecture: any = settings["architecture"];
                 if (!!architecture && typeof architecture === "string") {
-                    await this.setValue(architecture);
+                    await this.setValueFromString(architecture);
                 }
             }
         } catch (err) {

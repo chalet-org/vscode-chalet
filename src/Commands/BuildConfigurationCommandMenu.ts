@@ -2,10 +2,18 @@ import * as vscode from "vscode";
 import { bind } from "bind-decorator";
 
 import { BuildConfigurations, ChaletCommands, CommandId, Optional } from "../Types";
-import { StatusBarCommandMenu, ValueChangeCallback } from "./StatusBarCommandMenu";
+import { StatusBarCommandMenu, ValueChangeCallback, MenuItem } from "./StatusBarCommandMenu";
 import { OutputChannel } from "../OutputChannel";
 
 type MenuType = BuildConfigurations | string;
+
+const kDefaultMenu: MenuType[] = [
+    BuildConfigurations.Debug,
+    BuildConfigurations.Release,
+    BuildConfigurations.RelWithDebInfo,
+    BuildConfigurations.MinSizeRel,
+    BuildConfigurations.Profile,
+];
 
 class BuildConfigurationCommandMenu extends StatusBarCommandMenu<MenuType> {
     constructor(onClick: ValueChangeCallback, context: vscode.ExtensionContext, priority: number) {
@@ -13,14 +21,10 @@ class BuildConfigurationCommandMenu extends StatusBarCommandMenu<MenuType> {
     }
 
     @bind
-    protected getDefaultMenu(): MenuType[] {
-        return [
-            BuildConfigurations.Debug,
-            BuildConfigurations.Release,
-            BuildConfigurations.RelWithDebInfo,
-            BuildConfigurations.MinSizeRel,
-            BuildConfigurations.Profile,
-        ];
+    protected getDefaultMenu(): MenuItem<MenuType>[] {
+        return kDefaultMenu.map((label) => ({
+            label,
+        }));
     }
 
     requiredForVisibility = async (command: Optional<ChaletCommands>): Promise<void> => {
@@ -31,7 +35,7 @@ class BuildConfigurationCommandMenu extends StatusBarCommandMenu<MenuType> {
 
         const required: boolean = this.required(command);
         if (required) {
-            const value = this.value ?? (this.menu.length > 0 ? this.menu[0] : BuildConfigurations.Invalid);
+            const value = this.value ?? { label: BuildConfigurations.Invalid };
             await this.setValue(value);
         }
 
@@ -55,22 +59,22 @@ class BuildConfigurationCommandMenu extends StatusBarCommandMenu<MenuType> {
             if (!!configurations) {
                 if (Array.isArray(configurations)) {
                     await this.setMenu(
-                        configurations.reduce((out: string[], item) => {
-                            if (typeof item === "string") {
-                                if (this.isDefault(item)) {
-                                    out.push(item);
+                        configurations.reduce((out: MenuItem<string>[], label) => {
+                            if (typeof label === "string") {
+                                if (this.defaultMenuIncludesLabel(label)) {
+                                    out.push({ label });
                                 }
                             }
                             return out;
-                        }, [] as string[])
+                        }, [])
                     );
                     result = true;
                 } else if (typeof configurations === "object") {
                     this.resetMenu();
-                    for (const [key, value] of Object.entries(configurations)) {
+                    for (const [label, value] of Object.entries(configurations)) {
                         let item: any = value;
                         if (item && typeof item === "object") {
-                            this.addToMenu(key);
+                            this.addToMenu({ label });
                         }
                     }
                     result = true;
