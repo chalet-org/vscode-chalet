@@ -38,8 +38,8 @@ class BuildToolchainCommandMenu extends StatusBarCommandMenu<MenuType> {
         }
         return [
             //
-            ToolchainPreset.LLVM,
             ToolchainPreset.GCC,
+            ToolchainPreset.LLVM,
         ];
     }
 
