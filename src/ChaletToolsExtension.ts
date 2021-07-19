@@ -147,7 +147,6 @@ class ChaletToolsExtension {
         try {
             const rawData = fs.readFileSync(this.cli.settingsFile, "utf8");
             const settingsJson = CommentJSON.parse(rawData, undefined, true);
-            OutputChannel.log(settingsJson);
 
             await this.buildToolchain.parseJsonToolchains(settingsJson);
             await this.buildToolchain.parseJsonSettingsToolchain(settingsJson);
