@@ -108,7 +108,7 @@ class BuildArchitectureCommandMenu extends StatusBarCommandMenu<MenuType> {
         try {
             let settings: any = settingsJson["settings"];
             if (!!settings && typeof settings === "object") {
-                let architecture: any = settingsJson["architecture"];
+                let architecture: any = settings["architecture"];
                 if (!!architecture && typeof architecture === "string") {
                     await this.setValue(architecture);
                 }
