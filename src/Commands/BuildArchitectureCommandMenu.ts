@@ -103,6 +103,20 @@ class BuildArchitectureCommandMenu extends StatusBarCommandMenu<MenuType> {
             OutputChannel.logError(err);
         }
     };
+
+    parseJsonSettingsArchitecture = async (settingsJson: any): Promise<void> => {
+        try {
+            let settings: any = settingsJson["settings"];
+            if (!!settings && typeof settings === "object") {
+                let architecture: any = settingsJson["architecture"];
+                if (!!architecture && typeof architecture === "string") {
+                    await this.setValue(architecture);
+                }
+            }
+        } catch (err) {
+            OutputChannel.logError(err);
+        }
+    };
 }
 
 export { BuildArchitectureCommandMenu };

@@ -150,6 +150,8 @@ class ChaletToolsExtension {
             console.log(settingsJson);
 
             await this.buildToolchain.parseJsonToolchains(settingsJson);
+            await this.buildToolchain.parseJsonSettingsToolchain(settingsJson);
+            await this.buildArchitecture.parseJsonSettingsArchitecture(settingsJson);
 
             await this.updateStatusBarItems();
         } catch (err) {

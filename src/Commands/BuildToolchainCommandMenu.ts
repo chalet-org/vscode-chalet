@@ -43,11 +43,11 @@ class BuildToolchainCommandMenu extends StatusBarCommandMenu<MenuType> {
         ];
     }
 
-    parseJsonToolchains = async (settingsJson: any): Promise<boolean> => {
+    parseJsonToolchains = async (settingsJson: any): Promise<void> => {
         try {
             let menu: MenuType[] = [];
             let toolchains: any = settingsJson["toolchains"];
-            if (toolchains && typeof toolchains === "object") {
+            if (!!toolchains && typeof toolchains === "object") {
                 for (const [key, value] of Object.entries(toolchains)) {
                     if (!menu.includes(key)) {
                         menu.push(key);
@@ -60,10 +60,22 @@ class BuildToolchainCommandMenu extends StatusBarCommandMenu<MenuType> {
                 }
             }
             await this.setMenu(menu);
-            return true;
         } catch (err) {
             OutputChannel.logError(err);
-            return false;
+        }
+    };
+
+    parseJsonSettingsToolchain = async (settingsJson: any): Promise<void> => {
+        try {
+            let settings: any = settingsJson["settings"];
+            if (!!settings && typeof settings === "object") {
+                let toolchain: any = settingsJson["toolchain"];
+                if (!!toolchain && typeof toolchain === "string") {
+                    await this.setValue(toolchain);
+                }
+            }
+        } catch (err) {
+            OutputChannel.logError(err);
         }
     };
 }

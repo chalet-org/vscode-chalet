@@ -52,7 +52,7 @@ class BuildConfigurationCommandMenu extends StatusBarCommandMenu<MenuType> {
         try {
             let result: boolean = false;
             let configurations: any = chaletJson["configurations"];
-            if (configurations) {
+            if (!!configurations) {
                 if (Array.isArray(configurations)) {
                     await this.setMenu(
                         configurations.reduce((out: string[], item) => {

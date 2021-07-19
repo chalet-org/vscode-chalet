@@ -96,7 +96,7 @@ abstract class StatusBarCommandMenu<T extends string> extends StatusBarCommand {
     refreshMenuAndValue = async (): Promise<void> => {
         try {
             if (
-                (this.menu.length > 0 && this.value === null) ||
+                (this.value === null && this.menu.length > 0) ||
                 (this.value !== null && !this.menu.includes(this.value))
             ) {
                 await this.setValue(this.menu[0]);
