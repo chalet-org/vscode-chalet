@@ -71,7 +71,11 @@ class BuildToolchainCommandMenu extends StatusBarCommandMenu<MenuType> {
             if (!!settings && typeof settings === "object") {
                 let toolchain: any = settings["toolchain"];
                 if (toolchain && typeof toolchain === "string") {
-                    await this.setValue(toolchain);
+                    if (this.menu.includes(toolchain)) {
+                        await this.setValue(toolchain);
+                    } else {
+                        await this.setValue(this.menu[0] ?? null);
+                    }
                 }
             }
         } catch (err) {
