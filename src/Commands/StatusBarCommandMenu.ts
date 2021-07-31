@@ -7,11 +7,15 @@ import { StatusBarCommand } from "./StatusBarCommand";
 
 export type ValueChangeCallback = Optional<() => Promise<void>>;
 
-abstract class StatusBarCommandMenu<T extends string> extends StatusBarCommand {
-    protected value: Optional<T> = null;
-    protected menu: T[] = [];
+export interface MenuItem<T extends string> extends vscode.QuickPickItem {
+    label: T;
+}
 
-    protected abstract getDefaultMenu(): T[];
+abstract class StatusBarCommandMenu<T extends string> extends StatusBarCommand {
+    protected value: Optional<MenuItem<T>> = null;
+    private menu: MenuItem<T>[] = [];
+
+    protected abstract getDefaultMenu(): MenuItem<T>[];
 
     constructor(
         id: CommandId,
@@ -28,8 +32,8 @@ abstract class StatusBarCommandMenu<T extends string> extends StatusBarCommand {
             if (this.value === null) return;
 
             const result = await vscode.window.showQuickPick(this.menu);
-            if (result) {
-                await this.setValue(result as T);
+            if (!!result) {
+                await this.setValue(result);
             }
             await this.onClickCallback?.();
         } catch (err) {
@@ -38,7 +42,7 @@ abstract class StatusBarCommandMenu<T extends string> extends StatusBarCommand {
     }
 
     @bind
-    async initialize(defaultValue: Optional<T> = null): Promise<void> {
+    async initialize(defaultValue: Optional<MenuItem<T>> = null): Promise<void> {
         try {
             await this.setDefaultMenu();
             await this.setValue(this.getStateValue(defaultValue));
@@ -47,41 +51,69 @@ abstract class StatusBarCommandMenu<T extends string> extends StatusBarCommand {
         }
     }
 
-    getStateValue = (defaultValue: Optional<T> = null): Optional<T> => {
+    getStateValue = (defaultValue: Optional<MenuItem<T>> = null): Optional<MenuItem<T>> => {
         return this.workspaceState.get(this.id, defaultValue);
     };
 
-    setValue = async (value: Optional<T>): Promise<void> => {
+    setValue = async (value: Optional<MenuItem<T>>): Promise<void> => {
         try {
             if (this.value === value) return;
 
             this.value = value;
             if (this.value !== null) {
-                this.setLabel(this.value);
+                this.setLabel(this.value.label);
             }
+
             await this.workspaceState.update(this.id, this.value);
         } catch (err) {
             OutputChannel.logError(err);
         }
     };
 
-    getValue = (): Optional<T> => {
+    setValueFromString = (label: Optional<T>): Promise<void> => {
+        if (label === null) {
+            return this.setValue(null);
+        } else {
+            if (this.includesLabel(label)) {
+                const idx = this.menu.findIndex((item) => item.label === label);
+                return this.setValue(this.menu[idx]);
+            } else {
+                return this.setValue({
+                    label,
+                });
+            }
+        }
+    };
+
+    setFirstValueInMenu = (label: Optional<T> = null): Promise<void> => {
+        if (this.menu.length > 0) {
+            return this.setValue(this.menu[0]);
+        } else {
+            return this.setValueFromString(label);
+        }
+    };
+
+    getValue = (): Optional<MenuItem<T>> => {
         return this.value;
     };
 
+    @bind
+    getLabel(): Optional<T> {
+        return this.value?.label ?? null;
+    }
     resetMenu = (): void => {
         this.menu = [];
     };
 
-    addToMenu = (item: T): void => {
+    addToMenu = (item: MenuItem<T>): void => {
         this.menu.push(item);
     };
 
-    setMenu = async (value: T[]): Promise<void> => {
+    setMenu = async (value: MenuItem<T>[]): Promise<void> => {
         try {
             this.menu = value;
 
-            if (this.value === null || !this.menu.includes(this.value)) {
+            if (this.value === null || !this.includesLabel(this.value.label)) {
                 if (this.menu.length > 0) {
                     await this.setValue(this.menu[0]);
                 } else {
@@ -97,7 +129,7 @@ abstract class StatusBarCommandMenu<T extends string> extends StatusBarCommand {
         try {
             if (
                 (this.value === null && this.menu.length > 0) ||
-                (this.value !== null && !this.menu.includes(this.value))
+                (this.value !== null && !this.includesLabel(this.value.label))
             ) {
                 await this.setValue(this.menu[0]);
             }
@@ -110,9 +142,13 @@ abstract class StatusBarCommandMenu<T extends string> extends StatusBarCommand {
         }
     };
 
-    isDefault = (value: T): boolean => {
+    defaultMenuIncludesLabel = (value: T): boolean => {
         const defaults = this.getDefaultMenu();
-        return defaults.includes(value);
+        return defaults.filter((i) => i.label === value).length > 0;
+    };
+
+    includesLabel = (value: T): boolean => {
+        return this.menu.filter((i) => i.label === value).length > 0;
     };
 
     setDefaultMenu = (): Promise<void> => {
