@@ -33,9 +33,11 @@ class CustomPsuedoTerminal implements vscode.Pseudoterminal {
                 break;
 
             default: {
-                data = data.replace(/\r/g, "\r\n");
-                // console.log(data.slice(0, data.length - 1));
-                this.writeEmitter.fire(data);
+                if (!!data) {
+                    data = data.replace(/\r/g, "\r\n");
+                    // console.log(data.slice(0, data.length - 1));
+                    this.writeEmitter.fire(data);
+                }
                 break;
             }
         }

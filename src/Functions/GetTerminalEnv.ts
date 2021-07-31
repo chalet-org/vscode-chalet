@@ -33,7 +33,7 @@ export const getTerminalEnv = (platform: VSCodePlatform): Dictionary<string> => 
                                     continue;
 
                                 const env = rootEnv[match[1]];
-                                if (env) {
+                                if (env && match[0]) {
                                     const re = new RegExp(match[0].replace("$", "\\$"), "g");
                                     outValue = outValue.replace(re, env.replace(/\\/g, "/"));
                                 }
@@ -50,15 +50,22 @@ export const getTerminalEnv = (platform: VSCodePlatform): Dictionary<string> => 
 
     if (platform === VSCodePlatform.Windows) {
         let path = rootEnv[PATH_WIN];
-        path = path.replace(/\\/g, "/");
-        if (path) {
+        if (!!path) {
+            path = path.replace(/\\/g, "/");
             if (out[PATH_WIN] && !out[PATH_WIN].includes(path)) {
                 out[PATH_WIN] += ";" + path;
+            }
+        } else {
+            path = rootEnv[PATH_UNIX];
+            if (!!path) {
+                if (out[PATH_UNIX] && !out[PATH_UNIX].includes(path)) {
+                    out[PATH_UNIX] += ":" + path;
+                }
             }
         }
     } else {
         let path = rootEnv[PATH_UNIX];
-        if (path) {
+        if (!!path) {
             if (out[PATH_UNIX] && !out[PATH_UNIX].includes(path)) {
                 out[PATH_UNIX] += ":" + path;
             }
