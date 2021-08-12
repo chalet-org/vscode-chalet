@@ -69,14 +69,11 @@ class TerminalProcess {
 
     execute = (
         { autoClear, name, cwd, env, onStart, onSuccess, onFailure, ...options }: TerminalProcessOptions,
-        onCreate: () => void,
         onAutoClear: () => Thenable<void>
     ): Promise<number> => {
         return new Promise((resolve, reject) => {
             this.haltSubProcess();
             this.interrupted = false;
-
-            onCreate();
 
             if (!!autoClear) {
                 (async () => {

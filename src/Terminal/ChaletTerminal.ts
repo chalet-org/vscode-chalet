@@ -43,7 +43,6 @@ class ChaletTerminal {
                 iconPath: new vscode.ThemeIcon(this.icon),
             });
         }
-
         return terminal;
     };
 
@@ -70,21 +69,18 @@ class ChaletTerminal {
         return vscode.commands.executeCommand("workbench.action.terminal.clear");
     };
 
-    execute = ({ icon, ...options }: ExecuteOptions) => {
+    execute = ({ icon, ...options }: ExecuteOptions): Promise<number> => {
         // this.icon = icon;
+        this.onTerminalCreate(options.name);
 
         if (this.process === null) {
             this.process = new TerminalProcess(this.onTerminalWrite);
         }
-        let promise = this.process.execute(
-            options,
-            () => this.onTerminalCreate(options.name),
-            this.onTerminalAutoClear
-        );
         if (this.view !== null) {
             this.view.show();
         }
-        return promise;
+
+        return this.process.execute(options, this.onTerminalAutoClear);
     };
 }
 
