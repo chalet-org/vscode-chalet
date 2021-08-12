@@ -52,6 +52,6 @@ export enum ToolchainPreset {
     VisualStudio = "msvc",
     VisualStudioPreRelease = "msvc-pre",
     LLVM = "llvm",
-    AppleLLVM = "applellvm",
+    AppleLLVM = "apple-llvm",
     GCC = "gcc",
 }
