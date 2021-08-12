@@ -3,6 +3,7 @@ import * as vscode from "vscode";
 import { Optional } from "../Types";
 import { TerminalProcessOptions, TerminalProcess } from "./TerminalProcess";
 import { CustomPsuedoTerminal } from "./CustomPsuedoTerminal";
+import { sleep } from "../Functions";
 
 type ExecuteOptions = TerminalProcessOptions & {
     icon: string;
@@ -69,18 +70,26 @@ class ChaletTerminal {
         return vscode.commands.executeCommand("workbench.action.terminal.clear");
     };
 
-    execute = ({ icon, ...options }: ExecuteOptions): Promise<number> => {
-        // this.icon = icon;
-        this.onTerminalCreate(options.name);
+    execute = async ({ icon, ...options }: ExecuteOptions): Promise<number> => {
+        try {
+            // this.icon = icon;
+            this.onTerminalCreate(options.name);
+            if (this.view !== null) {
+                this.view.show();
+            }
 
-        if (this.process === null) {
-            this.process = new TerminalProcess(this.onTerminalWrite);
-        }
-        if (this.view !== null) {
-            this.view.show();
-        }
+            const delay = 250;
+            await sleep(delay); // wait until the terminal is ready, otherwise output could be jumbled
 
-        return this.process.execute(options, this.onTerminalAutoClear);
+            if (this.process === null) {
+                this.process = new TerminalProcess(this.onTerminalWrite);
+            }
+
+            const result = await this.process.execute(options, this.onTerminalAutoClear);
+            return result;
+        } catch (err) {
+            throw err;
+        }
     };
 }
 
