@@ -40,6 +40,7 @@ class BuildArchitectureCommandMenu extends StatusBarCommandMenu<MenuType> {
             }
             case ToolchainPreset.LLVM:
             case ToolchainPreset.AppleLLVM: {
+                /// LLVM requires the triple
                 if (this.platform === VSCodePlatform.MacOS) {
                     const suffixed = (arch: BuildArchitecture) => {
                         return `${arch}-apple-darwin`;
@@ -50,6 +51,22 @@ class BuildArchitectureCommandMenu extends StatusBarCommandMenu<MenuType> {
                         suffixed(BuildArchitecture.X86_64),
                         suffixed(BuildArchitecture.ARM64),
                         suffixed(BuildArchitecture.I686),
+                    ];
+                } else {
+                    const suffixed = (arch: BuildArchitecture) => {
+                        if (this.platform === VSCodePlatform.Windows) {
+                            return `${arch}-pc-windows-gnu`;
+                        } else {
+                            return `${arch}-pc-linux-gnu`;
+                        }
+                    };
+                    return [
+                        //
+                        BuildArchitecture.Auto,
+                        suffixed(BuildArchitecture.X86_64),
+                        suffixed(BuildArchitecture.I686),
+                        suffixed(BuildArchitecture.ARM64),
+                        suffixed(BuildArchitecture.ARM),
                     ];
                 }
             }
