@@ -28,6 +28,7 @@ export enum BuildArchitecture {
     WindowsHostX86_X86 = "x86",
     WindowsHostX86_ARM = "x86_arm",
     WindowsHostX86_ARM64 = "x86_arm64",
+    MacOSUniversal2 = "universal",
     X86_64 = "x86_64",
     I686 = "i686",
     ARM64 = "arm64",

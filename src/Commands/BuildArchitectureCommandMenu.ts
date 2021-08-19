@@ -45,9 +45,9 @@ class BuildArchitectureCommandMenu extends StatusBarCommandMenu<MenuType> {
                     return [
                         //
                         BuildArchitecture.Auto,
+                        BuildArchitecture.MacOSUniversal2,
                         BuildArchitecture.X86_64,
                         BuildArchitecture.ARM64,
-                        BuildArchitecture.I686,
                     ];
                 }
             }
