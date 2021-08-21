@@ -42,7 +42,7 @@
 		},
 		"config-linkTimeOptimizations": {
 			"type": "boolean",
-			"description": "true to use link-time optimization, false otherwise.\nIn GNU-based compilers, this is equivalent to passing the '-flto' option to the linker.\nIn MSVC, this enables the '/GL' option (Whole Program Optimization - which implies link-time optimization).\nLink-time optimization will not be enabled if either profiling or debug symbols are enabled.",
+			"description": "true to use link-time optimization, false otherwise.\nIn GNU-based compilers, this is equivalent to passing the '-flto' option to the linker.\nIn MSVC, this enables the '/GL' option (Whole Program Optimization - which implies link-time optimization).",
 			"default": false
 		},
 		"config-optimizationLevel": {
@@ -72,7 +72,7 @@
 					"$ref": "#/definitions/distribution-target-configuration"
 				},
 				"description": {
-					"$ref": "#/definitions/distribution-target-description"
+					"$ref": "#/definitions/target-description"
 				},
 				"exclude": {
 					"$ref": "#/definitions/distribution-target-exclude"
@@ -103,6 +103,9 @@
 				}
 			},
 			"patternProperties": {
+				"^description(:!?debug|)(\\.!?windows|\\.!?macos|\\.!?linux|)$": {
+					"$ref": "#/definitions/target-description"
+				},
 				"^include(:!?debug|)(\\.!?windows|\\.!?macos|\\.!?linux|)$": {
 					"$ref": "#/definitions/distribution-target-include"
 				},
@@ -115,10 +118,6 @@
 			"type": "string",
 			"description": "The name of the build configuration to use for this distribution target.\nIf this property is omitted, the 'Release' configuration will be used. In the case where custom configurations are defined, the first configuration without 'debugSymbols' and 'enableProfiling' is used.",
 			"default": "Release"
-		},
-		"distribution-target-description": {
-			"type": "string",
-			"description": "TODO"
 		},
 		"distribution-target-exclude": {
 			"type": "array",
@@ -167,41 +166,52 @@
 			"type": "object",
 			"description": "Properties to describe the MacOS distribution. Only one application bundle can be defined per distribution target.",
 			"additionalProperties": false,
+			"required": [
+				"bundleName"
+			],
 			"properties": {
 				"bundleName": {
 					"type": "string",
-					"description": "Controls whether or not a MacOS application bundle is created. If one is filled in, the output bundle will be (outDir)/(bundleName).app"
+					"description": "The short name of the macos bundle (required)"
 				},
-				"dmgBackground": {
-					"description": "If creating a .dmg image with 'makeDmg', this will define a background image for it.",
-					"anyOf": [
-						{
-							"type": "string"
-						},
-						{
-							"type": "object",
-							"required": [
-								"1x"
-							],
-							"properties": {
-								"1x": {
-									"type": "string",
-									"description": "The path to a background image in PNG format created for 1x pixel density."
+				"dmg": {
+					"type": "object",
+					"description": "If defined, a .dmg image will be created after the application bundle.",
+					"additionalProperties": false,
+					"properties": {
+						"background": {
+							"description": "If creating a .dmg image with 'makeDmg', this will define a background image for it.",
+							"anyOf": [
+								{
+									"type": "string"
 								},
-								"2x": {
-									"type": "string",
-									"description": "The path to a background image in PNG format created for 2x pixel density."
+								{
+									"type": "object",
+									"additionalProperties": false,
+									"required": [
+										"1x"
+									],
+									"properties": {
+										"1x": {
+											"type": "string",
+											"description": "The path to a background image in PNG format created for 1x pixel density."
+										},
+										"2x": {
+											"type": "string",
+											"description": "The path to a background image in PNG format created for 2x pixel density."
+										}
+									}
 								}
-							}
+							]
 						}
-					]
+					}
 				},
 				"icon": {
 					"type": "string",
 					"description": "The path to an application icon either in PNG or ICNS format.\nIf the file is a .png, it will get converted to .icns during the bundle process."
 				},
 				"infoPropertyList": {
-					"description": "The path to a .plist file, property list .json file, or an object of properties to export as a plist defining the distribution target.\nCertain properties will be deduced during the bundle:\n  CFBundleName: bundleName\n  CFBundleIconFile: icon\n  CFBundleDisplayName: distribution name\n  CFBundleVersion: version string\n  CFBundleExecutable: relative executable path",
+					"description": "The path to a .plist file, property list .json file, or an object of properties to export as a plist defining the distribution target.",
 					"anyOf": [
 						{
 							"type": "string"
@@ -209,25 +219,21 @@
 						{
 							"type": "object",
 							"default": {
-								"CFBundleName": "${bundleName}",
-								"CFBundleDisplayName": "${name}",
-								"CFBundleIdentifier": "com.developer.app",
-								"CFBundleVersion": "${version}",
-								"CFBundleDevelopmentRegion": "en",
-								"CFBundleInfoDictionaryVersion": "6.0",
-								"CFBundlePackageType": "APPL",
-								"CFBundleSignature": "????",
+								"CFBundleDevelopmentRegion": "en-US",
+								"CFBundleDisplayName": "${displayName}",
 								"CFBundleExecutable": "${mainProject}",
 								"CFBundleIconFile": "${icon}",
-								"NSHighResolutionCapable": true
+								"CFBundleIdentifier": "com.developer.application",
+								"CFBundleInfoDictionaryVersion": "6.0",
+								"CFBundleName": "${name}",
+								"CFBundlePackageType": "APPL",
+								"CFBundleShortVersionString": "${version}",
+								"CFBundleVersion": "${version}",
+								"CFBundleSignature": "????",
+								"LSMinimumSystemVersion": "10.8"
 							}
 						}
 					]
-				},
-				"makeDmg": {
-					"type": "boolean",
-					"description": "If true, a .dmg image will be created after the application bundle.",
-					"default": false
 				}
 			}
 		},
@@ -445,6 +451,9 @@
 			"type": "object",
 			"additionalProperties": false,
 			"properties": {
+				"description": {
+					"$ref": "#/definitions/target-description"
+				},
 				"settings:Cxx": {
 					"$ref": "#/definitions/target-project-cxx"
 				},
@@ -486,6 +495,9 @@
 				}
 			},
 			"patternProperties": {
+				"^description(:!?debug|)(\\.!?windows|\\.!?macos|\\.!?linux|)$": {
+					"$ref": "#/definitions/target-description"
+				},
 				"^runProject(:!?debug|)(\\.!?windows|\\.!?macos|\\.!?linux|)$": {
 					"$ref": "#/definitions/target-project-runProject"
 				},
