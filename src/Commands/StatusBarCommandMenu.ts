@@ -42,22 +42,22 @@ abstract class StatusBarCommandMenu<T extends string> extends StatusBarCommand {
     }
 
     @bind
-    async initialize(defaultValue: Optional<MenuItem<T>> = null): Promise<void> {
+    async initialize(): Promise<void> {
         try {
             await this.setDefaultMenu();
-            await this.setValue(this.getStateValue(defaultValue));
         } catch (err) {
             OutputChannel.logError(err);
         }
     }
 
     getStateValue = (defaultValue: Optional<MenuItem<T>> = null): Optional<MenuItem<T>> => {
-        return this.workspaceState.get(this.id, defaultValue);
+        const result = this.workspaceState.get(this.id, defaultValue);
+        return result;
     };
 
     setValue = async (value: Optional<MenuItem<T>>): Promise<void> => {
         try {
-            if (this.value === value) return;
+            if (JSON.stringify(this.value) === JSON.stringify(value)) return;
 
             this.value = value;
             if (this.value !== null) {
@@ -115,7 +115,7 @@ abstract class StatusBarCommandMenu<T extends string> extends StatusBarCommand {
 
             if (this.value === null || !this.includesLabel(this.value.label)) {
                 if (this.menu.length > 0) {
-                    await this.setValue(this.menu[0]);
+                    await this.setValue(this.getStateValue(this.menu[0] ?? null));
                 } else {
                     await this.setValue(null);
                 }

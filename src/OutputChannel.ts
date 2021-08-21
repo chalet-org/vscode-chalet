@@ -14,8 +14,20 @@ class OutputChannel {
         }
     };
 
-    static log = (text: string): void => {
-        OutputChannel.output?.appendLine(text);
+    static log = (...args: any[]): void => {
+        let line: string = "";
+        // arr join, but stringifies objects
+        args.forEach((value, i, arr) => {
+            if (typeof value === "object") {
+                line += JSON.stringify(value);
+            } else {
+                line += value;
+            }
+            if (i < arr.length - 1) {
+                line += " ";
+            }
+        });
+        OutputChannel.output?.appendLine(line);
     };
 
     static logWithName = (text: string): void => {
