@@ -29,8 +29,6 @@ abstract class StatusBarCommandMenu<T extends string> extends StatusBarCommand {
     @bind
     protected async onClick(): Promise<void> {
         try {
-            if (this.value === null) return;
-
             const result = await vscode.window.showQuickPick(this.menu);
             if (!!result) {
                 await this.setValue(result);
@@ -52,6 +50,7 @@ abstract class StatusBarCommandMenu<T extends string> extends StatusBarCommand {
 
     getStateValue = (defaultValue: Optional<MenuItem<T>> = null): Optional<MenuItem<T>> => {
         const result = this.workspaceState.get(this.id, defaultValue);
+        // OutputChannel.log(result);
         return result;
     };
 
