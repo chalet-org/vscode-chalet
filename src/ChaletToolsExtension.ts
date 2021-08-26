@@ -221,6 +221,13 @@ class ChaletToolsExtension {
                 shellArgs.push(this.stripCwd(settings.outputDir));
             }
 
+            if (this.buildConfiguration.required(command)) {
+                if (buildConfig) {
+                    shellArgs.push("--configuration");
+                    shellArgs.push(buildConfig);
+                }
+            }
+
             const toolchain = this.buildToolchain.getLabel();
             if (!!toolchain) {
                 shellArgs.push("--toolchain");
@@ -243,12 +250,6 @@ class ChaletToolsExtension {
             }*/
 
             shellArgs.push(this.chaletCommand.getCliSubCommand(command));
-
-            if (this.buildConfiguration.required(command)) {
-                if (buildConfig) {
-                    shellArgs.push(buildConfig);
-                }
-            }
 
             const shellPath = this.useDebugChalet ? ChaletVersion.Debug : ChaletVersion.Release;
             const name = `Chalet${this.useDebugChalet ? " (Debug)" : ""}`;
