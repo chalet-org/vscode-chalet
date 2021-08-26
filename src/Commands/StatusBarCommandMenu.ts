@@ -114,7 +114,13 @@ abstract class StatusBarCommandMenu<T extends string> extends StatusBarCommand {
 
             if (this.value === null || !this.includesLabel(this.value.label)) {
                 if (this.menu.length > 0) {
-                    await this.setValue(this.getStateValue(this.menu[0] ?? null));
+                    const firstInMenu = this.menu[0] ?? null;
+                    const valueFromState = this.getStateValue(firstInMenu);
+                    if (valueFromState && this.includesLabel(valueFromState.label)) {
+                        await this.setValue(valueFromState);
+                    } else {
+                        await this.setValue(firstInMenu);
+                    }
                 } else {
                     await this.setValue(null);
                 }

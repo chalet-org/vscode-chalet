@@ -85,12 +85,13 @@ class BuildConfigurationCommandMenu extends StatusBarCommandMenu<MenuType> {
                 await this.refreshMenuAndValue();
                 return true;
             }
+
+            await this.setDefaultMenu();
+            return false;
         } catch (err) {
             OutputChannel.logError(err);
+            return false;
         }
-
-        this.setDefaultMenu();
-        return false;
     };
 }
 

@@ -73,7 +73,6 @@ class ChaletToolsExtension {
             await this.buildConfiguration.initialize();
             await this.buildToolchain.initialize();
             await this.buildArchitecture.initialize();
-            await this.updateStatusBarItems();
         } catch (err) {
             OutputChannel.logError(err);
         }
