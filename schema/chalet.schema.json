@@ -342,9 +342,9 @@
 				"linux"
 			]
 		},
-		"environment-path": {
+		"environment-searchPaths": {
 			"type": "array",
-			"description": "Any additional paths to include.",
+			"description": "Any additional search paths to include. Accepts Chalet variables such as ${buildDir} & ${externalDir}",
 			"uniqueItems": true,
 			"minItems": 1,
 			"items": {
@@ -1456,23 +1456,18 @@
 				}
 			}
 		},
-		"externalDepDir": {
-			"type": "string",
-			"description": "The path to install external dependencies into (see externalDependencies).",
-			"default": "chalet_external"
-		},
 		"externalDependencies": {
 			"type": "object",
 			"additionalProperties": false,
-			"description": "A sequential list of externalDependencies to install prior to building or via the configure command. The key will be the destination directory name for the repository within the folder defined in 'externalDepDir'.",
+			"description": "A sequential list of externalDependencies to install prior to building or via the configure command. The key will be the destination directory name for the repository within the folder defined by the command-line option 'externalDir'.",
 			"patternProperties": {
 				"^[\\w\\-\\+\\.]{3,100}$": {
 					"$ref": "#/definitions/external-dependency"
 				}
 			}
 		},
-		"path": {
-			"$ref": "#/definitions/environment-path"
+		"searchPaths": {
+			"$ref": "#/definitions/environment-searchPaths"
 		},
 		"targets": {
 			"type": "object",
@@ -1542,8 +1537,8 @@
 			"$ref": "#/definitions/target-project",
 			"description": "An abstract build project. 'abstracts:all' is a special project that gets implicitely added to each project"
 		},
-		"^path(:!?debug|)(\\.!?windows|\\.!?macos|\\.!?linux|)$": {
-			"$ref": "#/definitions/environment-path"
+		"^searchPaths(:!?debug|)(\\.!?windows|\\.!?macos|\\.!?linux|)$": {
+			"$ref": "#/definitions/environment-searchPaths"
 		}
 	}
 }
