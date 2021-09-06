@@ -38,7 +38,7 @@ class OutputChannel {
         OutputChannel.output?.appendLine(`> ${text}`);
     };
 
-    static logError = (err?: OutputChannelError): void => {
+    static logError = (err?: any): void => {
         if (err && !err.logged) {
             OutputChannel.output?.appendLine(`Error: ${err.message}`);
             console.error(err);

@@ -64,7 +64,7 @@ class ChaletTerminal {
     };
     private onTerminalOpen = () => {};
     private onTerminalClose = this.dispose;
-    private onTerminalInterrupt = () => this.process?.terminate();
+    private onTerminalInterrupt = () => this.process?.interrupt();
     private onTerminalWrite = (text: string) => this.view?.sendText(text, false);
     private onTerminalAutoClear = (): Thenable<void> => {
         return vscode.commands.executeCommand("workbench.action.terminal.clear");

@@ -3,6 +3,7 @@ import * as treeKill from "tree-kill";
 import { OutputChannel } from "../OutputChannel";
 
 import { Dictionary, Optional } from "../Types";
+import { Readable, Writable } from "stream";
 
 export type SpawnError = Error & {
     code?: string;
@@ -29,7 +30,7 @@ export type TerminalProcessOptions = {
 };
 
 class TerminalProcess {
-    private subprocess: Optional<proc.ChildProcessWithoutNullStreams> = null;
+    private subprocess: Optional<proc.ChildProcessByStdio<null, Readable, Readable>> = null;
     private interrupted: boolean = false;
 
     private shellPath: string = "";
@@ -57,7 +58,7 @@ class TerminalProcess {
     };
 
     private haltSubProcess = (signal: Optional<NodeJS.Signals> = null) => {
-        if (this.subprocess) {
+        if (!!signal && this.subprocess) {
             if (this.subprocess.pid && !this.subprocess.killed) {
                 treeKill(this.subprocess.pid, !!signal ? signal : "SIGTERM", (err?: Error) => {
                     if (err) console.error(err.message); // we mostly don't care about this error
@@ -90,9 +91,10 @@ class TerminalProcess {
 
             const shellArgs: string[] = options.shellArgs ?? [];
             // console.log(options.shellPath, shellArgs.join(" "));
-            const spawnOptions: proc.SpawnOptionsWithoutStdio = {
+            const spawnOptions: proc.SpawnOptionsWithStdioTuple<proc.StdioNull, proc.StdioPipe, proc.StdioPipe> = {
                 cwd: cwd ?? process.cwd(),
                 env,
+                stdio: ["inherit", "pipe", "pipe"],
             };
 
             if (this.subprocess === null) {
@@ -120,6 +122,8 @@ class TerminalProcess {
                 this.subprocess.stdout.on("data", (chunk: Buffer) => this.onWrite(chunk.toString()));
                 this.subprocess.stderr.on("data", (chunk: Buffer) => this.onWrite(chunk.toString()));
 
+                // exit - stdio streams have not finished
+                // close - stdio streams have finished
                 this.subprocess.on("close", (code, signal) => {
                     this.onProcessClose(code, signal);
                     onSuccess?.(code ?? 0, signal);
@@ -129,15 +133,21 @@ class TerminalProcess {
         });
     };
 
-    terminate = () => {
+    interrupt = () => {
+        // Note: on Windows, the process will always be killed immediately
+        //  Days lost trying to figure out otherwise: 1
+        //  Does not work: GenerateConsoleCtrlEvent (winapi), "\u0003" or "\x03"
+        //
+        this.haltSubProcess("SIGINT");
         this.interrupted = true;
-        this.haltSubProcess("SIGTERM");
     };
 
-    dispose = () => {
-        this.terminate();
-        this.haltSubProcess();
+    terminate = () => {
+        this.haltSubProcess("SIGTERM");
+        this.interrupted = true;
     };
+
+    dispose = this.terminate;
 }
 
 export { TerminalProcess };
