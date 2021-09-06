@@ -58,7 +58,7 @@ class TerminalProcess {
     };
 
     private haltSubProcess = (signal: Optional<NodeJS.Signals> = null) => {
-        if (!!signal && this.subprocess) {
+        if (this.subprocess) {
             if (this.subprocess.pid && !this.subprocess.killed) {
                 treeKill(this.subprocess.pid, !!signal ? signal : "SIGTERM", (err?: Error) => {
                     if (err) console.error(err.message); // we mostly don't care about this error
