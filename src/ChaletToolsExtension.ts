@@ -139,6 +139,9 @@ class ChaletToolsExtension {
 
                 await this.buildConfiguration.parseJsonConfigurations(chaletJson);
                 this.runChaletButton.parseJsonRunProjects(chaletJson);
+            } else {
+                this.buildConfiguration.setDefaultMenu();
+                this.runChaletButton.parseJsonRunProjects({});
             }
 
             await this.updateStatusBarItems();
@@ -159,6 +162,9 @@ class ChaletToolsExtension {
                 await this.buildToolchain.parseJsonToolchains(settingsJson);
                 await this.buildToolchain.parseJsonSettingsToolchain(settingsJson);
                 await this.buildArchitecture.parseJsonSettingsArchitecture(settingsJson);
+            } else {
+                await this.buildToolchain.setDefaultMenu();
+                await this.buildArchitecture.setDefaultMenu();
             }
 
             await this.updateStatusBarItems();
