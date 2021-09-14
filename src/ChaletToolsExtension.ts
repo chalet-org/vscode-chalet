@@ -1,4 +1,5 @@
 import * as fs from "fs";
+import * as path from "path";
 import * as vscode from "vscode";
 import * as CommentJSON from "comment-json";
 
@@ -11,6 +12,7 @@ import {
     CommandId,
     VSCodePlatform,
     Optional,
+    getHomeDirectory,
 } from "./Types";
 import { SpawnError } from "./Terminal/TerminalProcess";
 import { ChaletTerminal } from "./Terminal/ChaletTerminal";
@@ -154,7 +156,12 @@ class ChaletToolsExtension {
         let rawData: string = "";
         try {
             rawData = fs.readFileSync(this.cli.settingsFile, "utf8");
-        } catch {}
+        } catch {
+            try {
+                const globalSettings: string = path.join(getHomeDirectory(), ".chaletrc");
+                rawData = fs.readFileSync(globalSettings, "utf8");
+            } catch {}
+        }
         try {
             if (rawData.length > 0) {
                 const settingsJson = CommentJSON.parse(rawData, undefined, true);

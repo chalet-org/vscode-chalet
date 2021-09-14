@@ -42,3 +42,7 @@ export function getVSCodePlatform(): VSCodePlatform {
         return VSCodePlatform.Linux;
     }
 }
+
+export function getHomeDirectory(): string {
+    return os.homedir();
+}
