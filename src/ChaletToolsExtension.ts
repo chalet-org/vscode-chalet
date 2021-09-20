@@ -140,10 +140,10 @@ class ChaletToolsExtension {
                 const chaletJson = CommentJSON.parse(rawData, undefined, true);
 
                 await this.buildConfiguration.parseJsonConfigurations(chaletJson);
-                this.runChaletButton.parseJsonRunProjects(chaletJson);
+                this.runChaletButton.parseJsonRunProject(chaletJson);
             } else {
                 this.buildConfiguration.setDefaultMenu();
-                this.runChaletButton.parseJsonRunProjects({});
+                this.runChaletButton.parseJsonRunProject({});
             }
 
             await this.updateStatusBarItems();

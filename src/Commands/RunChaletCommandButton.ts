@@ -26,23 +26,25 @@ class RunChaletCommandButton extends StatusBarCommandButton {
         }
     };
 
-    parseJsonRunProjects = (chaletJson: any): string[] => {
-        let ret: string[] = [];
+    parseJsonRunProject = (chaletJson: any): Optional<string> => {
+        let executableProjects: string[] = [];
+        let runProjects: string[] = [];
         let targets: any = chaletJson["targets"];
         if (targets && typeof targets === "object") {
-            ret = [];
             for (const [key, value] of Object.entries(targets)) {
                 let item: any = value;
                 if (item && typeof item === "object") {
                     if (item.kind && (item.kind === "desktopApplication" || item.kind === "consoleApplication")) {
-                        if (!!item.runProject) ret.push(key);
+                        executableProjects.push(key);
+                        if (!!item.runProject) runProjects.push(key);
                     }
                 }
             }
         }
 
-        this.runProject = ret.length > 0 ? ret[0] : "";
-        return ret;
+        this.runProject =
+            runProjects.length > 0 ? runProjects[0] : executableProjects.length > 0 ? executableProjects[0] : null;
+        return this.runProject;
     };
 }
 
