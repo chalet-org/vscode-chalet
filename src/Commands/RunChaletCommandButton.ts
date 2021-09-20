@@ -34,7 +34,7 @@ class RunChaletCommandButton extends StatusBarCommandButton {
             for (const [key, value] of Object.entries(targets)) {
                 let item: any = value;
                 if (item && typeof item === "object") {
-                    if (item.kind && (item.kind === "desktopApplication" || item.kind === "consoleApplication")) {
+                    if (item.kind && item.kind === "executable") {
                         executableProjects.push(key);
                         if (!!item.runProject) runProjects.push(key);
                     }
