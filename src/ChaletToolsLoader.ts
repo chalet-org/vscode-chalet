@@ -5,10 +5,15 @@ import { ChaletToolsExtension } from "./ChaletToolsExtension";
 import { OutputChannel } from "./OutputChannel";
 import { getVSCodePlatform, Optional, VSCodePlatform } from "./Types";
 
+let chaletToolsInstance: Optional<ChaletToolsExtension> = null;
+
+const getChaletToolsInstance = (): Optional<ChaletToolsExtension> => {
+    return chaletToolsInstance;
+};
+
 class ChaletToolsLoader {
     private platform: VSCodePlatform;
 
-    extension: Optional<ChaletToolsExtension> = null;
     inputFile: Optional<string> = null;
     settingsFile: Optional<string> = null;
     cwd: Optional<string> = null;
@@ -63,13 +68,13 @@ class ChaletToolsLoader {
 
                 this.cwd = workspaceRoot.fsPath;
 
-                if (this.extension === null) {
-                    this.extension = new ChaletToolsExtension(this.context, this.platform);
-                    await this.extension.activate();
+                if (chaletToolsInstance === null) {
+                    chaletToolsInstance = new ChaletToolsExtension(this.context, this.platform);
+                    await chaletToolsInstance.activate();
                 }
-                await this.extension.setEnabled(true);
-                this.extension.setWorkingDirectory(this.cwd);
-                this.extension.refreshExtensionSettings();
+                await chaletToolsInstance.setEnabled(true);
+                chaletToolsInstance.setWorkingDirectory(this.cwd);
+                chaletToolsInstance.refreshExtensionSettings();
 
                 // TODO: get from local/global settings
 
@@ -78,8 +83,8 @@ class ChaletToolsLoader {
                     const chaletJsonUri = vscode.Uri.joinPath(workspaceRoot, "chalet.json");
                     this.inputFile = chaletJsonUri.fsPath;
 
-                    this.extension.setInputFile(this.inputFile);
-                    await this.extension.handleChaletJsonChange();
+                    chaletToolsInstance.setInputFile(this.inputFile);
+                    await chaletToolsInstance.handleChaletJsonChange();
 
                     fs.watchFile(this.inputFile, { interval: 2000 }, this.onChaletJsonChange);
                     result = true;
@@ -89,8 +94,8 @@ class ChaletToolsLoader {
                     const settingsJsonUri = vscode.Uri.joinPath(workspaceRoot, ".chaletrc");
                     this.settingsFile = settingsJsonUri.fsPath;
 
-                    this.extension.setSettingsFile(this.settingsFile);
-                    await this.extension.handleSettingsJsonChange();
+                    chaletToolsInstance.setSettingsFile(this.settingsFile);
+                    await chaletToolsInstance.handleSettingsJsonChange();
 
                     fs.watchFile(this.settingsFile, { interval: 2000 }, this.onSettingsJsonChange);
                 }
@@ -98,7 +103,7 @@ class ChaletToolsLoader {
                 return result;
             }
 
-            await this.extension?.setEnabled(false);
+            await chaletToolsInstance?.setEnabled(false);
 
             return false;
         } catch (err) {
@@ -109,7 +114,7 @@ class ChaletToolsLoader {
 
     private onChaletJsonChange = async (_curr: fs.Stats, _prev: fs.Stats) => {
         try {
-            await this.extension?.handleChaletJsonChange();
+            await chaletToolsInstance?.handleChaletJsonChange();
         } catch (err) {
             OutputChannel.logError(err);
         }
@@ -117,18 +122,18 @@ class ChaletToolsLoader {
 
     private onSettingsJsonChange = async (_curr: fs.Stats, _prev: fs.Stats) => {
         try {
-            await this.extension?.handleSettingsJsonChange();
+            await chaletToolsInstance?.handleSettingsJsonChange();
         } catch (err) {
             OutputChannel.logError(err);
         }
     };
 
     deactivate = () => {
-        this.extension?.deactivate();
-        this.extension = null;
+        chaletToolsInstance?.deactivate();
+        chaletToolsInstance = null;
         this.inputFile = null;
         this.cwd = null;
     };
 }
 
-export { ChaletToolsLoader };
+export { ChaletToolsLoader, getChaletToolsInstance };

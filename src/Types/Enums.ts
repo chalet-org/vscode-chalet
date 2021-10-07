@@ -12,10 +12,10 @@ export enum ChaletCommands {
 export enum BuildConfigurations {
     Invalid = "[No valid configurations]",
     Debug = "Debug",
-    Release = "Release",
-    RelWithDebInfo = "RelWithDebInfo",
-    MinSizeRel = "MinSizeRel",
-    Profile = "Profile",
+    // Release = "Release",
+    // RelWithDebInfo = "RelWithDebInfo",
+    // MinSizeRel = "MinSizeRel",
+    // Profile = "Profile",
 }
 
 export enum BuildArchitecture {
@@ -50,8 +50,7 @@ export enum CommandId {
 }
 
 export enum ToolchainPreset {
-    VisualStudio = "msvc",
-    VisualStudioPreRelease = "msvc-pre",
+    // vs- presets are checked dynamically
     LLVM = "llvm",
     AppleLLVM = "apple-llvm",
     GCC = "gcc",

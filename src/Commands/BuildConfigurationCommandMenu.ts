@@ -4,25 +4,20 @@ import { bind } from "bind-decorator";
 import { BuildConfigurations, ChaletCommands, CommandId, Optional } from "../Types";
 import { StatusBarCommandMenu, ValueChangeCallback, MenuItem } from "./StatusBarCommandMenu";
 import { OutputChannel } from "../OutputChannel";
+import { getChaletToolsInstance } from "../ChaletToolsLoader";
 
-type MenuType = BuildConfigurations | string;
-
-const kDefaultMenu: MenuType[] = [
-    BuildConfigurations.Debug,
-    BuildConfigurations.Release,
-    BuildConfigurations.RelWithDebInfo,
-    BuildConfigurations.MinSizeRel,
-    BuildConfigurations.Profile,
-];
+type MenuType = string;
 
 class BuildConfigurationCommandMenu extends StatusBarCommandMenu<MenuType> {
     constructor(onClick: ValueChangeCallback, context: vscode.ExtensionContext, priority: number) {
         super(CommandId.BuildConfiguration, onClick, context, priority);
     }
 
+    private getRawMenu = (): MenuType[] => getChaletToolsInstance()?.configurations ?? [];
+
     @bind
     protected getDefaultMenu(): MenuItem<MenuType>[] {
-        return kDefaultMenu.map((label) => ({
+        return this.getRawMenu().map((label) => ({
             label,
         }));
     }

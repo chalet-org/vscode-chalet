@@ -1,11 +1,12 @@
 import * as vscode from "vscode";
 import { bind } from "bind-decorator";
 
-import { CommandId, ToolchainPreset, VSCodePlatform } from "../Types";
+import { CommandId, VSCodePlatform } from "../Types";
 import { MenuItem, StatusBarCommandMenu, ValueChangeCallback } from "./StatusBarCommandMenu";
 import { OutputChannel } from "../OutputChannel";
+import { getChaletToolsInstance } from "../ChaletToolsLoader";
 
-type MenuType = ToolchainPreset | string;
+type MenuType = string;
 
 class BuildToolchainCommandMenu extends StatusBarCommandMenu<MenuType> {
     constructor(
@@ -17,34 +18,11 @@ class BuildToolchainCommandMenu extends StatusBarCommandMenu<MenuType> {
         super(CommandId.BuildToolchain, onClick, context, priority);
     }
 
-    private getRawMenu = (): MenuType[] => {
-        switch (this.platform) {
-            case VSCodePlatform.Windows:
-                return [
-                    //
-                    ToolchainPreset.VisualStudioPreRelease,
-                    ToolchainPreset.VisualStudio,
-                    ToolchainPreset.LLVM,
-                    ToolchainPreset.GCC,
-                ];
-            case VSCodePlatform.MacOS:
-                return [
-                    //
-                    ToolchainPreset.AppleLLVM,
-                    // ToolchainPreset.LLVM,
-                    ToolchainPreset.GCC,
-                ];
-        }
-        return [
-            //
-            ToolchainPreset.GCC,
-            ToolchainPreset.LLVM,
-        ];
-    };
+    private getRawMenu = (): MenuType[] => getChaletToolsInstance()?.toolchainPresets ?? [];
 
     private stringToMenuItem = (label: string): MenuItem<MenuType> => {
-        const enumValues: string[] = Object.values(ToolchainPreset);
-        if (enumValues.includes(label)) {
+        const presets = this.getRawMenu();
+        if (presets.includes(label)) {
             return {
                 label,
                 description: "$(debug-breakpoint-log-unverified)",
@@ -61,15 +39,13 @@ class BuildToolchainCommandMenu extends StatusBarCommandMenu<MenuType> {
         return this.getRawMenu().map(this.stringToMenuItem);
     }
 
-    parseJsonToolchains = async (settingsJson: any): Promise<void> => {
+    parseJsonToolchains = async (): Promise<void> => {
         try {
             let menu: MenuType[] = [];
-            let toolchains: any = settingsJson["toolchains"];
-            if (!!toolchains && typeof toolchains === "object") {
-                for (const [key, value] of Object.entries(toolchains)) {
-                    if (!menu.includes(key)) {
-                        menu.push(key);
-                    }
+            const userToolchains = getChaletToolsInstance()?.userToolchains ?? [];
+            for (const key of userToolchains) {
+                if (!menu.includes(key)) {
+                    menu.push(key);
                 }
             }
             for (const item of this.getRawMenu()) {

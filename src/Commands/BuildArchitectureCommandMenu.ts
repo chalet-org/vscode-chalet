@@ -4,11 +4,12 @@ import { bind } from "bind-decorator";
 import { BuildArchitecture, CommandId, Optional, ToolchainPreset, VSCodePlatform } from "../Types";
 import { MenuItem, StatusBarCommandMenu, ValueChangeCallback } from "./StatusBarCommandMenu";
 import { OutputChannel } from "../OutputChannel";
+import { getChaletToolsInstance } from "../ChaletToolsLoader";
 
 type MenuType = BuildArchitecture | string;
 
 class BuildArchitectureCommandMenu extends StatusBarCommandMenu<MenuType> {
-    private toolchain: Optional<ToolchainPreset> = null;
+    private toolchain: Optional<string> = null;
 
     constructor(
         onClick: ValueChangeCallback,
@@ -23,21 +24,6 @@ class BuildArchitectureCommandMenu extends StatusBarCommandMenu<MenuType> {
         if (!this.toolchain) return [];
 
         switch (this.toolchain) {
-            case ToolchainPreset.VisualStudio:
-            case ToolchainPreset.VisualStudioPreRelease: {
-                return [
-                    //
-                    BuildArchitecture.Auto,
-                    BuildArchitecture.WindowsHostX64_X64,
-                    BuildArchitecture.WindowsHostX64_X86,
-                    BuildArchitecture.WindowsHostX64_ARM,
-                    BuildArchitecture.WindowsHostX64_ARM64,
-                    BuildArchitecture.WindowsHostX86_X64,
-                    BuildArchitecture.WindowsHostX86_X86,
-                    BuildArchitecture.WindowsHostX86_ARM,
-                    BuildArchitecture.WindowsHostX86_ARM64,
-                ];
-            }
             case ToolchainPreset.LLVM:
             case ToolchainPreset.AppleLLVM: {
                 /// LLVM requires the triple
@@ -61,6 +47,24 @@ class BuildArchitectureCommandMenu extends StatusBarCommandMenu<MenuType> {
                     ];
                 }
             }
+            default:
+                break;
+        }
+        if (this.platform === VSCodePlatform.Windows) {
+            if (this.toolchain.startsWith("vs-")) {
+                return [
+                    //
+                    BuildArchitecture.Auto,
+                    BuildArchitecture.WindowsHostX64_X64,
+                    BuildArchitecture.WindowsHostX64_X86,
+                    BuildArchitecture.WindowsHostX64_ARM,
+                    BuildArchitecture.WindowsHostX64_ARM64,
+                    BuildArchitecture.WindowsHostX86_X64,
+                    BuildArchitecture.WindowsHostX86_X86,
+                    BuildArchitecture.WindowsHostX86_ARM,
+                    BuildArchitecture.WindowsHostX86_ARM64,
+                ];
+            }
         }
         return [
             //
@@ -79,22 +83,13 @@ class BuildArchitectureCommandMenu extends StatusBarCommandMenu<MenuType> {
         }));
     }
 
-    setToolchainAndVisibility = async (
-        toolchain: Optional<ToolchainPreset | string>,
-        visible: boolean
-    ): Promise<void> => {
+    setToolchainAndVisibility = async (toolchain: Optional<string>, visible: boolean): Promise<void> => {
         try {
-            switch (toolchain) {
-                case ToolchainPreset.VisualStudio:
-                case ToolchainPreset.VisualStudioPreRelease:
-                case ToolchainPreset.AppleLLVM:
-                case ToolchainPreset.LLVM:
-                case ToolchainPreset.GCC:
-                    this.toolchain = toolchain;
-                    break;
-                default:
-                    this.toolchain = null;
-                    break;
+            const toolchainPresets = getChaletToolsInstance()?.toolchainPresets ?? [];
+            if (!!toolchain && toolchainPresets.includes(toolchain)) {
+                this.toolchain = toolchain;
+            } else {
+                this.toolchain = null;
             }
             await this.setDefaultMenu();
 
