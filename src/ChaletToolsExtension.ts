@@ -200,7 +200,7 @@ class ChaletToolsExtension {
             rawData = fs.readFileSync(this.cli.settingsFile, "utf8");
         } catch {
             try {
-                const globalSettings: string = path.join(getHomeDirectory(), ".chaletrc");
+                const globalSettings: string = path.join(getHomeDirectory(), ".chaletconfig");
                 rawData = fs.readFileSync(globalSettings, "utf8");
             } catch {}
         }

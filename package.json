@@ -26,10 +26,12 @@
 			{
 				"id": "jsonc",
 				"extensions": [
-					".chaletrc"
+					".chaletrc",
+					".chaletconfig"
 				],
 				"filenames": [
-					".chaletrc"
+					".chaletrc",
+					".chaletconfig"
 				]
 			}
 		],
@@ -88,8 +90,8 @@
 			},
 			{
 				"fileMatch": [
-					"build/chalet-settings.json",
-					".chaletrc"
+					".chaletrc",
+					".chaletconfig"
 				],
 				"url": "./schema/chalet-settings.schema.json"
 			}
