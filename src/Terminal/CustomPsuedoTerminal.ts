@@ -27,7 +27,10 @@ class CustomPsuedoTerminal implements vscode.Pseudoterminal {
     onDidChangeName: vscode.Event<string> = this.nameEmitter.event;
     onDidClose: vscode.Event<number> = this.closeEmitter.event;
 
-    write = (data: string) => this.writeEmitter.fire(data);
+    write = (data: string) => {
+        data = data.replace(/\r/g, "").replace(/\n/g, "\r\n");
+        this.writeEmitter.fire(data);
+    };
 
     handleInput = (data: string) => {
         if (!!data) {
