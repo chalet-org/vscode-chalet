@@ -19,27 +19,29 @@ class CustomPsuedoTerminal implements vscode.Pseudoterminal {
     constructor(
         public open: (initialDimensions?: vscode.TerminalDimensions) => void,
         public close: () => void,
-        private onInterrupt: () => void
+        private onInterrupt: () => void,
+        private onHandleInput: (data: string) => void
     ) {}
 
     onDidWrite: vscode.Event<string> = this.writeEmitter.event;
     onDidChangeName: vscode.Event<string> = this.nameEmitter.event;
     onDidClose: vscode.Event<number> = this.closeEmitter.event;
 
-    handleInput = (data: string) => {
-        switch (data) {
-            case actions.interrupt:
-                this.onInterrupt();
-                break;
+    write = (data: string) => this.writeEmitter.fire(data);
 
-            default: {
-                if (!!data) {
-                    data = data.replace(/\r/g, "\r\n");
-                    // console.log(data.slice(0, data.length - 1));
-                    this.writeEmitter.fire(data);
+    handleInput = (data: string) => {
+        if (!!data) {
+            switch (data) {
+                case actions.interrupt: {
+                    this.onInterrupt();
+                    return;
                 }
-                break;
+
+                default:
+                    break;
             }
+
+            this.onHandleInput(data === "\r" ? "\r\n" : data);
         }
     };
 

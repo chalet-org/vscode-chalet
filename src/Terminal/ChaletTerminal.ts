@@ -52,7 +52,8 @@ class ChaletTerminal {
             this.pseudoTerminal = new CustomPsuedoTerminal(
                 this.onTerminalOpen,
                 this.onTerminalClose,
-                this.onTerminalInterrupt
+                this.onTerminalInterrupt,
+                this.onHandleInput
             );
         }
         return this.pseudoTerminal;
@@ -65,7 +66,11 @@ class ChaletTerminal {
     private onTerminalOpen = () => {};
     private onTerminalClose = this.dispose;
     private onTerminalInterrupt = () => this.process?.interrupt();
-    private onTerminalWrite = (text: string) => this.view?.sendText(text, false);
+    private onTerminalWrite = (text: string) => this.pseudoTerminal?.write(text);
+    private onHandleInput = (text: string) => {
+        this.onTerminalWrite(text);
+        this.process?.write(text);
+    };
     private onTerminalAutoClear = (): Thenable<void> => {
         return vscode.commands.executeCommand("workbench.action.terminal.clear");
     };

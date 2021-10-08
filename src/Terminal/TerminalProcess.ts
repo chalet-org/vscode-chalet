@@ -30,7 +30,7 @@ export type TerminalProcessOptions = {
 };
 
 class TerminalProcess {
-    private subprocess: Optional<proc.ChildProcessByStdio<null, Readable, Readable>> = null;
+    private subprocess: Optional<proc.ChildProcessByStdio<Writable, Readable, Readable>> = null;
     private interrupted: boolean = false;
 
     private shellPath: string = "";
@@ -68,6 +68,10 @@ class TerminalProcess {
         }
     };
 
+    write = (text: string) => {
+        this.subprocess?.stdin.write(text);
+    };
+
     execute = (
         { autoClear, name, cwd, env, onStart, onSuccess, onFailure, ...options }: TerminalProcessOptions,
         onAutoClear: () => Thenable<void>
@@ -91,10 +95,10 @@ class TerminalProcess {
 
             const shellArgs: string[] = options.shellArgs ?? [];
             // console.log(options.shellPath, shellArgs.join(" "));
-            const spawnOptions: proc.SpawnOptionsWithStdioTuple<proc.StdioNull, proc.StdioPipe, proc.StdioPipe> = {
+            const spawnOptions: proc.SpawnOptionsWithStdioTuple<proc.StdioPipe, proc.StdioPipe, proc.StdioPipe> = {
                 cwd: cwd ?? process.cwd(),
                 env,
-                stdio: ["inherit", "pipe", "pipe"],
+                stdio: ["pipe", "pipe", "pipe"],
             };
 
             if (this.subprocess === null) {
@@ -119,6 +123,7 @@ class TerminalProcess {
                     reject(err);
                 });
 
+                this.subprocess.stdin.on("data", (chunk: Buffer) => this.onWrite(chunk.toString()));
                 this.subprocess.stdout.on("data", (chunk: Buffer) => this.onWrite(chunk.toString()));
                 this.subprocess.stderr.on("data", (chunk: Buffer) => this.onWrite(chunk.toString()));
 
