@@ -46,48 +46,6 @@ class BuildConfigurationCommandMenu extends StatusBarCommandMenu<MenuType> {
             command === ChaletCommands.Clean
         );
     };
-
-    parseJsonConfigurations = async (chaletJson: any): Promise<boolean> => {
-        try {
-            let result: boolean = false;
-            let configurations: any = chaletJson["configurations"];
-            if (!!configurations) {
-                if (Array.isArray(configurations)) {
-                    await this.setMenu(
-                        configurations.reduce((out: MenuItem<string>[], label) => {
-                            if (typeof label === "string") {
-                                if (this.defaultMenuIncludesLabel(label)) {
-                                    out.push({ label });
-                                }
-                            }
-                            return out;
-                        }, [])
-                    );
-                    result = true;
-                } else if (typeof configurations === "object") {
-                    this.resetMenu();
-                    for (const [label, value] of Object.entries(configurations)) {
-                        let item: any = value;
-                        if (item && typeof item === "object") {
-                            this.addToMenu({ label });
-                        }
-                    }
-                    result = true;
-                }
-            }
-
-            if (result) {
-                await this.refreshMenuAndValue();
-                return true;
-            }
-
-            await this.setDefaultMenu();
-            return false;
-        } catch (err) {
-            OutputChannel.logError(err);
-            return false;
-        }
-    };
 }
 
 export { BuildConfigurationCommandMenu };

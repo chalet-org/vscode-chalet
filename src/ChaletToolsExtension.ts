@@ -1,7 +1,6 @@
 import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
-import * as CommentJSON from "comment-json";
 
 import { getTerminalEnv } from "./Functions";
 import {
@@ -54,6 +53,9 @@ class ChaletToolsExtension {
     toolchainPresets: string[] = [];
     userToolchains: string[] = [];
     configurations: string[] = [];
+    private currentToolchain: string = "";
+    private currentArchitecture: string = "";
+    private currentRunTarget: string = "";
 
     private onRunChalet = () =>
         this.runChalet(this.chaletCommand.getLabel(), this.buildConfiguration.getLabel(), this.cli);
@@ -89,14 +91,19 @@ class ChaletToolsExtension {
         try {
             const chalet = this.useDebugChalet ? ChaletVersion.Debug : ChaletVersion.Release;
             const env = getTerminalEnv(this.platform);
-            const output = await getProcessOutput(chalet, ["list", "--type", type], env, this.cwd);
+            const output = await getProcessOutput(chalet, ["query", type], env, this.cwd);
             const res = output.split(" ");
-            OutputChannel.log(type, res);
+            // OutputChannel.log(type, res);
             return res;
         } catch (err) {
             OutputChannel.logError(err);
             return [];
         }
+    };
+
+    private getChaletValueFromList = async (type: string): Promise<string> => {
+        const list = await this.getChaletList(type);
+        return list.length > 0 ? list[0] : "";
     };
 
     // private getChaletCommands = () => this.getChaletList("commands");
@@ -105,6 +112,10 @@ class ChaletToolsExtension {
     private getChaletUserToolchains = () => this.getChaletList("user-toolchains");
     // private getChaletAllToolchains = () => this.getChaletList("all-toolchains");
     // private getChaletArchitectures = () => this.getChaletList("architectures");
+
+    private getChaletCurrentArchitecture = () => this.getChaletValueFromList("architecture");
+    private getChaletCurrentToolchain = () => this.getChaletValueFromList("toolchain");
+    private getChaletCurrentRunTarget = () => this.getChaletValueFromList("run-target");
 
     deactivate = () => {
         this.chaletTerminal.dispose();
@@ -165,26 +176,21 @@ class ChaletToolsExtension {
         } catch {}
         try {
             const update: boolean = rawData != this.chaletJsonCache;
+            if (update) {
+                this.configurations = await this.getChaletConfigurations();
+                this.currentRunTarget = await this.getChaletCurrentRunTarget();
+            }
 
             if (rawData.length > 0) {
                 if (update) {
-                    const chaletJson = CommentJSON.parse(rawData, undefined, true);
-
-                    this.configurations = await this.getChaletConfigurations();
-
-                    await this.buildConfiguration.parseJsonConfigurations(chaletJson);
-                    this.runChaletButton.parseJsonRunProject(chaletJson);
-
                     this.chaletJsonCache = rawData;
                 }
             } else {
-                this.configurations = [];
-
-                this.buildConfiguration.setDefaultMenu();
-                this.runChaletButton.parseJsonRunProject({});
-
                 this.chaletJsonCache = "";
             }
+
+            this.buildConfiguration.setDefaultMenu();
+            this.runChaletButton.setRunTarget(this.currentRunTarget);
 
             await this.updateStatusBarItems();
         } catch (err) {
@@ -209,16 +215,13 @@ class ChaletToolsExtension {
             if (update) {
                 this.toolchainPresets = await this.getChaletToolchainPresets();
                 this.userToolchains = await this.getChaletUserToolchains();
+                this.currentArchitecture = await this.getChaletCurrentArchitecture();
+                this.currentToolchain = await this.getChaletCurrentToolchain();
             }
 
             if (rawData.length > 0) {
                 if (update) {
-                    const settingsJson = CommentJSON.parse(rawData, undefined, true);
-
                     await this.buildToolchain.parseJsonToolchains();
-                    await this.buildToolchain.parseJsonSettingsToolchain(settingsJson);
-                    await this.buildArchitecture.parseJsonSettingsArchitecture(settingsJson);
-
                     this.settingsJsonCache = rawData;
                 }
             } else {
@@ -227,6 +230,9 @@ class ChaletToolsExtension {
 
                 this.settingsJsonCache = "";
             }
+
+            await this.buildArchitecture.setValueFromString(this.currentArchitecture);
+            await this.buildToolchain.setValueFromString(this.currentToolchain);
 
             await this.updateStatusBarItems();
         } catch (err) {

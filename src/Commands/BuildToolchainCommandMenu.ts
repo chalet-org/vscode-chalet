@@ -44,34 +44,12 @@ class BuildToolchainCommandMenu extends StatusBarCommandMenu<MenuType> {
             let menu: MenuType[] = [];
             const userToolchains = getChaletToolsInstance()?.userToolchains ?? [];
             for (const key of userToolchains) {
-                if (!menu.includes(key)) {
-                    menu.push(key);
-                }
+                if (!menu.includes(key)) menu.push(key);
             }
             for (const item of this.getRawMenu()) {
-                if (!menu.includes(item)) {
-                    menu.push(item);
-                }
+                if (!menu.includes(item)) menu.push(item);
             }
             await this.setMenu(menu.map(this.stringToMenuItem));
-        } catch (err) {
-            OutputChannel.logError(err);
-        }
-    };
-
-    parseJsonSettingsToolchain = async (settingsJson: any): Promise<void> => {
-        try {
-            let settings: any = settingsJson["settings"];
-            if (!!settings && typeof settings === "object") {
-                let toolchain: any = settings["toolchain"];
-                if (toolchain && typeof toolchain === "string") {
-                    if (this.includesLabel(toolchain)) {
-                        await this.setValueFromString(toolchain);
-                    } else {
-                        await this.setFirstValueInMenu();
-                    }
-                }
-            }
         } catch (err) {
             OutputChannel.logError(err);
         }

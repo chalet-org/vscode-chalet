@@ -6,7 +6,7 @@ import { CommandButtonCallback, StatusBarCommandButton } from "./StatusBarComman
 import { ChaletCmdCommandMenu } from "./ChaletCmdCommandMenu";
 
 class RunChaletCommandButton extends StatusBarCommandButton {
-    private runProject: Optional<string> = null;
+    private runTarget: Optional<string> = null;
 
     constructor(onClick: CommandButtonCallback, context: vscode.ExtensionContext, priority: number) {
         super(CommandId.Run, onClick, async () => {}, context, priority);
@@ -19,32 +19,16 @@ class RunChaletCommandButton extends StatusBarCommandButton {
 
     updateLabelFromChaletCommand = (commandMenu: ChaletCmdCommandMenu) => {
         const icon: string = commandMenu.getIcon();
-        if (!!this.runProject && commandMenu.willRun()) {
-            this.setLabel(`$(${icon}) ${this.runProject}`);
+        if (!!this.runTarget && commandMenu.willRun()) {
+            this.setLabel(`$(${icon}) ${this.runTarget}`);
         } else {
             this.setLabel(`$(${icon})`);
         }
     };
 
-    parseJsonRunProject = (chaletJson: any): Optional<string> => {
-        let executableProjects: string[] = [];
-        let runProjects: string[] = [];
-        let targets: any = chaletJson["targets"];
-        if (targets && typeof targets === "object") {
-            for (const [key, value] of Object.entries(targets)) {
-                let item: any = value;
-                if (item && typeof item === "object") {
-                    if (item.kind && item.kind === "executable") {
-                        executableProjects.push(key);
-                        if (!!item.runProject) runProjects.push(key);
-                    }
-                }
-            }
-        }
-
-        this.runProject =
-            runProjects.length > 0 ? runProjects[0] : executableProjects.length > 0 ? executableProjects[0] : null;
-        return this.runProject;
+    setRunTarget = (target: string): Optional<string> => {
+        this.runTarget = target.length > 0 ? target : null;
+        return this.runTarget;
     };
 }
 

@@ -72,6 +72,8 @@ abstract class StatusBarCommandMenu<T extends string> extends StatusBarCommand {
     setValueFromString = (label: Optional<T>): Promise<void> => {
         if (label === null) {
             return this.setValue(null);
+        } else if (label.length === 0 && this.menu.length > 0) {
+            return this.setValue(this.menu[0]);
         } else {
             if (this.includesLabel(label)) {
                 const idx = this.menu.findIndex((item) => item.label === label);
