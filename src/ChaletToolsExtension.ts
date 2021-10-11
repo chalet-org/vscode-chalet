@@ -55,6 +55,7 @@ class ChaletToolsExtension {
     configurations: string[] = [];
     private currentToolchain: string = "";
     private currentArchitecture: string = "";
+    private currentConfiguration: string = "";
     private currentRunTarget: string = "";
 
     private onRunChalet = () =>
@@ -115,6 +116,7 @@ class ChaletToolsExtension {
 
     private getChaletCurrentArchitecture = () => this.getChaletValueFromList("architecture");
     private getChaletCurrentToolchain = () => this.getChaletValueFromList("toolchain");
+    private getChaletCurrentBuildConfiguration = () => this.getChaletValueFromList("configuration");
     private getChaletCurrentRunTarget = () => this.getChaletValueFromList("run-target");
 
     deactivate = () => {
@@ -132,16 +134,21 @@ class ChaletToolsExtension {
             if (this.enabled === enabled) return;
 
             this.enabled = enabled;
-            this.chaletCommand.setVisible(this.enabled);
-            this.buildConfiguration.setVisible(this.enabled);
-            this.buildToolchain.setVisible(this.enabled);
-            this.buildArchitecture.setVisible(this.enabled);
-            this.runChaletButton.setVisible(this.enabled);
 
             await this.updateStatusBarItems();
+            if (!enabled) this.setVisible(this.enabled);
+            else this.setVisible(false);
         } catch (err) {
             OutputChannel.logError(err);
         }
+    };
+
+    setVisible = (value: boolean): void => {
+        this.chaletCommand.setVisible(value);
+        this.buildConfiguration.setVisible(value);
+        this.buildToolchain.setVisible(value);
+        this.buildArchitecture.setVisible(value);
+        this.runChaletButton.setVisible(value);
     };
 
     setWorkingDirectory = (cwd: string) => {
@@ -193,6 +200,7 @@ class ChaletToolsExtension {
             this.runChaletButton.setRunTarget(this.currentRunTarget);
 
             await this.updateStatusBarItems();
+            this.setVisible(this.enabled);
         } catch (err) {
             OutputChannel.logError(err);
         }
@@ -216,6 +224,7 @@ class ChaletToolsExtension {
                 this.toolchainPresets = await this.getChaletToolchainPresets();
                 this.userToolchains = await this.getChaletUserToolchains();
                 this.currentArchitecture = await this.getChaletCurrentArchitecture();
+                this.currentConfiguration = await this.getChaletCurrentBuildConfiguration();
                 this.currentToolchain = await this.getChaletCurrentToolchain();
             }
 
@@ -232,9 +241,11 @@ class ChaletToolsExtension {
             }
 
             await this.buildArchitecture.setValueFromString(this.currentArchitecture);
+            await this.buildConfiguration.setValueFromString(this.currentConfiguration);
             await this.buildToolchain.setValueFromString(this.currentToolchain);
 
             await this.updateStatusBarItems();
+            this.setVisible(this.enabled);
         } catch (err) {
             OutputChannel.logError(err);
         }
