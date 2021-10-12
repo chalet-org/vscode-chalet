@@ -4,6 +4,7 @@ import { OutputChannel } from "../OutputChannel";
 
 import { Dictionary, Optional } from "../Types";
 import { Readable, Writable } from "stream";
+import { EscapeCodes } from "./EscapeCodes";
 
 export type SpawnError = Error & {
     code?: string;
@@ -68,8 +69,91 @@ class TerminalProcess {
         }
     };
 
-    write = (text: string) => {
-        this.subprocess?.stdin.write(text);
+    inputBuffer: string = "";
+    inputOffset: number = 0;
+
+    private writeInputBuffer = () => {
+        this.subprocess?.stdin.write(this.inputBuffer);
+        // this.subprocess?.stdin.end();
+        this.inputBuffer = "";
+        this.inputOffset = 0;
+    };
+
+    write = (data: string) => {
+        if (data.length === 0) return;
+
+        console.log(JSON.stringify(data));
+
+        switch (data) {
+            case EscapeCodes.Interrupt: {
+                this.interrupt();
+                return;
+            }
+            case EscapeCodes.ArrowUp:
+            case EscapeCodes.ArrowDown:
+            case EscapeCodes.PageDown:
+            case EscapeCodes.PageUp:
+            case EscapeCodes.Insert:
+            case EscapeCodes.Delete:
+            case EscapeCodes.ArrowRight:
+            case EscapeCodes.ArrowLeft:
+            case EscapeCodes.Home:
+            case EscapeCodes.End: {
+                this.subprocess?.stdin.write(data);
+                return;
+            }
+            /*case EscapeCodes.ArrowRight: {
+                this.subprocess?.stdin.write(data);
+                if (this.inputOffset > 0) {
+                    this.inputOffset--;
+                    this.onWrite(data);
+                }
+                return;
+            }
+            case EscapeCodes.ArrowLeft: {
+                this.subprocess?.stdin.write(data);
+                if (this.inputOffset < this.inputBuffer.length) {
+                    this.inputOffset++;
+                    this.onWrite(data);
+                }
+                return;
+            }
+
+            case EscapeCodes.End: {
+                this.subprocess?.stdin.write(data);
+                while (this.inputOffset > 0) {
+                    this.inputOffset--;
+                    this.onWrite(EscapeCodes.ArrowRight);
+                }
+                return;
+            }
+
+            case EscapeCodes.Home: {
+                this.subprocess?.stdin.write(data);
+                while (this.inputOffset < this.inputBuffer.length) {
+                    this.inputOffset++;
+                    this.onWrite(EscapeCodes.ArrowLeft);
+                }
+                return;
+            }*/
+
+            case EscapeCodes.Backspace: {
+                if (this.inputBuffer.length - this.inputOffset > 0) {
+                    this.inputBuffer = this.inputBuffer.slice(0, -1);
+                    this.onWrite("\b \b");
+                }
+                return;
+            }
+
+            default:
+                break;
+        }
+
+        this.onWrite(data);
+        this.inputBuffer += data;
+        if (data === "\r\n") {
+            this.writeInputBuffer();
+        }
     };
 
     execute = (
@@ -123,7 +207,7 @@ class TerminalProcess {
                     reject(err);
                 });
 
-                this.subprocess.stdin.on("data", (chunk: Buffer) => this.onWrite(chunk.toString()));
+                // this.subprocess.stdin.on("data", (chunk: Buffer) => this.onWrite(chunk.toString()));
                 this.subprocess.stdout.on("data", (chunk: Buffer) => this.onWrite(chunk.toString()));
                 this.subprocess.stderr.on("data", (chunk: Buffer) => this.onWrite(chunk.toString()));
 
