@@ -93,6 +93,10 @@ class ChaletToolsExtension {
             const chalet = this.useDebugChalet ? ChaletVersion.Debug : ChaletVersion.Release;
             const env = getTerminalEnv(this.platform);
             const output = await getProcessOutput(chalet, ["query", type], env, this.cwd);
+            if (output.startsWith("Chalet")) {
+                throw new Error(`There was a problem querying Chalet for '${type}'`);
+            }
+
             const res = output.split(" ");
             // OutputChannel.log(type, res);
             return res;
@@ -186,6 +190,9 @@ class ChaletToolsExtension {
             if (update) {
                 this.configurations = await this.getChaletConfigurations();
                 this.currentRunTarget = await this.getChaletCurrentRunTarget();
+                if (this.configurations.length === 0) {
+                    throw new Error(`Chalet installation not found, or version was not supported.`);
+                }
             }
 
             if (rawData.length > 0) {
@@ -226,6 +233,14 @@ class ChaletToolsExtension {
                 this.currentArchitecture = await this.getChaletCurrentArchitecture();
                 this.currentConfiguration = await this.getChaletCurrentBuildConfiguration();
                 this.currentToolchain = await this.getChaletCurrentToolchain();
+                if (
+                    this.toolchainPresets.length === 0 ||
+                    this.currentArchitecture.length === 0 ||
+                    this.currentConfiguration.length === 0 ||
+                    this.currentToolchain.length === 0
+                ) {
+                    throw new Error(`Chalet installation not found, or version was not supported.`);
+                }
             }
 
             if (rawData.length > 0) {
