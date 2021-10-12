@@ -47,6 +47,8 @@ class ChaletToolsExtension {
     private useDebugChalet: boolean = false;
     private enabled: boolean = false;
     private cwd: string = "";
+    private uiChaletJsonInitialized: boolean = false;
+    private uiSettingsJsonInitialized: boolean = false;
 
     private cli: ChaletCliSettings;
 
@@ -140,8 +142,9 @@ class ChaletToolsExtension {
             this.enabled = enabled;
 
             await this.updateStatusBarItems();
-            if (!enabled) this.setVisible(this.enabled);
-            else this.setVisible(false);
+            this.setVisible(false);
+            this.uiSettingsJsonInitialized = false;
+            this.uiChaletJsonInitialized = false;
         } catch (err) {
             OutputChannel.logError(err);
         }
@@ -178,6 +181,17 @@ class ChaletToolsExtension {
         }
     };
 
+    private checkForVisibility = async () => {
+        try {
+            if (this.uiSettingsJsonInitialized && this.uiChaletJsonInitialized) {
+                await this.updateStatusBarItems();
+                this.setVisible(this.enabled);
+            }
+        } catch (err) {
+            throw err;
+        }
+    };
+
     private chaletJsonCache: string = "<initial>";
 
     handleChaletJsonChange = async (): Promise<void> => {
@@ -206,8 +220,8 @@ class ChaletToolsExtension {
             this.buildConfiguration.setDefaultMenu();
             this.runChaletButton.setRunTarget(this.currentRunTarget);
 
-            await this.updateStatusBarItems();
-            this.setVisible(this.enabled);
+            this.uiChaletJsonInitialized = true;
+            this.checkForVisibility();
         } catch (err) {
             OutputChannel.logError(err);
         }
@@ -259,8 +273,8 @@ class ChaletToolsExtension {
             await this.buildConfiguration.setValueFromString(this.currentConfiguration);
             await this.buildToolchain.setValueFromString(this.currentToolchain);
 
-            await this.updateStatusBarItems();
-            this.setVisible(this.enabled);
+            this.uiSettingsJsonInitialized = true;
+            this.checkForVisibility();
         } catch (err) {
             OutputChannel.logError(err);
         }
