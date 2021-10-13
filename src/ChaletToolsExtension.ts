@@ -184,8 +184,8 @@ class ChaletToolsExtension {
     private checkForVisibility = async () => {
         try {
             if (this.uiSettingsJsonInitialized && this.uiChaletJsonInitialized) {
-                await this.updateStatusBarItems();
                 this.setVisible(this.enabled);
+                await this.updateStatusBarItems(); // do last
             }
         } catch (err) {
             throw err;
