@@ -197,7 +197,8 @@
 					"minLength": 1,
 					"enum": [
 						"app"
-					]
+					],
+					"default": "app"
 				},
 				"dmg": {
 					"type": "object",
