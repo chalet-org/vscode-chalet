@@ -7,6 +7,39 @@
 		"tools",
 		"toolchains"
 	],
+	"definitions": {
+		"theme-color": {
+			"type": "string",
+			"description": "An ANSI color to apply.",
+			"enum": [
+				"black",
+				"blue",
+				"brightBlack",
+				"brightBlackBold",
+				"brightBlue",
+				"brightBlueBold",
+				"brightCyan",
+				"brightCyanBold",
+				"brightGreen",
+				"brightGreenBold",
+				"brightMagenta",
+				"brightMagentaBold",
+				"brightRed",
+				"brightRedBold",
+				"brightWhite",
+				"brightWhiteBold",
+				"brightYellow",
+				"brightYellowBold",
+				"cyan",
+				"green",
+				"magenta",
+				"red",
+				"reset",
+				"white",
+				"yellow"
+			]
+		}
+	},
 	"properties": {
 		"tools": {
 			"type": "object",
@@ -332,145 +365,50 @@
 		},
 		"theme": {
 			"type": "object",
-			"additionalProperties": false,
-			"description": "The color theme to give to Chalet",
-			"properties": {
-				"info": {
+			"description": "The color theme preset or colors to give to Chalet",
+			"anyOf": [
+				{
 					"type": "string",
-					"description": "An ANSI color to apply.",
+					"minLength": 1,
 					"enum": [
-						"reset",
-						"black",
-						"red",
-						"green",
-						"yellow",
-						"blue",
-						"magenta",
-						"cyan",
-						"white"
-					]
+						"default"
+					],
+					"default": "default"
 				},
-				"error": {
-					"type": "string",
-					"description": "An ANSI color to apply.",
-					"enum": [
-						"reset",
-						"black",
-						"red",
-						"green",
-						"yellow",
-						"blue",
-						"magenta",
-						"cyan",
-						"white"
-					]
-				},
-				"warning": {
-					"type": "string",
-					"description": "An ANSI color to apply.",
-					"enum": [
-						"reset",
-						"black",
-						"red",
-						"green",
-						"yellow",
-						"blue",
-						"magenta",
-						"cyan",
-						"white"
-					]
-				},
-				"success": {
-					"type": "string",
-					"description": "An ANSI color to apply.",
-					"enum": [
-						"reset",
-						"black",
-						"red",
-						"green",
-						"yellow",
-						"blue",
-						"magenta",
-						"cyan",
-						"white"
-					]
-				},
-				"flair": {
-					"type": "string",
-					"description": "An ANSI color to apply.",
-					"enum": [
-						"reset",
-						"black",
-						"red",
-						"green",
-						"yellow",
-						"blue",
-						"magenta",
-						"cyan",
-						"white"
-					]
-				},
-				"header": {
-					"type": "string",
-					"description": "An ANSI color to apply.",
-					"enum": [
-						"reset",
-						"black",
-						"red",
-						"green",
-						"yellow",
-						"blue",
-						"magenta",
-						"cyan",
-						"white"
-					]
-				},
-				"build": {
-					"type": "string",
-					"description": "An ANSI color to apply.",
-					"enum": [
-						"reset",
-						"black",
-						"red",
-						"green",
-						"yellow",
-						"blue",
-						"magenta",
-						"cyan",
-						"white"
-					]
-				},
-				"alt": {
-					"type": "string",
-					"description": "An ANSI color to apply.",
-					"enum": [
-						"reset",
-						"black",
-						"red",
-						"green",
-						"yellow",
-						"blue",
-						"magenta",
-						"cyan",
-						"white"
-					]
-				},
-				"note": {
-					"type": "string",
-					"description": "An ANSI color to apply.",
-					"enum": [
-						"reset",
-						"black",
-						"red",
-						"green",
-						"yellow",
-						"blue",
-						"magenta",
-						"cyan",
-						"white"
-					]
+				{
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"info": {
+							"$ref": "#/definitions/theme-color"
+						},
+						"error": {
+							"$ref": "#/definitions/theme-color"
+						},
+						"warning": {
+							"$ref": "#/definitions/theme-color"
+						},
+						"success": {
+							"$ref": "#/definitions/theme-color"
+						},
+						"note": {
+							"$ref": "#/definitions/theme-color"
+						},
+						"flair": {
+							"$ref": "#/definitions/theme-color"
+						},
+						"header": {
+							"$ref": "#/definitions/theme-color"
+						},
+						"build": {
+							"$ref": "#/definitions/theme-color"
+						},
+						"assembly": {
+							"$ref": "#/definitions/theme-color"
+						}
+					}
 				}
-			}
+			]
 		}
 	}
 }
