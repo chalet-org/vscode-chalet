@@ -54,4 +54,6 @@ export enum ToolchainPreset {
     LLVM = "llvm",
     AppleLLVM = "apple-llvm",
     GCC = "gcc",
+    IntelLLVM = "icx",
+    IntelGNU = "icc",
 }

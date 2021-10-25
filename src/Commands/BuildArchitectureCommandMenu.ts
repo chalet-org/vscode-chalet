@@ -47,6 +47,15 @@ class BuildArchitectureCommandMenu extends StatusBarCommandMenu<MenuType> {
                     ];
                 }
             }
+            case ToolchainPreset.IntelGNU: {
+                if (this.platform === VSCodePlatform.MacOS) {
+                    return [
+                        //
+                        BuildArchitecture.Auto,
+                        BuildArchitecture.X86_64,
+                    ];
+                }
+            }
             default:
                 break;
         }
@@ -63,6 +72,13 @@ class BuildArchitectureCommandMenu extends StatusBarCommandMenu<MenuType> {
                     BuildArchitecture.WindowsHostX86_X86,
                     BuildArchitecture.WindowsHostX86_ARM,
                     BuildArchitecture.WindowsHostX86_ARM64,
+                ];
+            } else if (this.toolchain === ToolchainPreset.IntelLLVM && this.toolchain.startsWith("icx-")) {
+                return [
+                    //
+                    BuildArchitecture.Auto,
+                    BuildArchitecture.X86_64,
+                    BuildArchitecture.I686,
                 ];
             }
         }
