@@ -73,7 +73,7 @@ class BuildArchitectureCommandMenu extends StatusBarCommandMenu<MenuType> {
                     BuildArchitecture.WindowsHostX86_ARM,
                     BuildArchitecture.WindowsHostX86_ARM64,
                 ];
-            } else if (this.toolchain === ToolchainPreset.IntelLLVM && this.toolchain.startsWith("icx-")) {
+            } else if (this.toolchain === ToolchainPreset.IntelLLVM || this.toolchain.startsWith("icx-")) {
                 return [
                     //
                     BuildArchitecture.Auto,
