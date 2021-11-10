@@ -26,6 +26,7 @@ import { getCommandID } from "./Functions";
 import { OutputChannel } from "./OutputChannel";
 import { EXTENSION_ID } from "./ExtensionID";
 import { getProcessOutput } from "./Functions/GetProcessOutput";
+import { ChaletSchemaProvider } from "./ChaletSchemaProvider";
 
 class ChaletCliSettings {
     inputFile: string = "";
@@ -67,6 +68,12 @@ class ChaletToolsExtension {
     constructor(context: vscode.ExtensionContext, public platform: VSCodePlatform) {
         this.chaletTerminal = new ChaletTerminal();
         this.cli = new ChaletCliSettings();
+
+        const schemaProvider = new ChaletSchemaProvider(context.extensionPath);
+
+        context.subscriptions.push(
+            vscode.workspace.registerTextDocumentContentProvider("chalet-schema", schemaProvider)
+        );
 
         context.subscriptions.push(
             vscode.commands.registerCommand(getCommandID(CommandId.MakeDebugBuild), this.onMakeDebugBuild)

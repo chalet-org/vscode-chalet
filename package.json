@@ -18,7 +18,8 @@
 		"onCommand:chalet-tools.buildConfiguration",
 		"onCommand:chalet-tools.makeDebugBuild",
 		"workspaceContains:**/chalet.json",
-		"workspaceContains:**/.chaletrc"
+		"workspaceContains:**/.chaletrc",
+		"onFileSystem:chalet-schema"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
@@ -86,14 +87,14 @@
 					"chalet.*.json",
 					"chalet-*.json"
 				],
-				"url": "./schema/chalet.schema.json"
+				"url": "chalet-schema:///chalet.schema.json"
 			},
 			{
 				"fileMatch": [
 					".chaletrc",
 					".chaletconfig"
 				],
-				"url": "./schema/chalet-settings.schema.json"
+				"url": "chalet-schema:///chalet-settings.schema.json"
 			}
 		]
 	},
