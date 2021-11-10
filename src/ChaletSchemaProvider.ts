@@ -6,8 +6,8 @@ import { getTerminalEnv } from "./Functions";
 import { getProcessOutput } from "./Functions/GetProcessOutput";
 
 enum SchemaType {
-    ChaletJson = "chalet-schema",
-    SettingsJson = "settings-schema",
+    ChaletJson = "schema-chalet-json",
+    SettingsJson = "schema-settings-json",
 }
 
 class ChaletSchemaProvider implements vscode.TextDocumentContentProvider {
@@ -31,25 +31,23 @@ class ChaletSchemaProvider implements vscode.TextDocumentContentProvider {
             const schemaFile = uri.path.substr(1);
 
             let contents: string;
-            if (schemaFile === "chalet-settings.schema.json") {
+            if (schemaFile === SchemaType.SettingsJson) {
                 if (this.settingsSchema == null) {
                     this.settingsSchema = await this.fetchSchema(SchemaType.SettingsJson);
                 }
 
                 contents = this.settingsSchema;
-            } else {
+            } else if (schemaFile === SchemaType.ChaletJson) {
                 if (this.chaletSchema == null) {
                     this.chaletSchema = await this.fetchSchema(SchemaType.ChaletJson);
                 }
 
                 contents = this.chaletSchema;
+            } else {
+                throw new Error("Invalid chalet-schema requested");
             }
 
-            // const filename = path.join(this.extensionPath, "schema", uri.path.substr(1));
-            // OutputChannel.log(filename);
-            // contents = fs.readFileSync(filename, "utf8");
-
-            console.log(JSON.parse(contents));
+            // console.log(JSON.parse(contents));
             return contents;
         } catch (err) {
             OutputChannel.logError(err);

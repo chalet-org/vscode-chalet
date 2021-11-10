@@ -87,14 +87,14 @@
 					"chalet.*.json",
 					"chalet-*.json"
 				],
-				"url": "chalet-schema:///chalet.schema.json"
+				"url": "chalet-schema:///schema-chalet-json"
 			},
 			{
 				"fileMatch": [
 					".chaletrc",
 					".chaletconfig"
 				],
-				"url": "chalet-schema:///chalet-settings.schema.json"
+				"url": "chalet-schema:///schema-settings-json"
 			}
 		]
 	},
