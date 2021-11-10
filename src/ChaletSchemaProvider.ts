@@ -1,18 +1,26 @@
 import * as vscode from "vscode";
 
 import { OutputChannel } from "./OutputChannel";
-import { ChaletVersion, getVSCodePlatform, VSCodePlatform } from "./Types";
+import { ChaletVersion, getVSCodePlatform, Optional, VSCodePlatform } from "./Types";
 import { getTerminalEnv } from "./Functions";
 import { getProcessOutput } from "./Functions/GetProcessOutput";
 
+enum SchemaType {
+    ChaletJson = "chalet-schema",
+    SettingsJson = "settings-schema",
+}
+
 class ChaletSchemaProvider implements vscode.TextDocumentContentProvider {
     platform: VSCodePlatform;
+
+    settingsSchema: Optional<string> = null;
+    chaletSchema: Optional<string> = null;
 
     constructor(private extensionPath: string) {
         this.platform = getVSCodePlatform();
     }
 
-    private fetchSchema = (schema: "settings-schema" | "chalet-schema") => {
+    private fetchSchema = (schema: SchemaType) => {
         const chalet = ChaletVersion.Release;
         const env = getTerminalEnv(this.platform);
         return getProcessOutput(chalet, ["query", schema], env);
@@ -24,9 +32,17 @@ class ChaletSchemaProvider implements vscode.TextDocumentContentProvider {
 
             let contents: string;
             if (schemaFile === "chalet-settings.schema.json") {
-                contents = await this.fetchSchema("settings-schema");
+                if (this.settingsSchema == null) {
+                    this.settingsSchema = await this.fetchSchema(SchemaType.SettingsJson);
+                }
+
+                contents = this.settingsSchema;
             } else {
-                contents = await this.fetchSchema("chalet-schema");
+                if (this.chaletSchema == null) {
+                    this.chaletSchema = await this.fetchSchema(SchemaType.ChaletJson);
+                }
+
+                contents = this.chaletSchema;
             }
 
             // const filename = path.join(this.extensionPath, "schema", uri.path.substr(1));
