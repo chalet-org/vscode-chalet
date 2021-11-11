@@ -84,8 +84,8 @@ class ChaletToolsExtension {
 
         this.chaletCommand = new ChaletCmdCommandMenu(this.updateStatusBarItems, context, 5);
         this.buildConfiguration = new BuildConfigurationCommandMenu(this.updateStatusBarItems, context, 4);
-        this.buildToolchain = new BuildToolchainCommandMenu(this.updateStatusBarItems, context, 3, this.platform);
-        this.buildArchitecture = new BuildArchitectureCommandMenu(this.updateStatusBarItems, context, 2, this.platform);
+        this.buildToolchain = new BuildToolchainCommandMenu(this.updateStatusBarItems, context, 3);
+        this.buildArchitecture = new BuildArchitectureCommandMenu(this.updateStatusBarItems, context, 2);
         this.runChaletButton = new RunChaletCommandButton(this.onRunChalet, context, 1);
     }
 

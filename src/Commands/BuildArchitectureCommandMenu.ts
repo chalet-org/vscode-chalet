@@ -11,12 +11,7 @@ type MenuType = string;
 class BuildArchitectureCommandMenu extends StatusBarCommandMenu<MenuType> {
     private toolchain: Optional<string> = null;
 
-    constructor(
-        onClick: ValueChangeCallback,
-        context: vscode.ExtensionContext,
-        priority: number,
-        private platform: VSCodePlatform
-    ) {
+    constructor(onClick: ValueChangeCallback, context: vscode.ExtensionContext, priority: number) {
         super(CommandId.BuildArchitecture, onClick, context, priority);
     }
 

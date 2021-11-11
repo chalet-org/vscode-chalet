@@ -9,12 +9,7 @@ import { getChaletToolsInstance } from "../ChaletToolsLoader";
 type MenuType = string;
 
 class BuildToolchainCommandMenu extends StatusBarCommandMenu<MenuType> {
-    constructor(
-        onClick: ValueChangeCallback,
-        context: vscode.ExtensionContext,
-        priority: number,
-        private platform: VSCodePlatform
-    ) {
+    constructor(onClick: ValueChangeCallback, context: vscode.ExtensionContext, priority: number) {
         super(CommandId.BuildToolchain, onClick, context, priority);
     }
 
