@@ -26,12 +26,15 @@ class BuildArchitectureCommandMenu extends StatusBarCommandMenu<MenuType> {
 
     setToolchainAndVisibility = async (toolchain: Optional<string>, visible: boolean): Promise<void> => {
         try {
+            if (this.toolchain === toolchain) return;
+
             const toolchainPresets = getChaletToolsInstance()?.toolchainPresets ?? [];
             if (!!toolchain && toolchainPresets.includes(toolchain)) {
                 this.toolchain = toolchain;
             } else {
                 this.toolchain = null;
             }
+
             await this.setDefaultMenu();
 
             if (!visible || this.toolchain === null) {

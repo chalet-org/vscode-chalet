@@ -407,15 +407,15 @@ class ChaletToolsExtension {
         try {
             if (!this.enabled) return;
 
-            const toolchain = this.buildToolchain.getValue();
+            const toolchain = this.buildToolchain.getLabel();
             if (toolchain) {
-                this.architectures = await this.getChaletArchitectures(toolchain.label);
+                this.architectures = await this.getChaletArchitectures(toolchain);
             }
 
             await this.buildConfiguration.requiredForVisibility(this.chaletCommand.getLabel());
             // const isConfigure = this.chaletCommand.isConfigure();
             this.buildToolchain.setVisible(true);
-            await this.buildArchitecture.setToolchainAndVisibility(this.buildToolchain.getLabel(), true);
+            await this.buildArchitecture.setToolchainAndVisibility(toolchain, true);
             this.runChaletButton.updateLabelFromChaletCommand(this.chaletCommand);
         } catch (err) {
             OutputChannel.logError(err);
