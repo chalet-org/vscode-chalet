@@ -1,8 +1,9 @@
 import * as proc from "child_process";
+import * as treeKill from "tree-kill";
+
 import { OutputChannel } from "../OutputChannel";
 import { SpawnError } from "../Terminal/TerminalProcess";
 import { Dictionary } from "../Types";
-import * as treeKill from "tree-kill";
 
 export const getProcessOutput = (
     executable: string,

@@ -48,7 +48,7 @@ class ChaletToolsExtension {
     private chaletTerminal: ChaletTerminal;
 
     private useDebugChalet: boolean = false;
-    private enabled: boolean = false;
+    enabled: boolean = false;
     private cwd: string = "";
     private uiChaletJsonInitialized: boolean = false;
     private uiSettingsJsonInitialized: boolean = false;
@@ -90,14 +90,10 @@ class ChaletToolsExtension {
     }
 
     activate = async () => {
-        try {
-            await this.chaletCommand.initialize();
-            await this.buildConfiguration.initialize();
-            await this.buildToolchain.initialize();
-            await this.buildArchitecture.initialize();
-        } catch (err) {
-            OutputChannel.logError(err);
-        }
+        await this.chaletCommand.initialize();
+        await this.buildConfiguration.initialize();
+        await this.buildToolchain.initialize();
+        await this.buildArchitecture.initialize();
     };
 
     private getChaletList = async (type: string, ...data: string[]): Promise<string[]> => {
@@ -105,7 +101,7 @@ class ChaletToolsExtension {
             const chalet = this.useDebugChalet ? ChaletVersion.Debug : ChaletVersion.Release;
             const env = getTerminalEnv(this.platform);
             const output = await getProcessOutput(chalet, ["query", type, ...data], env, this.cwd);
-            if (output.startsWith("Chalet")) {
+            if (output.startsWith("Chalet") || output.length === 0) {
                 throw new Error(`There was a problem querying Chalet for '${type}'`);
             }
 
@@ -114,7 +110,9 @@ class ChaletToolsExtension {
             return res;
         } catch (err) {
             OutputChannel.logError(err);
-            return [];
+            throw new Error(
+                `Chalet ran into a problem getting details about this workspace. Check Problems panel or Chalet installation.`
+            );
         }
     };
 
@@ -222,32 +220,26 @@ class ChaletToolsExtension {
         try {
             rawData = fs.readFileSync(this.cli.inputFile, "utf8");
         } catch {}
-        try {
-            const update: boolean = rawData != this.chaletJsonCache;
-            if (update) {
-                this.configurations = await this.getChaletConfigurations();
-                this.currentRunTarget = await this.getChaletCurrentRunTarget();
-                if (this.configurations.length === 0) {
-                    throw new Error(`Chalet installation not found, or version was not supported.`);
-                }
-            }
 
-            if (rawData.length > 0) {
-                if (update) {
-                    this.chaletJsonCache = rawData;
-                }
-            } else {
-                this.chaletJsonCache = "";
-            }
-
-            this.buildConfiguration.setDefaultMenu();
-            this.runChaletButton.setRunTarget(this.currentRunTarget);
-
-            this.uiChaletJsonInitialized = true;
-            this.checkForVisibility();
-        } catch (err) {
-            OutputChannel.logError(err);
+        const update: boolean = rawData != this.chaletJsonCache;
+        if (update) {
+            this.configurations = await this.getChaletConfigurations();
+            this.currentRunTarget = await this.getChaletCurrentRunTarget();
         }
+
+        if (rawData.length > 0) {
+            if (update) {
+                this.chaletJsonCache = rawData;
+            }
+        } else {
+            this.chaletJsonCache = "";
+        }
+
+        this.buildConfiguration.setDefaultMenu();
+        this.runChaletButton.setRunTarget(this.currentRunTarget);
+
+        this.uiChaletJsonInitialized = true;
+        this.checkForVisibility();
     };
 
     private settingsJsonCache: string = "<initial>";
@@ -262,45 +254,34 @@ class ChaletToolsExtension {
                 rawData = fs.readFileSync(globalSettings, "utf8");
             } catch {}
         }
-        try {
-            const update: boolean = rawData != this.settingsJsonCache;
-            if (update) {
-                this.toolchainPresets = await this.getChaletToolchainPresets();
-                this.userToolchains = await this.getChaletUserToolchains();
-                this.currentArchitecture = await this.getChaletCurrentArchitecture();
-                this.currentConfiguration = await this.getChaletCurrentBuildConfiguration();
-                this.currentToolchain = await this.getChaletCurrentToolchain();
-                if (
-                    this.toolchainPresets.length === 0 ||
-                    this.currentArchitecture.length === 0 ||
-                    this.currentConfiguration.length === 0 ||
-                    this.currentToolchain.length === 0
-                ) {
-                    throw new Error(`Chalet installation not found, or version was not supported.`);
-                }
-            }
 
-            if (rawData.length > 0) {
-                if (update) {
-                    await this.buildToolchain.parseJsonToolchains();
-                    this.settingsJsonCache = rawData;
-                }
-            } else {
-                await this.buildToolchain.setDefaultMenu();
-                await this.buildArchitecture.setDefaultMenu();
-
-                this.settingsJsonCache = "";
-            }
-
-            await this.buildArchitecture.setValueFromString(this.currentArchitecture);
-            await this.buildConfiguration.setValueFromString(this.currentConfiguration);
-            await this.buildToolchain.setValueFromString(this.currentToolchain);
-
-            this.uiSettingsJsonInitialized = true;
-            this.checkForVisibility();
-        } catch (err) {
-            OutputChannel.logError(err);
+        const update: boolean = rawData != this.settingsJsonCache;
+        if (update) {
+            this.toolchainPresets = await this.getChaletToolchainPresets();
+            this.userToolchains = await this.getChaletUserToolchains();
+            this.currentArchitecture = await this.getChaletCurrentArchitecture();
+            this.currentConfiguration = await this.getChaletCurrentBuildConfiguration();
+            this.currentToolchain = await this.getChaletCurrentToolchain();
         }
+
+        if (rawData.length > 0) {
+            if (update) {
+                await this.buildToolchain.parseJsonToolchains();
+                this.settingsJsonCache = rawData;
+            }
+        } else {
+            await this.buildToolchain.setDefaultMenu();
+            await this.buildArchitecture.setDefaultMenu();
+
+            this.settingsJsonCache = "";
+        }
+
+        await this.buildArchitecture.setValueFromString(this.currentArchitecture);
+        await this.buildConfiguration.setValueFromString(this.currentConfiguration);
+        await this.buildToolchain.setValueFromString(this.currentToolchain);
+
+        this.uiSettingsJsonInitialized = true;
+        this.checkForVisibility();
     };
 
     private onTerminalStart = (): void => {

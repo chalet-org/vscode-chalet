@@ -41,18 +41,14 @@ class ChaletToolsLoader {
     }
 
     private activateFromWorkspaceFolders = async () => {
-        try {
-            const folders = vscode.workspace.workspaceFolders;
-            if (folders) {
-                this.workspaceCount = folders.length;
+        const folders = vscode.workspace.workspaceFolders;
+        if (folders) {
+            this.workspaceCount = folders.length;
 
-                for (const folder of folders) {
-                    const activated = await this.activate(folder);
-                    if (activated) return;
-                }
+            for (const folder of folders) {
+                const activated = await this.activate(folder);
+                if (activated) return;
             }
-        } catch (err) {
-            OutputChannel.logError(err);
         }
     };
 
@@ -84,9 +80,10 @@ class ChaletToolsLoader {
                     this.inputFile = chaletJsonUri.fsPath;
 
                     chaletToolsInstance.setInputFile(this.inputFile);
+                    fs.watchFile(this.inputFile, { interval: 2000 }, this.onChaletJsonChange);
+
                     await chaletToolsInstance.handleChaletJsonChange();
 
-                    fs.watchFile(this.inputFile, { interval: 2000 }, this.onChaletJsonChange);
                     result = true;
                 }
 
@@ -95,43 +92,64 @@ class ChaletToolsLoader {
                     this.settingsFile = settingsJsonUri.fsPath;
 
                     chaletToolsInstance.setSettingsFile(this.settingsFile);
+                    fs.watchFile(this.settingsFile, { interval: 2000 }, this.onSettingsJsonChange);
+
                     await chaletToolsInstance.handleSettingsJsonChange();
 
-                    fs.watchFile(this.settingsFile, { interval: 2000 }, this.onSettingsJsonChange);
+                    result = true;
                 }
 
-                return result;
+                if (result) return true;
             }
 
             await chaletToolsInstance?.setEnabled(false);
 
             return false;
-        } catch (err) {
-            OutputChannel.logError(err);
+        } catch (err: any) {
+            this.handleError(err);
             return false;
         }
     };
 
     private onChaletJsonChange = async (_curr: fs.Stats, _prev: fs.Stats) => {
         try {
-            await chaletToolsInstance?.handleChaletJsonChange();
-        } catch (err) {
-            OutputChannel.logError(err);
+            if (!chaletToolsInstance?.enabled ?? false) {
+                await this.activateFromWorkspaceFolders();
+            } else {
+                await chaletToolsInstance?.handleChaletJsonChange();
+            }
+        } catch (err: any) {
+            this.handleError(err);
         }
     };
 
     private onSettingsJsonChange = async (_curr: fs.Stats, _prev: fs.Stats) => {
         try {
-            await chaletToolsInstance?.handleSettingsJsonChange();
-        } catch (err) {
-            OutputChannel.logError(err);
+            if (!chaletToolsInstance?.enabled ?? false) {
+                await this.activateFromWorkspaceFolders();
+            } else {
+                await chaletToolsInstance?.handleSettingsJsonChange();
+            }
+        } catch (err: any) {
+            this.handleError(err);
         }
+    };
+
+    private handleError = (err: any) => {
+        this.inputFile = null;
+        this.settingsFile = null;
+        this.cwd = null;
+        chaletToolsInstance?.setEnabled(false);
+
+        if (!!err.message) vscode.window.showErrorMessage(err.message);
+        OutputChannel.logError(err);
     };
 
     deactivate = () => {
         chaletToolsInstance?.deactivate();
         chaletToolsInstance = null;
         this.inputFile = null;
+        this.settingsFile = null;
         this.cwd = null;
     };
 }
