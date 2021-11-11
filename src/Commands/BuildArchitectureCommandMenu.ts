@@ -1,12 +1,12 @@
 import * as vscode from "vscode";
 import { bind } from "bind-decorator";
 
-import { BuildArchitecture, CommandId, Optional, ToolchainPreset, VSCodePlatform } from "../Types";
+import { CommandId, Optional, VSCodePlatform } from "../Types";
 import { MenuItem, StatusBarCommandMenu, ValueChangeCallback } from "./StatusBarCommandMenu";
 import { OutputChannel } from "../OutputChannel";
 import { getChaletToolsInstance } from "../ChaletToolsLoader";
 
-type MenuType = BuildArchitecture | string;
+type MenuType = string;
 
 class BuildArchitectureCommandMenu extends StatusBarCommandMenu<MenuType> {
     private toolchain: Optional<string> = null;
@@ -20,77 +20,7 @@ class BuildArchitectureCommandMenu extends StatusBarCommandMenu<MenuType> {
         super(CommandId.BuildArchitecture, onClick, context, priority);
     }
 
-    private getRawMenu = (): MenuType[] => {
-        if (!this.toolchain) return [];
-
-        switch (this.toolchain) {
-            case ToolchainPreset.LLVM:
-            case ToolchainPreset.AppleLLVM: {
-                /// LLVM requires the triple
-                if (this.platform === VSCodePlatform.MacOS) {
-                    return [
-                        //
-                        BuildArchitecture.Auto,
-                        BuildArchitecture.MacOSUniversal2,
-                        BuildArchitecture.X86_64,
-                        BuildArchitecture.ARM64,
-                    ];
-                }
-            }
-            case ToolchainPreset.GCC: {
-                if (this.platform === VSCodePlatform.Windows) {
-                    return [
-                        // Should be MinGW - I'm sure this will need to change at some point
-                        BuildArchitecture.Auto,
-                        BuildArchitecture.X86_64,
-                        BuildArchitecture.I686,
-                    ];
-                }
-            }
-            case ToolchainPreset.IntelGNU: {
-                if (this.platform === VSCodePlatform.MacOS) {
-                    return [
-                        //
-                        BuildArchitecture.Auto,
-                        BuildArchitecture.X86_64,
-                    ];
-                }
-            }
-            default:
-                break;
-        }
-        if (this.platform === VSCodePlatform.Windows) {
-            if (this.toolchain.startsWith("vs-")) {
-                return [
-                    //
-                    BuildArchitecture.Auto,
-                    BuildArchitecture.WindowsHostX64_X64,
-                    BuildArchitecture.WindowsHostX64_X86,
-                    BuildArchitecture.WindowsHostX64_ARM,
-                    BuildArchitecture.WindowsHostX64_ARM64,
-                    BuildArchitecture.WindowsHostX86_X64,
-                    BuildArchitecture.WindowsHostX86_X86,
-                    BuildArchitecture.WindowsHostX86_ARM,
-                    BuildArchitecture.WindowsHostX86_ARM64,
-                ];
-            } else if (this.toolchain === ToolchainPreset.IntelLLVM || this.toolchain.startsWith("icx-")) {
-                return [
-                    //
-                    BuildArchitecture.Auto,
-                    BuildArchitecture.X86_64,
-                    BuildArchitecture.I686,
-                ];
-            }
-        }
-        return [
-            //
-            BuildArchitecture.Auto,
-            BuildArchitecture.X86_64,
-            BuildArchitecture.I686,
-            BuildArchitecture.ARM64,
-            BuildArchitecture.ARM,
-        ];
-    };
+    private getRawMenu = (): MenuType[] => getChaletToolsInstance()?.architectures ?? [];
 
     @bind
     protected getDefaultMenu(): MenuItem<MenuType>[] {

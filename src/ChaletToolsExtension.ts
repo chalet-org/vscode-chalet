@@ -12,6 +12,8 @@ import {
     VSCodePlatform,
     Optional,
     getHomeDirectory,
+    Dictionary,
+    BuildArchitecture,
 } from "./Types";
 import { SpawnError } from "./Terminal/TerminalProcess";
 import { ChaletTerminal } from "./Terminal/ChaletTerminal";
@@ -56,6 +58,7 @@ class ChaletToolsExtension {
     toolchainPresets: string[] = [];
     userToolchains: string[] = [];
     configurations: string[] = [];
+    architectures: string[] = [];
     private currentToolchain: string = "";
     private currentArchitecture: string = "";
     private currentConfiguration: string = "";
@@ -97,11 +100,11 @@ class ChaletToolsExtension {
         }
     };
 
-    private getChaletList = async (type: string): Promise<string[]> => {
+    private getChaletList = async (type: string, ...data: string[]): Promise<string[]> => {
         try {
             const chalet = this.useDebugChalet ? ChaletVersion.Debug : ChaletVersion.Release;
             const env = getTerminalEnv(this.platform);
-            const output = await getProcessOutput(chalet, ["query", type], env, this.cwd);
+            const output = await getProcessOutput(chalet, ["query", type, ...data], env, this.cwd);
             if (output.startsWith("Chalet")) {
                 throw new Error(`There was a problem querying Chalet for '${type}'`);
             }
@@ -115,8 +118,8 @@ class ChaletToolsExtension {
         }
     };
 
-    private getChaletValueFromList = async (type: string): Promise<string> => {
-        const list = await this.getChaletList(type);
+    private getChaletValueFromList = async (type: string, ...data: string[]): Promise<string> => {
+        const list = await this.getChaletList(type, ...data);
         return list.length > 0 ? list[0] : "";
     };
 
@@ -125,12 +128,25 @@ class ChaletToolsExtension {
     private getChaletToolchainPresets = () => this.getChaletList("toolchain-presets");
     private getChaletUserToolchains = () => this.getChaletList("user-toolchains");
     // private getChaletAllToolchains = () => this.getChaletList("all-toolchains");
-    // private getChaletArchitectures = () => this.getChaletList("architectures");
 
     private getChaletCurrentArchitecture = () => this.getChaletValueFromList("architecture");
     private getChaletCurrentToolchain = () => this.getChaletValueFromList("toolchain");
     private getChaletCurrentBuildConfiguration = () => this.getChaletValueFromList("configuration");
     private getChaletCurrentRunTarget = () => this.getChaletValueFromList("run-target");
+
+    archCache: Dictionary<string[]> = {};
+
+    private getChaletArchitectures = async (toolchain: string) => {
+        try {
+            if (!this.archCache[toolchain]) {
+                this.archCache[toolchain] = await this.getChaletList("architectures", toolchain);
+            }
+
+            return this.archCache[toolchain];
+        } catch (err) {
+            return [BuildArchitecture.Auto];
+        }
+    };
 
     deactivate = () => {
         this.chaletTerminal.dispose();
@@ -359,15 +375,6 @@ class ChaletToolsExtension {
                 shellArgs.push(arch);
             }
 
-            /*if (this.buildArchitecture.length > 0 && this.buildArchitecture != BuildArchitecture.Auto) {
-                shellArgs.push("--arch");
-                if (this.buildArchitecture === BuildArchitecture.x64 && this.platform !== VSCodePlatform.Windows) {
-                    shellArgs.push(BuildArchitecture.Auto);
-                } else {
-                    shellArgs.push(this.buildArchitecture);
-                }
-            }*/
-
             shellArgs.push(this.chaletCommand.getCliSubCommand(command));
 
             const shellPath = this.useDebugChalet ? ChaletVersion.Debug : ChaletVersion.Release;
@@ -399,6 +406,11 @@ class ChaletToolsExtension {
     private updateStatusBarItems = async (): Promise<void> => {
         try {
             if (!this.enabled) return;
+
+            const toolchain = this.buildToolchain.getValue();
+            if (toolchain) {
+                this.architectures = await this.getChaletArchitectures(toolchain.label);
+            }
 
             await this.buildConfiguration.requiredForVisibility(this.chaletCommand.getLabel());
             // const isConfigure = this.chaletCommand.isConfigure();
