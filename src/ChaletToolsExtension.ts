@@ -96,12 +96,16 @@ class ChaletToolsExtension {
         await this.buildArchitecture.initialize();
     };
 
-    private getChaletList = async (type: string, ...data: string[]): Promise<string[]> => {
+    private getChaletList = async (
+        type: string,
+        failOnEmptyResult: boolean = true,
+        ...data: string[]
+    ): Promise<string[]> => {
         try {
             const chalet = this.useDebugChalet ? ChaletVersion.Debug : ChaletVersion.Release;
             const env = getTerminalEnv(this.platform);
             const output = await getProcessOutput(chalet, ["query", type, ...data], env, this.cwd);
-            if (output.startsWith("Chalet") || output.length === 0) {
+            if (output.startsWith("Chalet") || (failOnEmptyResult && output.length === 0)) {
                 throw new Error(`There was a problem querying Chalet for '${type}'`);
             }
 
@@ -117,14 +121,14 @@ class ChaletToolsExtension {
     };
 
     private getChaletValueFromList = async (type: string, ...data: string[]): Promise<string> => {
-        const list = await this.getChaletList(type, ...data);
+        const list = await this.getChaletList(type, false, ...data);
         return list.length > 0 ? list[0] : "";
     };
 
     // private getChaletCommands = () => this.getChaletList("commands");
     private getChaletConfigurations = () => this.getChaletList("configurations");
     private getChaletToolchainPresets = () => this.getChaletList("toolchain-presets");
-    private getChaletUserToolchains = () => this.getChaletList("user-toolchains");
+    private getChaletUserToolchains = () => this.getChaletList("user-toolchains", false);
     // private getChaletAllToolchains = () => this.getChaletList("all-toolchains");
 
     private getChaletCurrentArchitecture = () => this.getChaletValueFromList("architecture");
@@ -137,7 +141,7 @@ class ChaletToolsExtension {
     private getChaletArchitectures = async (toolchain: string) => {
         try {
             if (!this.archCache[toolchain]) {
-                this.archCache[toolchain] = await this.getChaletList("architectures", toolchain);
+                this.archCache[toolchain] = await this.getChaletList("architectures", true, toolchain);
             }
 
             return this.archCache[toolchain];
