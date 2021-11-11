@@ -101,7 +101,7 @@ class ChaletToolsExtension {
             const chalet = this.useDebugChalet ? ChaletVersion.Debug : ChaletVersion.Release;
             const env = getTerminalEnv(this.platform);
             const output = await getProcessOutput(chalet, ["query", type, ...data], env, this.cwd);
-            if (output.startsWith("Chalet") || output.length === 0) {
+            if (output.startsWith("Chalet")) {
                 throw new Error(`There was a problem querying Chalet for '${type}'`);
             }
 
@@ -395,9 +395,11 @@ class ChaletToolsExtension {
 
             await this.buildConfiguration.requiredForVisibility(this.chaletCommand.getLabel());
             // const isConfigure = this.chaletCommand.isConfigure();
-            this.buildToolchain.setVisible(true);
             await this.buildArchitecture.setToolchainAndVisibility(toolchain, true);
             this.runChaletButton.updateLabelFromChaletCommand(this.chaletCommand);
+            this.chaletCommand.setVisible(true);
+            this.buildToolchain.setVisible(true);
+            this.runChaletButton.setVisible(true);
         } catch (err) {
             OutputChannel.logError(err);
         }

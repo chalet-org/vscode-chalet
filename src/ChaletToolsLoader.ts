@@ -46,20 +46,19 @@ class ChaletToolsLoader {
             this.workspaceCount = folders.length;
 
             for (const folder of folders) {
-                const activated = await this.activate(folder);
-                if (activated) return;
+                await this.activate(folder);
             }
         }
     };
 
-    private activate = async (workspaceFolder?: vscode.WorkspaceFolder): Promise<boolean> => {
+    private activate = async (workspaceFolder?: vscode.WorkspaceFolder): Promise<void> => {
         try {
             if (workspaceFolder) {
                 const workspaceRoot = workspaceFolder.uri;
                 const inputFileBlank = this.inputFile === null;
                 const settingsFileBlank = this.settingsFile === null;
                 if (this.cwd === workspaceRoot.fsPath && !inputFileBlank && !settingsFileBlank) {
-                    return true; // already watching the workspace
+                    return; // already watching the workspace
                 }
 
                 this.cwd = workspaceRoot.fsPath;
@@ -83,8 +82,6 @@ class ChaletToolsLoader {
                     fs.watchFile(this.inputFile, { interval: 2000 }, this.onChaletJsonChange);
 
                     await chaletToolsInstance.handleChaletJsonChange();
-
-                    result = true;
                 }
 
                 if (settingsFileBlank) {
@@ -95,19 +92,12 @@ class ChaletToolsLoader {
                     fs.watchFile(this.settingsFile, { interval: 2000 }, this.onSettingsJsonChange);
 
                     await chaletToolsInstance.handleSettingsJsonChange();
-
-                    result = true;
                 }
-
-                if (result) return true;
             }
 
             await chaletToolsInstance?.setEnabled(false);
-
-            return false;
         } catch (err: any) {
             this.handleError(err);
-            return false;
         }
     };
 
@@ -135,10 +125,16 @@ class ChaletToolsLoader {
         }
     };
 
-    private handleError = (err: any) => {
+    private clearActivateVars = () => {
         this.inputFile = null;
         this.settingsFile = null;
         this.cwd = null;
+    };
+
+    private handleError = (err: any) => {
+        // We want activate to trigger next time
+        this.clearActivateVars();
+
         chaletToolsInstance?.setEnabled(false);
 
         if (!!err.message) vscode.window.showErrorMessage(err.message);
@@ -148,9 +144,7 @@ class ChaletToolsLoader {
     deactivate = () => {
         chaletToolsInstance?.deactivate();
         chaletToolsInstance = null;
-        this.inputFile = null;
-        this.settingsFile = null;
-        this.cwd = null;
+        this.clearActivateVars();
     };
 }
 
