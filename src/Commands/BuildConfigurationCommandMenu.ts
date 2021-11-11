@@ -25,16 +25,15 @@ class BuildConfigurationCommandMenu extends StatusBarCommandMenu<MenuType> {
     requiredForVisibility = async (command: Optional<ChaletCommands>): Promise<void> => {
         if (command === null) {
             this.setVisible(false);
-            return;
-        }
+        } else {
+            const required: boolean = this.required(command);
+            if (required) {
+                const value = this.value ?? { label: BuildConfigurations.Invalid };
+                await this.setValue(value);
+            }
 
-        const required: boolean = this.required(command);
-        if (required) {
-            const value = this.value ?? { label: BuildConfigurations.Invalid };
-            await this.setValue(value);
+            this.setVisible(required);
         }
-
-        this.setVisible(required);
     };
 
     required = (command: ChaletCommands): boolean => {

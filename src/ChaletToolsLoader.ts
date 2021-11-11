@@ -19,6 +19,7 @@ class ChaletToolsLoader {
     cwd: Optional<string> = null;
 
     workspaceCount: number = 0;
+    watchInterval: number = 1000;
 
     constructor(private context: vscode.ExtensionContext) {
         this.platform = getVSCodePlatform();
@@ -28,7 +29,7 @@ class ChaletToolsLoader {
                 if (this.workspaceCount <= 1) return;
 
                 if (ev) {
-                    let workspaceFolder = vscode.workspace.getWorkspaceFolder(ev.document.uri);
+                    const workspaceFolder = vscode.workspace.getWorkspaceFolder(ev.document.uri);
                     await this.activate(workspaceFolder);
                 }
             })
@@ -47,6 +48,7 @@ class ChaletToolsLoader {
 
             for (const folder of folders) {
                 await this.activate(folder);
+                if (chaletToolsInstance?.enabled ?? false) return;
             }
         }
     };
@@ -73,13 +75,12 @@ class ChaletToolsLoader {
 
                 // TODO: get from local/global settings
 
-                let result = !inputFileBlank;
                 if (inputFileBlank) {
                     const chaletJsonUri = vscode.Uri.joinPath(workspaceRoot, "chalet.json");
                     this.inputFile = chaletJsonUri.fsPath;
 
                     chaletToolsInstance.setInputFile(this.inputFile);
-                    fs.watchFile(this.inputFile, { interval: 2000 }, this.onChaletJsonChange);
+                    fs.watchFile(this.inputFile, { interval: this.watchInterval }, this.onChaletJsonChange);
 
                     await chaletToolsInstance.handleChaletJsonChange();
                 }
@@ -89,13 +90,11 @@ class ChaletToolsLoader {
                     this.settingsFile = settingsJsonUri.fsPath;
 
                     chaletToolsInstance.setSettingsFile(this.settingsFile);
-                    fs.watchFile(this.settingsFile, { interval: 2000 }, this.onSettingsJsonChange);
+                    fs.watchFile(this.settingsFile, { interval: this.watchInterval }, this.onSettingsJsonChange);
 
                     await chaletToolsInstance.handleSettingsJsonChange();
                 }
             }
-
-            await chaletToolsInstance?.setEnabled(false);
         } catch (err: any) {
             this.handleError(err);
         }

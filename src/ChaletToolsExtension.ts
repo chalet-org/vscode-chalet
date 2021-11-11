@@ -101,7 +101,7 @@ class ChaletToolsExtension {
             const chalet = this.useDebugChalet ? ChaletVersion.Debug : ChaletVersion.Release;
             const env = getTerminalEnv(this.platform);
             const output = await getProcessOutput(chalet, ["query", type, ...data], env, this.cwd);
-            if (output.startsWith("Chalet")) {
+            if (output.startsWith("Chalet") || output.length === 0) {
                 throw new Error(`There was a problem querying Chalet for '${type}'`);
             }
 
@@ -156,16 +156,27 @@ class ChaletToolsExtension {
         this.runChaletButton.dispose();
     };
 
+    private checkForVisibility = async () => {
+        try {
+            if (this.uiSettingsJsonInitialized && this.uiChaletJsonInitialized) {
+                if (this.enabled) {
+                    // this.setVisible(true);
+                    await this.updateStatusBarItems(); // do last
+                } else {
+                    this.setVisible(false);
+                }
+            }
+        } catch (err) {
+            throw err;
+        }
+    };
+
     setEnabled = async (enabled: boolean): Promise<void> => {
         try {
             if (this.enabled === enabled) return;
 
             this.enabled = enabled;
-
-            await this.updateStatusBarItems();
-            this.setVisible(false);
-            this.uiSettingsJsonInitialized = false;
-            this.uiChaletJsonInitialized = false;
+            await this.checkForVisibility();
         } catch (err) {
             OutputChannel.logError(err);
         }
@@ -199,17 +210,6 @@ class ChaletToolsExtension {
             if (this.useDebugChalet === useDebugChalet) return;
 
             this.useDebugChalet = useDebugChalet;
-        }
-    };
-
-    private checkForVisibility = async () => {
-        try {
-            if (this.uiSettingsJsonInitialized && this.uiChaletJsonInitialized) {
-                this.setVisible(this.enabled);
-                await this.updateStatusBarItems(); // do last
-            }
-        } catch (err) {
-            throw err;
         }
     };
 
@@ -386,8 +386,6 @@ class ChaletToolsExtension {
 
     private updateStatusBarItems = async (): Promise<void> => {
         try {
-            if (!this.enabled) return;
-
             const toolchain = this.buildToolchain.getLabel();
             if (toolchain) {
                 this.architectures = await this.getChaletArchitectures(toolchain);
@@ -395,8 +393,9 @@ class ChaletToolsExtension {
 
             await this.buildConfiguration.requiredForVisibility(this.chaletCommand.getLabel());
             // const isConfigure = this.chaletCommand.isConfigure();
-            await this.buildArchitecture.setToolchainAndVisibility(toolchain, true);
+            await this.buildArchitecture.setToolchainAndVisibility(toolchain);
             this.runChaletButton.updateLabelFromChaletCommand(this.chaletCommand);
+
             this.chaletCommand.setVisible(true);
             this.buildToolchain.setVisible(true);
             this.runChaletButton.setVisible(true);

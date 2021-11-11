@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import { bind } from "bind-decorator";
 
-import { CommandId, Optional, VSCodePlatform } from "../Types";
+import { BuildArchitecture, CommandId, Optional, VSCodePlatform } from "../Types";
 import { MenuItem, StatusBarCommandMenu, ValueChangeCallback } from "./StatusBarCommandMenu";
 import { OutputChannel } from "../OutputChannel";
 import { getChaletToolsInstance } from "../ChaletToolsLoader";
@@ -24,7 +24,7 @@ class BuildArchitectureCommandMenu extends StatusBarCommandMenu<MenuType> {
         }));
     }
 
-    setToolchainAndVisibility = async (toolchain: Optional<string>, visible: boolean): Promise<void> => {
+    setToolchainAndVisibility = async (toolchain: Optional<string>): Promise<void> => {
         try {
             if (this.toolchain === toolchain) return;
 
@@ -37,7 +37,10 @@ class BuildArchitectureCommandMenu extends StatusBarCommandMenu<MenuType> {
 
             await this.setDefaultMenu();
 
-            if (!visible || this.toolchain === null) {
+            const menu = this.getRawMenu();
+            const onlyAuto = menu.length === 1 && menu[0] === BuildArchitecture.Auto;
+
+            if (onlyAuto || this.toolchain === null) {
                 this.setVisible(false);
             } else {
                 this.setVisible(true);
