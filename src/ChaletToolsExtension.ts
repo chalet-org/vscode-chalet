@@ -28,7 +28,6 @@ import { getCommandID } from "./Functions";
 import { OutputChannel } from "./OutputChannel";
 import { EXTENSION_ID } from "./ExtensionID";
 import { getProcessOutput } from "./Functions/GetProcessOutput";
-import { ChaletSchemaProvider } from "./ChaletSchemaProvider";
 
 class ChaletCliSettings {
     inputFile: string = "";
@@ -72,12 +71,6 @@ class ChaletToolsExtension {
         this.chaletTerminal = new ChaletTerminal();
         this.cli = new ChaletCliSettings();
 
-        const schemaProvider = new ChaletSchemaProvider(context.extensionPath);
-
-        context.subscriptions.push(
-            vscode.workspace.registerTextDocumentContentProvider("chalet-schema", schemaProvider)
-        );
-
         context.subscriptions.push(
             vscode.commands.registerCommand(getCommandID(CommandId.MakeDebugBuild), this.onMakeDebugBuild)
         );
@@ -114,7 +107,7 @@ class ChaletToolsExtension {
             }
 
             const res = JSON.parse(output);
-            console.log(res);
+            // console.log(res);
 
             if (type == "state-chalet-json") {
                 this.configurations = res?.["configurations"] ?? [];

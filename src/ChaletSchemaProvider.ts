@@ -20,7 +20,7 @@ class ChaletSchemaProvider implements vscode.TextDocumentContentProvider {
         this.platform = getVSCodePlatform();
     }
 
-    private fetchSchema = (schema: SchemaType) => {
+    private fetchSchema = (schema: SchemaType): Promise<string> => {
         const chalet = ChaletVersion.Release;
         const env = getTerminalEnv(this.platform);
         return getProcessOutput(chalet, ["query", schema], env);
@@ -30,25 +30,21 @@ class ChaletSchemaProvider implements vscode.TextDocumentContentProvider {
         try {
             const schemaFile = uri.path.substr(1);
 
-            let contents: string;
             if (schemaFile === SchemaType.SettingsJson) {
                 if (this.settingsSchema == null) {
                     this.settingsSchema = await this.fetchSchema(SchemaType.SettingsJson);
                 }
 
-                contents = this.settingsSchema;
+                return this.settingsSchema;
             } else if (schemaFile === SchemaType.ChaletJson) {
                 if (this.chaletSchema == null) {
                     this.chaletSchema = await this.fetchSchema(SchemaType.ChaletJson);
                 }
 
-                contents = this.chaletSchema;
+                return this.chaletSchema;
             } else {
                 throw new Error("Invalid chalet-schema requested");
             }
-
-            // console.log(JSON.parse(contents));
-            return contents;
         } catch (err) {
             OutputChannel.logError(err);
             return "{}";
