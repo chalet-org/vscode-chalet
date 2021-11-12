@@ -19,6 +19,8 @@ export const getProcessOutput = (
             stdio: ["inherit", "pipe", "pipe"],
         });
 
+        OutputChannel.logCommand(`${executable} ${args.join(" ")}`);
+
         runningProcess.stdout.on("data", (chunk: Buffer) => {
             ret += chunk.toString();
         });

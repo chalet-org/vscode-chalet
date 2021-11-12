@@ -96,6 +96,48 @@ class ChaletToolsExtension {
         await this.buildArchitecture.initialize();
     };
 
+    private fetchAttempts: number = 0;
+    private getChaletState = async (type: "state-chalet-json" | "state-settings-json"): Promise<void> => {
+        try {
+            if (this.fetchAttempts === 3) return;
+
+            const chalet = this.useDebugChalet ? ChaletVersion.Debug : ChaletVersion.Release;
+            const env = getTerminalEnv(this.platform);
+            const output = await getProcessOutput(chalet, ["query", type], env, this.cwd);
+
+            if (output.startsWith("Chalet") || (this.fetchAttempts === 5 && output.length === 0)) {
+                throw new Error(`There was a problem querying Chalet for '${type}'`);
+            }
+            if (output.length === 0) {
+                this.fetchAttempts++;
+                return await this.getChaletState(type);
+            }
+
+            const res = JSON.parse(output);
+            console.log(res);
+
+            if (type == "state-chalet-json") {
+                this.configurations = res?.["configurations"] ?? [];
+                this.currentRunTarget = res?.["runTarget"] ?? "";
+            } else {
+                this.toolchainPresets = res?.["toolchainPresets"] ?? [];
+                this.userToolchains = res?.["userToolchains"] ?? [];
+                this.currentArchitecture = res?.["architecture"] ?? BuildArchitecture.Auto;
+                this.currentConfiguration = res?.["configuration"] ?? "";
+                this.currentToolchain = res?.["toolchain"] ?? "";
+            }
+            this.fetchAttempts = 0;
+        } catch (err) {
+            OutputChannel.logError(err);
+            throw new Error(
+                `Chalet ran into a problem getting details about this workspace. Check Problems panel or Chalet installation.`
+            );
+        }
+    };
+
+    private getChaletJsonState = () => this.getChaletState("state-chalet-json");
+    private getSettingsJsonState = () => this.getChaletState("state-settings-json");
+
     private getChaletList = async (
         type: string,
         failOnEmptyResult: boolean = true,
@@ -105,6 +147,8 @@ class ChaletToolsExtension {
             const chalet = this.useDebugChalet ? ChaletVersion.Debug : ChaletVersion.Release;
             const env = getTerminalEnv(this.platform);
             const output = await getProcessOutput(chalet, ["query", type, ...data], env, this.cwd);
+            OutputChannel.log(`${type} result: ${output}`);
+
             if (output.startsWith("Chalet") || (failOnEmptyResult && output.length === 0)) {
                 throw new Error(`There was a problem querying Chalet for '${type}'`);
             }
@@ -120,26 +164,30 @@ class ChaletToolsExtension {
         }
     };
 
-    private getChaletValueFromList = async (type: string, ...data: string[]): Promise<string> => {
+    /*private getChaletValueFromList = async (type: string, ...data: string[]): Promise<string> => {
         const list = await this.getChaletList(type, false, ...data);
         return list.length > 0 ? list[0] : "";
-    };
+    };*/
 
     // private getChaletCommands = () => this.getChaletList("commands");
-    private getChaletConfigurations = () => this.getChaletList("configurations");
-    private getChaletToolchainPresets = () => this.getChaletList("toolchain-presets");
-    private getChaletUserToolchains = () => this.getChaletList("user-toolchains", false);
+    // private getChaletConfigurations = () => this.getChaletList("configurations");
+    // private getChaletToolchainPresets = () => this.getChaletList("toolchain-presets");
+    // private getChaletUserToolchains = () => this.getChaletList("user-toolchains", false);
     // private getChaletAllToolchains = () => this.getChaletList("all-toolchains");
 
-    private getChaletCurrentArchitecture = () => this.getChaletValueFromList("architecture");
-    private getChaletCurrentToolchain = () => this.getChaletValueFromList("toolchain");
-    private getChaletCurrentBuildConfiguration = () => this.getChaletValueFromList("configuration");
-    private getChaletCurrentRunTarget = () => this.getChaletValueFromList("run-target");
+    // private getChaletCurrentArchitecture = () => this.getChaletValueFromList("architecture");
+    // private getChaletCurrentToolchain = () => this.getChaletValueFromList("toolchain");
+    // private getChaletCurrentBuildConfiguration = () => this.getChaletValueFromList("configuration");
+    // private getChaletCurrentRunTarget = () => this.getChaletValueFromList("run-target");
 
     archCache: Dictionary<string[]> = {};
 
     private getChaletArchitectures = async (toolchain: string) => {
         try {
+            if (toolchain.length === 0) {
+                throw new Error("no toolchain");
+            }
+
             if (!this.archCache[toolchain]) {
                 this.archCache[toolchain] = await this.getChaletList("architectures", true, toolchain);
             }
@@ -211,8 +259,6 @@ class ChaletToolsExtension {
         const useDebugChalet = workbenchConfig.get<boolean>("useDebugChalet");
 
         if (useDebugChalet) {
-            if (this.useDebugChalet === useDebugChalet) return;
-
             this.useDebugChalet = useDebugChalet;
         }
     };
@@ -227,8 +273,9 @@ class ChaletToolsExtension {
 
         const update: boolean = rawData != this.chaletJsonCache;
         if (update) {
-            this.configurations = await this.getChaletConfigurations();
-            this.currentRunTarget = await this.getChaletCurrentRunTarget();
+            // this.configurations = await this.getChaletConfigurations();
+            // this.currentRunTarget = await this.getChaletCurrentRunTarget();
+            await this.getChaletJsonState();
         }
 
         if (rawData.length > 0) {
@@ -243,7 +290,7 @@ class ChaletToolsExtension {
         this.runChaletButton.setRunTarget(this.currentRunTarget);
 
         this.uiChaletJsonInitialized = true;
-        this.checkForVisibility();
+        await this.checkForVisibility();
     };
 
     private settingsJsonCache: string = "<initial>";
@@ -261,11 +308,13 @@ class ChaletToolsExtension {
 
         const update: boolean = rawData != this.settingsJsonCache;
         if (update) {
-            this.toolchainPresets = await this.getChaletToolchainPresets();
-            this.userToolchains = await this.getChaletUserToolchains();
-            this.currentArchitecture = await this.getChaletCurrentArchitecture();
-            this.currentConfiguration = await this.getChaletCurrentBuildConfiguration();
-            this.currentToolchain = await this.getChaletCurrentToolchain();
+            // this.toolchainPresets = await this.getChaletToolchainPresets();
+            // this.userToolchains = await this.getChaletUserToolchains();
+            // this.currentArchitecture = await this.getChaletCurrentArchitecture();
+            // this.currentConfiguration = await this.getChaletCurrentBuildConfiguration();
+            // this.currentToolchain = await this.getChaletCurrentToolchain();
+
+            await this.getSettingsJsonState();
         }
 
         if (rawData.length > 0) {
@@ -285,7 +334,7 @@ class ChaletToolsExtension {
         await this.buildToolchain.setValueFromString(this.currentToolchain);
 
         this.uiSettingsJsonInitialized = true;
-        this.checkForVisibility();
+        await this.checkForVisibility();
     };
 
     private onTerminalStart = (): void => {

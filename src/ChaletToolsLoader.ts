@@ -19,7 +19,9 @@ class ChaletToolsLoader {
     cwd: Optional<string> = null;
 
     workspaceCount: number = 0;
-    watchInterval: number = 1000;
+
+    private settingsJsonWatcher: Optional<fs.FSWatcher> = null;
+    private chaletJsonWatcher: Optional<fs.FSWatcher> = null;
 
     constructor(private context: vscode.ExtensionContext) {
         this.platform = getVSCodePlatform();
@@ -75,24 +77,34 @@ class ChaletToolsLoader {
 
                 // TODO: get from local/global settings
 
-                if (inputFileBlank) {
-                    const chaletJsonUri = vscode.Uri.joinPath(workspaceRoot, "chalet.json");
-                    this.inputFile = chaletJsonUri.fsPath;
-
-                    chaletToolsInstance.setInputFile(this.inputFile);
-                    fs.watchFile(this.inputFile, { interval: this.watchInterval }, this.onChaletJsonChange);
-
-                    await chaletToolsInstance.handleChaletJsonChange();
-                }
-
                 if (settingsFileBlank) {
                     const settingsJsonUri = vscode.Uri.joinPath(workspaceRoot, ".chaletrc");
                     this.settingsFile = settingsJsonUri.fsPath;
 
-                    chaletToolsInstance.setSettingsFile(this.settingsFile);
-                    fs.watchFile(this.settingsFile, { interval: this.watchInterval }, this.onSettingsJsonChange);
+                    if (fs.existsSync(this.settingsFile)) {
+                        chaletToolsInstance.setSettingsFile(this.settingsFile);
+
+                        this.settingsJsonWatcher = fs.watch(this.settingsFile, null, this.onSettingsJsonChange);
+                    } else {
+                        this.settingsFile = null;
+                    }
 
                     await chaletToolsInstance.handleSettingsJsonChange();
+                }
+
+                if (inputFileBlank) {
+                    const chaletJsonUri = vscode.Uri.joinPath(workspaceRoot, "chalet.json");
+                    this.inputFile = chaletJsonUri.fsPath;
+
+                    if (fs.existsSync(this.inputFile)) {
+                        chaletToolsInstance.setInputFile(this.inputFile);
+
+                        this.chaletJsonWatcher = fs.watch(this.inputFile, null, this.onChaletJsonChange);
+                    } else {
+                        this.inputFile = null;
+                    }
+
+                    await chaletToolsInstance.handleChaletJsonChange();
                 }
             }
         } catch (err: any) {
@@ -100,24 +112,24 @@ class ChaletToolsLoader {
         }
     };
 
-    private onChaletJsonChange = async (_curr: fs.Stats, _prev: fs.Stats) => {
+    private onChaletJsonChange = async (_ev: "rename" | "change", _filename: string) => {
         try {
             if (!chaletToolsInstance?.enabled ?? false) {
                 await this.activateFromWorkspaceFolders();
             } else {
-                await chaletToolsInstance?.handleChaletJsonChange();
+                await chaletToolsInstance.handleChaletJsonChange();
             }
         } catch (err: any) {
             this.handleError(err);
         }
     };
 
-    private onSettingsJsonChange = async (_curr: fs.Stats, _prev: fs.Stats) => {
+    private onSettingsJsonChange = async (_ev: "rename" | "change", _filename: string) => {
         try {
             if (!chaletToolsInstance?.enabled ?? false) {
                 await this.activateFromWorkspaceFolders();
             } else {
-                await chaletToolsInstance?.handleSettingsJsonChange();
+                await chaletToolsInstance.handleSettingsJsonChange();
             }
         } catch (err: any) {
             this.handleError(err);
@@ -143,6 +155,16 @@ class ChaletToolsLoader {
     deactivate = () => {
         chaletToolsInstance?.deactivate();
         chaletToolsInstance = null;
+
+        if (!!this.settingsJsonWatcher) {
+            this.settingsJsonWatcher.close();
+            this.settingsJsonWatcher = null;
+        }
+        if (!!this.chaletJsonWatcher) {
+            this.chaletJsonWatcher.close();
+            this.chaletJsonWatcher = null;
+        }
+
         this.clearActivateVars();
     };
 }
