@@ -28,6 +28,7 @@ import { getCommandID } from "./Functions";
 import { OutputChannel } from "./OutputChannel";
 import { EXTENSION_ID } from "./ExtensionID";
 import { getProcessOutput } from "./Functions/GetProcessOutput";
+import { FILE_CHALET_SETTINGS_GLOBAL } from "./Constants";
 
 class ChaletCliSettings {
     inputFile: string = "";
@@ -48,6 +49,7 @@ class ChaletToolsExtension {
 
     private useDebugChalet: boolean = false;
     enabled: boolean = false;
+    private canUpdate: boolean = true;
     private cwd: string = "";
     private uiChaletJsonInitialized: boolean = false;
     private uiSettingsJsonInitialized: boolean = false;
@@ -247,6 +249,10 @@ class ChaletToolsExtension {
         this.cli.settingsFile = inPath;
     };
 
+    setUpdateable = (inValue: boolean) => {
+        this.canUpdate = inValue;
+    };
+
     refreshExtensionSettings = () => {
         const workbenchConfig = vscode.workspace.getConfiguration(EXTENSION_ID);
         const useDebugChalet = workbenchConfig.get<boolean>("useDebugChalet");
@@ -259,6 +265,7 @@ class ChaletToolsExtension {
     private chaletJsonCache: string = "<initial>";
 
     handleChaletJsonChange = async (): Promise<void> => {
+        if (!this.canUpdate) return;
         let rawData: string = "";
         try {
             rawData = fs.readFileSync(this.cli.inputFile, "utf8");
@@ -279,7 +286,7 @@ class ChaletToolsExtension {
             this.chaletJsonCache = "";
         }
 
-        this.buildConfiguration.setDefaultMenu();
+        await this.buildConfiguration.setDefaultMenu();
         this.runChaletButton.setRunTarget(this.currentRunTarget);
 
         this.uiChaletJsonInitialized = true;
@@ -289,12 +296,13 @@ class ChaletToolsExtension {
     private settingsJsonCache: string = "<initial>";
 
     handleSettingsJsonChange = async (): Promise<void> => {
+        if (!this.canUpdate) return;
         let rawData: string = "";
         try {
             rawData = fs.readFileSync(this.cli.settingsFile, "utf8");
         } catch {
             try {
-                const globalSettings: string = path.join(getHomeDirectory(), ".chaletconfig");
+                const globalSettings: string = path.join(getHomeDirectory(), FILE_CHALET_SETTINGS_GLOBAL);
                 rawData = fs.readFileSync(globalSettings, "utf8");
             } catch {}
         }

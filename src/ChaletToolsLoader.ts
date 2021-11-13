@@ -1,10 +1,13 @@
 import * as fs from "fs";
+import * as path from "path";
 import * as vscode from "vscode";
+import { debounce } from "lodash";
 
 import { ChaletToolsExtension } from "./ChaletToolsExtension";
 import { ChaletSchemaProvider } from "./ChaletSchemaProvider";
 import { OutputChannel } from "./OutputChannel";
-import { getVSCodePlatform, Optional, VSCodePlatform } from "./Types";
+import { Dictionary, getVSCodePlatform, Optional, VSCodePlatform } from "./Types";
+import { FILE_CHALET_JSON, FILE_CHALET_SETTINGS_GLOBAL, FILE_CHALET_SETTINGS_LOCAL } from "./Constants";
 
 let chaletToolsInstance: Optional<ChaletToolsExtension> = null;
 
@@ -25,6 +28,28 @@ class ChaletToolsLoader {
     // private settingsJsonWatcher: Optional<fs.FSWatcher> = null;
     // private chaletJsonWatcher: Optional<fs.FSWatcher> = null;
 
+    private diagCache: Dictionary<string[]> = {};
+
+    private updateDiagnostics = (uri: vscode.Uri): void => {
+        const base = path.basename(uri.fsPath);
+        if (base === FILE_CHALET_SETTINGS_LOCAL || base === FILE_CHALET_SETTINGS_GLOBAL || base === FILE_CHALET_JSON) {
+            let diags = vscode.languages.getDiagnostics(uri).map((d) => {
+                if (!this.diagCache[base]) this.diagCache[base] = [];
+
+                if (this.diagCache[base].length === 0) {
+                    this.diagCache[base].push(d.message);
+                    chaletToolsInstance?.setUpdateable(false);
+                }
+            });
+            if (diags.length === 0 && !!this.diagCache[base]) {
+                delete this.diagCache[base];
+                if (Object.keys(this.diagCache).length === 0) {
+                    chaletToolsInstance?.setUpdateable(true);
+                }
+            }
+        }
+    };
+
     constructor(private context: vscode.ExtensionContext) {
         this.platform = getVSCodePlatform();
 
@@ -34,6 +59,14 @@ class ChaletToolsLoader {
             vscode.workspace.registerTextDocumentContentProvider("chalet-schema", this.schemaProvider)
         );
 
+        if (vscode.window.activeTextEditor) {
+            const { uri } = vscode.window.activeTextEditor.document;
+            this.updateDiagnostics(uri);
+        }
+
+        context.subscriptions.push(
+            vscode.languages.onDidChangeDiagnostics((ev) => ev.uris.map(debounce(this.updateDiagnostics, 500)))
+        );
         context.subscriptions.push(
             vscode.window.onDidChangeActiveTextEditor(async (ev) => {
                 if (this.workspaceCount <= 1) return;
@@ -86,7 +119,7 @@ class ChaletToolsLoader {
                 // TODO: get from local/global settings
 
                 if (settingsFileBlank) {
-                    const settingsJsonUri = vscode.Uri.joinPath(workspaceRoot, ".chaletrc");
+                    const settingsJsonUri = vscode.Uri.joinPath(workspaceRoot, FILE_CHALET_SETTINGS_LOCAL);
                     this.settingsFile = settingsJsonUri.fsPath;
 
                     if (fs.existsSync(this.settingsFile)) {
@@ -102,7 +135,7 @@ class ChaletToolsLoader {
                 }
 
                 if (inputFileBlank) {
-                    const chaletJsonUri = vscode.Uri.joinPath(workspaceRoot, "chalet.json");
+                    const chaletJsonUri = vscode.Uri.joinPath(workspaceRoot, FILE_CHALET_JSON);
                     this.inputFile = chaletJsonUri.fsPath;
 
                     if (fs.existsSync(this.inputFile)) {

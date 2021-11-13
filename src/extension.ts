@@ -1,11 +1,12 @@
-import { ExtensionContext } from "vscode";
+import * as vscode from "vscode";
+
 import { ChaletToolsLoader } from "./ChaletToolsLoader";
 import { OutputChannel } from "./OutputChannel";
 import { Optional } from "./Types";
 
 let extensionLoader: Optional<ChaletToolsLoader> = null;
 
-export function activate(context: ExtensionContext) {
+export function activate(context: vscode.ExtensionContext) {
     OutputChannel.create("Chalet Tools");
     extensionLoader = new ChaletToolsLoader(context);
     OutputChannel.logWithName("activated");
