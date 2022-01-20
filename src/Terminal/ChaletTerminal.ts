@@ -71,7 +71,7 @@ class ChaletTerminal {
         return vscode.commands.executeCommand("workbench.action.terminal.clear");
     };
 
-    execute = async ({ icon, ...options }: ExecuteOptions): Promise<number> => {
+    execute = async ({ icon, autoClear, ...options }: ExecuteOptions): Promise<number> => {
         try {
             // this.icon = icon;
             this.onTerminalCreate(options.name);
@@ -86,7 +86,11 @@ class ChaletTerminal {
                 this.process = new TerminalProcess(this.onTerminalWrite);
             }
 
-            const result = await this.process.execute(options, this.onTerminalAutoClear);
+            if (!!autoClear) {
+                await this.onTerminalAutoClear();
+            }
+
+            const result = await this.process.execute(options);
             return result;
         } catch (err) {
             throw err;

@@ -39,7 +39,7 @@ class TerminalProcess {
 
     constructor(public onWrite: (text: string) => void) {}
 
-    private onProcessClose = (code: Optional<number>, signal: Optional<NodeJS.Signals>) => {
+    private onProcessClose = (code: Optional<number>, signal: Optional<NodeJS.Signals>): void => {
         let color: number = 37;
         if (this.interrupted) {
             this.onWrite(`\x1b[1;${color}m${this.name} exited with code: 2 (Interrupt)\r\n\x1b[0m`);
@@ -56,17 +56,24 @@ class TerminalProcess {
             }
         }
 
-        this.haltSubProcess(signal);
+        return this.haltSubProcess(signal);
     };
 
-    private haltSubProcess = (signal: Optional<NodeJS.Signals> = null) => {
-        if (this.subprocess) {
-            if (this.subprocess.pid && !this.subprocess.killed) {
-                treeKill(this.subprocess.pid, !!signal ? signal : "SIGTERM", (err?: Error) => {
-                    if (err) console.error(err.message); // we mostly don't care about this error
-                });
-            }
-            this.subprocess = null;
+    private haltSubProcess = (signal: Optional<NodeJS.Signals> = null, onHalt?: () => void): void => {
+        if (!!this.subprocess?.pid) {
+            let sig = !!signal ? signal : "SIGTERM";
+            // this.subprocess.kill(sig);
+            // this.subprocess = null;
+            // resolve();
+
+            treeKill(this.subprocess.pid, sig, (err?: Error) => {
+                if (!!err) OutputChannel.logError(err.message);
+
+                this.subprocess = null;
+                onHalt?.();
+            });
+        } else {
+            onHalt?.();
         }
     };
 
@@ -157,36 +164,39 @@ class TerminalProcess {
         }
     };
 
-    execute = (
-        { autoClear, name, cwd, env, onStart, onSuccess, onFailure, ...options }: TerminalProcessOptions,
-        onAutoClear: () => Thenable<void>
-    ): Promise<number> => {
+    execute = ({
+        autoClear,
+        name,
+        cwd,
+        env,
+        onStart,
+        onSuccess,
+        onFailure,
+        ...options
+    }: TerminalProcessOptions): Promise<number> => {
         return new Promise((resolve, reject) => {
-            this.haltSubProcess();
-            this.interrupted = false;
-
-            if (!!autoClear) {
-                (async () => {
-                    try {
-                        await onAutoClear();
-                    } catch (err) {
-                        reject(err);
-                    }
-                })();
+            if (!!this.subprocess) {
+                // Note: Fixes a bug where if the process is recreated, the old listeners don't get fired
+                this.subprocess.stdout.removeAllListeners("data");
+                this.subprocess.stderr.removeAllListeners("data");
+                this.subprocess.removeAllListeners("close");
+                this.subprocess.removeAllListeners("error");
             }
 
-            // console.log(cwd);
-            // console.log(env);
+            this.haltSubProcess("SIGTERM", () => {
+                this.interrupted = false;
 
-            const shellArgs: string[] = options.shellArgs ?? [];
-            // console.log(options.shellPath, shellArgs.join(" "));
-            const spawnOptions: proc.SpawnOptionsWithStdioTuple<proc.StdioPipe, proc.StdioPipe, proc.StdioPipe> = {
-                cwd: cwd ?? process.cwd(),
-                env,
-                stdio: ["pipe", "pipe", "pipe"],
-            };
+                // console.log(cwd);
+                // console.log(env);
 
-            if (this.subprocess === null) {
+                const shellArgs: string[] = options.shellArgs ?? [];
+                // console.log(options.shellPath, shellArgs.join(" "));
+                const spawnOptions: proc.SpawnOptionsWithStdioTuple<proc.StdioPipe, proc.StdioPipe, proc.StdioPipe> = {
+                    cwd: cwd ?? process.cwd(),
+                    env,
+                    stdio: ["pipe", "pipe", "pipe"],
+                };
+
                 this.onWrite("\r\n");
                 this.subprocess = proc.spawn(options.shellPath, shellArgs, spawnOptions);
                 onStart?.();
@@ -216,11 +226,15 @@ class TerminalProcess {
                 // exit - stdio streams have not finished
                 // close - stdio streams have finished
                 this.subprocess.on("close", (code, signal) => {
-                    this.onProcessClose(code, signal);
-                    onSuccess?.(code ?? 0, signal);
-                    resolve(code ?? 0);
+                    try {
+                        this.onProcessClose(code, signal);
+                        onSuccess?.(code ?? 0, signal);
+                        resolve(code ?? 0);
+                    } catch (err) {
+                        reject(err);
+                    }
                 });
-            }
+            });
         });
     };
 
