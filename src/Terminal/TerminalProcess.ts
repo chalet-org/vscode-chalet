@@ -42,16 +42,17 @@ class TerminalProcess {
     private onProcessClose = (code: Optional<number>, signal: Optional<NodeJS.Signals>) => {
         let color: number = 37;
         if (this.interrupted) {
-            this.onWrite(`\x1b[1;${color}m\r\n${this.name} exited with code: 2 (Interrupt)\r\n\x1b[0m`);
+            this.onWrite(`\x1b[1;${color}m${this.name} exited with code: 2 (Interrupt)\r\n\x1b[0m`);
         } else if (code === null) {
-            this.onWrite(`\x1b[1;${color}m\r\n${this.name} exited\r\n\x1b[0m`);
+            this.onWrite(`\x1b[1;${color}m${this.name} exited\r\n\x1b[0m`);
         } else {
             if (code === -2) {
+                color = 31;
                 this.onWrite(
-                    `\x1b[1;${color}m\r\n\x1b[1;31mCritial Error:\x1b[0m ${this.shellPath} was not found in PATH\r\n\x1b[0m`
+                    `\x1b[1;${color}mCritial Error:\x1b[0m ${this.shellPath} was not found in PATH\r\n\x1b[0m`
                 );
             } else if (code !== -4058 /* ENOENT */) {
-                this.onWrite(`\x1b[1;${color}m\r\n${this.name} exited with code: ${code}\r\n\x1b[0m`);
+                this.onWrite(`\x1b[1;${color}m${this.name} exited with code: ${code}\r\n\x1b[0m`);
             }
         }
 
@@ -186,6 +187,7 @@ class TerminalProcess {
             };
 
             if (this.subprocess === null) {
+                this.onWrite("\r\n");
                 this.subprocess = proc.spawn(options.shellPath, shellArgs, spawnOptions);
                 onStart?.();
 

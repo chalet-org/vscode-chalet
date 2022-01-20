@@ -22,12 +22,13 @@ class ChaletToolsLoader {
     inputFile: Optional<string> = null;
     settingsFile: Optional<string> = null;
     cwd: Optional<string> = null;
+    workspaceWatcher: Optional<fs.FSWatcher> = null;
 
     workspaceCount: number = 0;
 
     private diagCache: Dictionary<string[]> = {};
 
-    private updateDiagnostics = (uri: vscode.Uri): void => {
+    /*private updateDiagnostics = (uri: vscode.Uri): void => {
         const base = path.basename(uri.fsPath);
         if (base === FILE_CHALET_SETTINGS_LOCAL || base === FILE_CHALET_SETTINGS_GLOBAL || base === FILE_CHALET_JSON) {
             let diags = vscode.languages.getDiagnostics(uri).map((d) => {
@@ -45,7 +46,7 @@ class ChaletToolsLoader {
                 }
             }
         }
-    };
+    };*/
 
     constructor(private context: vscode.ExtensionContext) {
         this.platform = getVSCodePlatform();
@@ -58,12 +59,12 @@ class ChaletToolsLoader {
 
         if (vscode.window.activeTextEditor) {
             const { uri } = vscode.window.activeTextEditor.document;
-            this.updateDiagnostics(uri);
+            // this.updateDiagnostics(uri);
         }
 
-        context.subscriptions.push(
+        /*context.subscriptions.push(
             vscode.languages.onDidChangeDiagnostics((ev) => ev.uris.map(debounce(this.updateDiagnostics, 500)))
-        );
+        );*/
         context.subscriptions.push(
             vscode.window.onDidChangeActiveTextEditor(async (ev) => {
                 if (this.workspaceCount <= 1) return;
@@ -78,6 +79,7 @@ class ChaletToolsLoader {
         context.subscriptions.push(
             vscode.workspace.onDidChangeWorkspaceFolders((ev) => this.activateFromWorkspaceFolders())
         );
+
         this.activateFromWorkspaceFolders();
     }
 
@@ -95,50 +97,60 @@ class ChaletToolsLoader {
 
     private activate = async (workspaceFolder?: vscode.WorkspaceFolder): Promise<void> => {
         try {
-            if (workspaceFolder) {
-                const workspaceRoot = workspaceFolder.uri;
-                const inputFileBlank = this.inputFile === null;
-                const settingsFileBlank = this.settingsFile === null;
-                if (this.cwd === workspaceRoot.fsPath && !inputFileBlank && !settingsFileBlank) {
-                    return; // already watching the workspace
-                }
+            if (!workspaceFolder) return;
 
+            const workspaceRoot = workspaceFolder.uri;
+            const inputFileBlank = this.inputFile === null;
+            const settingsFileBlank = this.settingsFile === null;
+
+            let setWatcher: boolean = false;
+            if (this.cwd !== workspaceRoot.fsPath) {
                 this.cwd = workspaceRoot.fsPath;
+                OutputChannel.log(this.cwd);
 
-                if (chaletToolsInstance === null) {
-                    chaletToolsInstance = new ChaletToolsExtension(this.context, this.platform);
-                    await chaletToolsInstance.activate();
+                if (!!chaletToolsInstance) {
+                    chaletToolsInstance.setWorkingDirectory(this.cwd);
                 }
-                await chaletToolsInstance.setEnabled(true);
-                chaletToolsInstance.setWorkingDirectory(this.cwd);
-                chaletToolsInstance.refreshExtensionSettings();
-
-                // TODO: get from local/global settings
-
-                if (settingsFileBlank) {
-                    const settingsJsonUri = vscode.Uri.joinPath(workspaceRoot, FILE_CHALET_SETTINGS_LOCAL);
-                    this.settingsFile = settingsJsonUri.fsPath;
-
-                    // Note: assume the file exists. if it doesn't, watchFile will pick it up
-                    chaletToolsInstance.setSettingsFile(this.settingsFile);
-
-                    fs.watchFile(this.settingsFile, { interval: 1000 }, this.onSettingsJsonChange);
-
-                    await chaletToolsInstance.handleSettingsJsonChange();
-                }
-
-                if (inputFileBlank) {
-                    const chaletJsonUri = vscode.Uri.joinPath(workspaceRoot, FILE_CHALET_JSON);
-                    this.inputFile = chaletJsonUri.fsPath;
-
-                    // Note: assume the file exists. if it doesn't, watchFile will pick it up
-                    chaletToolsInstance.setInputFile(this.inputFile);
-
-                    fs.watchFile(this.inputFile, { interval: 1000 }, this.onChaletJsonChange);
-
-                    await chaletToolsInstance.handleChaletJsonChange();
-                }
+                setWatcher = true;
             }
+
+            if (chaletToolsInstance === null) {
+                chaletToolsInstance = new ChaletToolsExtension(this.context, this.platform, this.cwd);
+                await chaletToolsInstance.activate();
+                chaletToolsInstance.refreshExtensionSettings();
+            }
+
+            if (setWatcher) {
+                this.clearWatcher();
+                this.workspaceWatcher = fs.watch(this.cwd, this.activateFromWorkspaceFolders);
+            }
+
+            // TODO: get from local/global settings
+
+            if (settingsFileBlank) {
+                const settingsJsonUri = vscode.Uri.joinPath(workspaceRoot, FILE_CHALET_SETTINGS_LOCAL);
+                this.settingsFile = settingsJsonUri.fsPath;
+
+                // Note: assume the file exists. if it doesn't, watchFile will pick it up
+                chaletToolsInstance.setSettingsFile(this.settingsFile);
+
+                fs.watchFile(this.settingsFile, { interval: 1000 }, this.onSettingsJsonChange);
+            }
+
+            if (inputFileBlank) {
+                const chaletJsonUri = vscode.Uri.joinPath(workspaceRoot, FILE_CHALET_JSON);
+                this.inputFile = chaletJsonUri.fsPath;
+
+                // Note: assume the file exists. if it doesn't, watchFile will pick it up
+                chaletToolsInstance.setInputFile(this.inputFile);
+
+                fs.watchFile(this.inputFile, { interval: 1000 }, this.onChaletJsonChange);
+            }
+
+            await chaletToolsInstance.setEnabled(
+                (!!this.inputFile && fs.existsSync(this.inputFile)) ||
+                    (!!this.settingsFile && fs.existsSync(this.settingsFile))
+            );
         } catch (err: any) {
             this.handleError(err);
         }
@@ -169,6 +181,14 @@ class ChaletToolsLoader {
     };
 
     private clearActivateVars = () => {
+        if (this.inputFile) {
+            fs.unwatchFile(this.inputFile);
+        }
+
+        if (this.settingsFile) {
+            fs.unwatchFile(this.settingsFile);
+        }
+
         this.inputFile = null;
         this.settingsFile = null;
         this.cwd = null;
@@ -184,7 +204,16 @@ class ChaletToolsLoader {
         OutputChannel.logError(err);
     };
 
+    private clearWatcher = () => {
+        if (!!this.workspaceWatcher) {
+            this.workspaceWatcher.close();
+            this.workspaceWatcher = null;
+        }
+    };
+
     deactivate = () => {
+        this.clearWatcher();
+
         chaletToolsInstance?.deactivate();
         chaletToolsInstance = null;
 

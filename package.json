@@ -21,6 +21,8 @@
 		"onCommand:chalet-tools.buildArchitecture",
 		"onCommand:chalet-tools.buildConfiguration",
 		"onCommand:chalet-tools.makeDebugBuild",
+		"onCommand:chalet-tools.initializeProject",
+		"onCommand:chalet-tools.initializeCMakeProject",
 		"workspaceContains:**/chalet.json",
 		"workspaceContains:**/.chaletrc",
 		"onFileSystem:chalet-schema"
@@ -82,6 +84,14 @@
 			{
 				"command": "chalet-tools.makeDebugBuild",
 				"title": "Chalet Tools: Make Debug Build"
+			},
+			{
+				"command": "chalet-tools.initializeProject",
+				"title": "Chalet Tools: Initialize Project"
+			},
+			{
+				"command": "chalet-tools.initializeCMakeProject",
+				"title": "Chalet Tools: Initialize Project with CMake"
 			}
 		],
 		"jsonValidation": [

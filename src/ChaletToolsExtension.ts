@@ -50,7 +50,6 @@ class ChaletToolsExtension {
     private useDebugChalet: boolean = false;
     enabled: boolean = false;
     private canUpdate: boolean = true;
-    private cwd: string = "";
     private uiChaletJsonInitialized: boolean = false;
     private uiSettingsJsonInitialized: boolean = false;
 
@@ -69,12 +68,26 @@ class ChaletToolsExtension {
         this.runChalet(this.chaletCommand.getLabel(), this.buildConfiguration.getLabel(), this.cli);
     private onMakeDebugBuild = () => this.runChalet(ChaletCommands.Build, BuildConfigurations.Debug, this.cli);
 
-    constructor(context: vscode.ExtensionContext, public platform: VSCodePlatform) {
+    private onInitializeProject = () => this.runChalet(ChaletCommands.Init, null, this.cli);
+    private onInitializeCMakeProject = () => this.runChalet(ChaletCommands.Init, "cmake", this.cli);
+
+    constructor(context: vscode.ExtensionContext, public platform: VSCodePlatform, private cwd: string) {
         this.chaletTerminal = new ChaletTerminal();
         this.cli = new ChaletCliSettings();
 
         context.subscriptions.push(
             vscode.commands.registerCommand(getCommandID(CommandId.MakeDebugBuild), this.onMakeDebugBuild)
+        );
+
+        context.subscriptions.push(
+            vscode.commands.registerCommand(getCommandID(CommandId.InitializeProject), this.onInitializeProject)
+        );
+
+        context.subscriptions.push(
+            vscode.commands.registerCommand(
+                getCommandID(CommandId.InitializeCMakeProject),
+                this.onInitializeCMakeProject
+            )
         );
 
         this.chaletCommand = new ChaletCmdCommandMenu(this.updateStatusBarItems, context, 5);
@@ -223,6 +236,8 @@ class ChaletToolsExtension {
             if (this.enabled === enabled) return;
 
             this.enabled = enabled;
+            await this.handleChaletJsonChange();
+            await this.handleSettingsJsonChange();
             await this.checkForVisibility();
         } catch (err) {
             OutputChannel.logError(err);
@@ -358,7 +373,7 @@ class ChaletToolsExtension {
 
     private runChalet = async (
         command: Optional<ChaletCommands>,
-        buildConfig: Optional<string>,
+        param: Optional<string>,
         settings: ChaletCliSettings
     ): Promise<void> => {
         try {
@@ -366,48 +381,55 @@ class ChaletToolsExtension {
 
             let shellArgs: string[] = [];
 
-            if (settings.inputFile.length > 0 && fs.existsSync(settings.inputFile)) {
-                shellArgs.push("--input-file");
-                shellArgs.push(this.stripCwd(settings.inputFile));
-            }
-
-            if (settings.settingsFile.length > 0 && fs.existsSync(settings.settingsFile)) {
-                shellArgs.push("--settings-file");
-                shellArgs.push(this.stripCwd(settings.settingsFile));
-            }
-
-            if (settings.envFile.length > 0 && fs.existsSync(settings.envFile)) {
-                shellArgs.push("--env-file");
-                shellArgs.push(this.stripCwd(settings.envFile));
-            }
-
-            if (settings.rootDir.length > 0) {
-                shellArgs.push("--root-dir");
-                shellArgs.push(this.stripCwd(settings.rootDir));
-            }
-
-            if (settings.outputDir.length > 0) {
-                shellArgs.push("--output-dir");
-                shellArgs.push(this.stripCwd(settings.outputDir));
-            }
-
-            if (this.buildConfiguration.required(command)) {
-                if (buildConfig) {
-                    shellArgs.push("--configuration");
-                    shellArgs.push(buildConfig);
+            if (command === ChaletCommands.Init) {
+                if (!!param) {
+                    shellArgs.push("--template");
+                    shellArgs.push(param);
                 }
-            }
+            } else {
+                if (settings.inputFile.length > 0 && fs.existsSync(settings.inputFile)) {
+                    shellArgs.push("--input-file");
+                    shellArgs.push(this.stripCwd(settings.inputFile));
+                }
 
-            const toolchain = this.buildToolchain.getLabel();
-            if (!!toolchain) {
-                shellArgs.push("--toolchain");
-                shellArgs.push(toolchain);
-            }
+                if (settings.settingsFile.length > 0 && fs.existsSync(settings.settingsFile)) {
+                    shellArgs.push("--settings-file");
+                    shellArgs.push(this.stripCwd(settings.settingsFile));
+                }
 
-            const arch = this.buildArchitecture.getLabel();
-            if (!!arch) {
-                shellArgs.push("--arch");
-                shellArgs.push(arch);
+                if (settings.envFile.length > 0 && fs.existsSync(settings.envFile)) {
+                    shellArgs.push("--env-file");
+                    shellArgs.push(this.stripCwd(settings.envFile));
+                }
+
+                if (settings.rootDir.length > 0) {
+                    shellArgs.push("--root-dir");
+                    shellArgs.push(this.stripCwd(settings.rootDir));
+                }
+
+                if (settings.outputDir.length > 0) {
+                    shellArgs.push("--output-dir");
+                    shellArgs.push(this.stripCwd(settings.outputDir));
+                }
+
+                if (this.buildConfiguration.required(command)) {
+                    if (!!param) {
+                        shellArgs.push("--configuration");
+                        shellArgs.push(param);
+                    }
+                }
+
+                const toolchain = this.buildToolchain.getLabel();
+                if (!!toolchain) {
+                    shellArgs.push("--toolchain");
+                    shellArgs.push(toolchain);
+                }
+
+                const arch = this.buildArchitecture.getLabel();
+                if (!!arch) {
+                    shellArgs.push("--arch");
+                    shellArgs.push(arch);
+                }
             }
 
             shellArgs.push(this.chaletCommand.getCliSubCommand(command));
