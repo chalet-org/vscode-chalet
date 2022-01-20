@@ -66,8 +66,9 @@ class TerminalProcess {
             // this.subprocess = null;
             // resolve();
 
-            treeKill(this.subprocess.pid, sig, (err?: Error) => {
-                if (!!err) OutputChannel.logError(err.message);
+            treeKill(this.subprocess.pid, sig, (_err?: Error) => {
+                // Note: We don't care about the error
+                // if (!!err) OutputChannel.logError(err);
 
                 this.subprocess = null;
                 onHalt?.();
