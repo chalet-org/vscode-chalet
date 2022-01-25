@@ -1,9 +1,19 @@
 {
 	"name": "chalet-tools",
-	"displayName": "chalet-tools",
-	"description": "Chalet tools",
-	"version": "0.0.1",
-	"license": "UNLICENSED",
+	"displayName": "Chalet",
+	"description": "Support for Chalet projects in Visual Studio Code",
+	"version": "0.3.0",
+	"publisher": "catbytes",
+	"license": "BSD 3-Clause License",
+	"icon": "chalet-logo-128.png",
+	"bugs": {
+		"url": "https://github.com/chalet-org/chalet-tools/issues",
+		"email": "andrew.raymond.king@gmail.com"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/chalet-org/chalet-tools.git"
+	},
 	"engines": {
 		"vscode": "^1.63.1"
 	},
