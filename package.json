@@ -4,7 +4,7 @@
 	"description": "Support for Chalet projects in Visual Studio Code",
 	"version": "0.3.0",
 	"publisher": "rewrking",
-	"license": "BSD 3-Clause License",
+	"license": "BSD-3-Clause",
 	"icon": "chalet-logo-128.png",
 	"bugs": {
 		"url": "https://github.com/chalet-org/chalet-tools/issues",
@@ -123,11 +123,11 @@
 		]
 	},
 	"scripts": {
-		"vscode:prepublish": "yarn run compile",
-		"compile": "tsc -p ./src",
+		"vscode:prepublish": "yarn run build",
+		"build": "tsc -p ./src",
 		"lint": "eslint src --ext ts",
 		"watch": "tsc -watch -p ./src",
-		"pretest": "yarn run compile && yarn run lint",
+		"pretest": "yarn run build && yarn run lint",
 		"test": "node ./out/test/runTest.js"
 	},
 	"devDependencies": {
