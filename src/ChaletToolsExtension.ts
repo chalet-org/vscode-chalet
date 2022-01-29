@@ -7,7 +7,6 @@ import {
     // BuildArchitecture,
     BuildConfigurations,
     ChaletCommands,
-    ChaletVersion,
     CommandId,
     VSCodePlatform,
     Optional,
@@ -26,9 +25,9 @@ import {
 } from "./Commands";
 import { getCommandID } from "./Functions";
 import { OutputChannel } from "./OutputChannel";
-import { EXTENSION_ID } from "./ExtensionID";
 import { getProcessOutput } from "./Functions/GetProcessOutput";
 import { FILE_CHALET_SETTINGS_GLOBAL } from "./Constants";
+import { ChaletToolsExtensionSettings } from "./ChaletToolsExtensionSettings";
 
 class ChaletCliSettings {
     inputFile: string = "";
@@ -47,7 +46,8 @@ class ChaletToolsExtension {
 
     private chaletTerminal: ChaletTerminal;
 
-    private useDebugChalet: boolean = false;
+    settings: ChaletToolsExtensionSettings;
+
     enabled: boolean = false;
     private canUpdate: boolean = true;
     private uiChaletJsonInitialized: boolean = false;
@@ -79,6 +79,7 @@ class ChaletToolsExtension {
     ) {
         this.chaletTerminal = new ChaletTerminal();
         this.cli = new ChaletCliSettings();
+        this.settings = new ChaletToolsExtensionSettings();
 
         context.subscriptions.push(
             vscode.commands.registerCommand(getCommandID(CommandId.MakeDebugBuild), this.onMakeDebugBuild)
@@ -114,7 +115,7 @@ class ChaletToolsExtension {
         try {
             if (this.fetchAttempts === 3) return;
 
-            const chalet = this.useDebugChalet ? ChaletVersion.Debug : ChaletVersion.Release;
+            const chalet = this.settings.getChaletExecutable();
             const env = getTerminalEnv(this.platform);
             const output = await getProcessOutput(chalet, ["query", type], env, this.cwd);
 
@@ -131,7 +132,7 @@ class ChaletToolsExtension {
 
             if (type == "state-chalet-json") {
                 this.configurations = res?.["configurations"] ?? [];
-                this.currentRunTarget = res?.["runTarget"] ?? "";
+                this.currentRunTarget = res?.["defaultRunTarget"] ?? "";
             } else {
                 this.toolchainPresets = res?.["toolchainPresets"] ?? [];
                 this.userToolchains = res?.["userToolchains"] ?? [];
@@ -159,7 +160,7 @@ class ChaletToolsExtension {
         ...data: string[]
     ): Promise<string[]> => {
         try {
-            const chalet = this.useDebugChalet ? ChaletVersion.Debug : ChaletVersion.Release;
+            const chalet = this.settings.getChaletExecutable();
             const env = getTerminalEnv(this.platform);
             const output = await getProcessOutput(chalet, ["query", type, ...data], env, this.cwd);
             OutputChannel.log(`${type} result: ${output}`);
@@ -173,9 +174,9 @@ class ChaletToolsExtension {
             return res;
         } catch (err) {
             console.error(err);
-            err = new Error(
-                `Chalet ran into a problem getting details about this workspace. Check Problems panel or Chalet installation.`
-            );
+            // err = new Error(
+            //     `Chalet ran into a problem getting details about this workspace. Check Problems panel or Chalet installation.`
+            // );
             this.handleError(err);
             throw err;
         }
@@ -228,7 +229,7 @@ class ChaletToolsExtension {
     private checkForVisibility = async () => {
         try {
             if (this.uiSettingsJsonInitialized && this.uiChaletJsonInitialized) {
-                if (this.enabled) {
+                if (this.enabled && this.settings.canShowStatusBarButtons()) {
                     // this.setVisible(true);
                     await this.updateStatusBarItems(); // do last
                 } else {
@@ -277,15 +278,6 @@ class ChaletToolsExtension {
 
     setUpdateable = (inValue: boolean) => {
         this.canUpdate = inValue;
-    };
-
-    refreshExtensionSettings = () => {
-        const workbenchConfig = vscode.workspace.getConfiguration(EXTENSION_ID);
-        const useDebugChalet = workbenchConfig.get<boolean>("useDebugChalet");
-
-        if (useDebugChalet) {
-            this.useDebugChalet = useDebugChalet;
-        }
     };
 
     private chaletJsonCache: string = "<initial>";
@@ -445,8 +437,8 @@ class ChaletToolsExtension {
 
             shellArgs.push(this.chaletCommand.getCliSubCommand(command));
 
-            const shellPath = this.useDebugChalet ? ChaletVersion.Debug : ChaletVersion.Release;
-            const name = `Chalet${this.useDebugChalet ? " (Debug)" : ""}`;
+            const shellPath = this.settings.getChaletExecutable();
+            const label = this.settings.getChaletTabLabel();
             const env = getTerminalEnv(this.platform);
             const icon = this.chaletCommand.getIcon();
 
@@ -455,7 +447,7 @@ class ChaletToolsExtension {
             OutputChannel.logCommand(`${shellPath} ${shellArgs.join(" ")}`);
 
             await this.chaletTerminal.execute({
-                name,
+                label,
                 autoClear: false,
                 shellPath,
                 shellArgs,

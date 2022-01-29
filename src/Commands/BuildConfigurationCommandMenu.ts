@@ -3,7 +3,6 @@ import { bind } from "bind-decorator";
 
 import { BuildConfigurations, ChaletCommands, CommandId, Optional } from "../Types";
 import { StatusBarCommandMenu, ValueChangeCallback, MenuItem } from "./StatusBarCommandMenu";
-import { OutputChannel } from "../OutputChannel";
 import { getChaletToolsInstance } from "../ChaletToolsLoader";
 
 type MenuType = string;

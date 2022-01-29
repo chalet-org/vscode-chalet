@@ -117,7 +117,7 @@ class ChaletToolsLoader {
             if (chaletToolsInstance === null) {
                 chaletToolsInstance = new ChaletToolsExtension(this.context, this.platform, this.cwd, this.handleError);
                 await chaletToolsInstance.activate();
-                chaletToolsInstance.refreshExtensionSettings();
+                chaletToolsInstance.settings.refresh();
             }
 
             if (setWatcher) {

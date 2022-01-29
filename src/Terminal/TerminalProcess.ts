@@ -19,7 +19,7 @@ type SucessCallback = (code?: Optional<number>, signal?: Optional<NodeJS.Signals
 type FailureCallback = (err?: SpawnError) => void;
 
 export type TerminalProcessOptions = {
-    name: string;
+    label: string;
     autoClear?: boolean;
     shellPath: string;
     shellArgs?: string[];
@@ -35,16 +35,16 @@ class TerminalProcess {
     private interrupted: boolean = false;
 
     private shellPath: string = "";
-    private name: string = "";
+    private label: string = "";
 
     constructor(public onWrite: (text: string) => void) {}
 
     private onProcessClose = (code: Optional<number>, signal: Optional<NodeJS.Signals>): void => {
         let color: number = 37;
         if (this.interrupted) {
-            this.onWrite(`\x1b[1;${color}m${this.name} exited with code: 2 (Interrupt)\r\n\x1b[0m`);
+            this.onWrite(`\x1b[1;${color}m${this.label} exited with code: 2 (Interrupt)\r\n\x1b[0m`);
         } else if (code === null) {
-            this.onWrite(`\x1b[1;${color}m${this.name} exited\r\n\x1b[0m`);
+            this.onWrite(`\x1b[1;${color}m${this.label} exited\r\n\x1b[0m`);
         } else {
             if (code === -2) {
                 color = 31;
@@ -52,7 +52,7 @@ class TerminalProcess {
                     `\x1b[1;${color}mCritial Error:\x1b[0m ${this.shellPath} was not found in PATH\r\n\x1b[0m`
                 );
             } else if (code !== -4058 /* ENOENT */) {
-                this.onWrite(`\x1b[1;${color}m${this.name} exited with code: ${code}\r\n\x1b[0m`);
+                this.onWrite(`\x1b[1;${color}m${this.label} exited with code: ${code}\r\n\x1b[0m`);
             }
         }
 
@@ -167,7 +167,7 @@ class TerminalProcess {
 
     execute = ({
         autoClear,
-        name,
+        label,
         cwd,
         env,
         onStart,
@@ -202,7 +202,7 @@ class TerminalProcess {
                 this.subprocess = proc.spawn(options.shellPath, shellArgs, spawnOptions);
                 onStart?.();
 
-                this.name = name;
+                this.label = label;
                 this.shellPath = options.shellPath;
 
                 this.subprocess.on("error", (err: SpawnError) => {

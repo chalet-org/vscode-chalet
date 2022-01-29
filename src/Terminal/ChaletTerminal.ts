@@ -26,10 +26,10 @@ class ChaletTerminal {
         this.pseudoTerminal = null;
     };
 
-    private fetchOrMakeTerminal = (name: string): vscode.Terminal => {
+    private fetchOrMakeTerminal = (label: string): vscode.Terminal => {
         let terminal: vscode.Terminal | undefined;
-        if (name && typeof name === "string") {
-            terminal = vscode.window.terminals.find((term) => term.name === name);
+        if (label && typeof label === "string") {
+            terminal = vscode.window.terminals.find((term) => term.name === label);
         } else {
             terminal = vscode.window.activeTerminal;
         }
@@ -39,7 +39,7 @@ class ChaletTerminal {
         } else {
             const pty = this.createPseudoTerminal();
             terminal = vscode.window.createTerminal({
-                name,
+                name: label,
                 pty,
                 iconPath: new vscode.ThemeIcon(this.icon),
             });
@@ -57,9 +57,9 @@ class ChaletTerminal {
         }
         return this.pseudoTerminal;
     };
-    private onTerminalCreate = (name: string) => {
+    private onTerminalCreate = (label: string) => {
         if (this.view === null) {
-            this.view = this.fetchOrMakeTerminal(name);
+            this.view = this.fetchOrMakeTerminal(label);
         }
     };
     private onTerminalOpen = () => {};
@@ -74,7 +74,7 @@ class ChaletTerminal {
     execute = async ({ icon, autoClear, ...options }: ExecuteOptions): Promise<number> => {
         try {
             // this.icon = icon;
-            this.onTerminalCreate(options.name);
+            this.onTerminalCreate(options.label);
             if (this.view !== null) {
                 this.view.show();
             }

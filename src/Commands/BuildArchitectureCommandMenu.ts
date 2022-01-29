@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import { bind } from "bind-decorator";
 
-import { BuildArchitecture, CommandId, Optional, VSCodePlatform } from "../Types";
+import { BuildArchitecture, CommandId, Optional } from "../Types";
 import { MenuItem, StatusBarCommandMenu, ValueChangeCallback } from "./StatusBarCommandMenu";
 import { OutputChannel } from "../OutputChannel";
 import { getChaletToolsInstance } from "../ChaletToolsLoader";

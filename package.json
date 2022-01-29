@@ -60,13 +60,10 @@
 					"default": false,
 					"description": "Use chalet-debug instead of chalet in commands"
 				},
-				"chalet-tools.targetArchitectures": {
-					"type": "array",
-					"description": "A list of target architecture triples to pick from in the status bar.",
-					"uniqueItems": true,
-					"items": {
-						"type": "string"
-					}
+				"chalet-tools.enableStatusBarButtons": {
+					"type": "boolean",
+					"default": true,
+					"description": "Display chalet actions in the status bar"
 				}
 			}
 		},
