@@ -1,5 +1,6 @@
 import * as proc from "child_process";
 import * as treeKill from "tree-kill";
+import * as vscode from "vscode";
 
 import { OutputChannel } from "../OutputChannel";
 import { SpawnError } from "../Terminal/TerminalProcess";
@@ -26,7 +27,10 @@ export const getProcessOutput = (
         });
         runningProcess.on("error", (err: SpawnError) => {
             if (err.code == "ENOENT") {
-                OutputChannel.logError(`Chalet Tools Error: '${executable}' was not found in PATH.\n\n`);
+                OutputChannel.logError({
+                    ...err,
+                    message: `Error: '${executable}' was not found in PATH.`,
+                });
             }
             setTimeout(() => {
                 if (runningProcess.pid && !runningProcess.killed) {

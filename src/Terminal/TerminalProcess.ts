@@ -211,7 +211,7 @@ class TerminalProcess {
                     } else {
                         if (err.code == "ENOENT") {
                             this.onWrite(
-                                `\x1b[31;1mChalet Tools Error:\n\x1b[0m   '${options.shellPath}' was not found in PATH.\n\n`
+                                `\x1b[31;1mError:\n\x1b[0m   '${options.shellPath}' was not found in PATH.\n\n`
                             );
                         }
                         OutputChannel.logError(err);

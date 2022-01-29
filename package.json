@@ -73,35 +73,35 @@
 		"commands": [
 			{
 				"command": "chalet-tools.runChalet",
-				"title": "Chalet Tools: Run Chalet Command"
+				"title": "Chalet: Run Chalet Command"
 			},
 			{
 				"command": "chalet-tools.chaletCommand",
-				"title": "Chalet Tools: Change Chalet Command"
+				"title": "Chalet: Change Chalet Command"
 			},
 			{
 				"command": "chalet-tools.buildToolchain",
-				"title": "Chalet Tools: Change Build Toolchain"
+				"title": "Chalet: Change Build Toolchain"
 			},
 			{
 				"command": "chalet-tools.buildArchitecture",
-				"title": "Chalet Tools: Change Build Architecture"
+				"title": "Chalet: Change Build Architecture"
 			},
 			{
 				"command": "chalet-tools.buildConfiguration",
-				"title": "Chalet Tools: Change Build Configuration"
+				"title": "Chalet: Change Build Configuration"
 			},
 			{
 				"command": "chalet-tools.makeDebugBuild",
-				"title": "Chalet Tools: Make Debug Build"
+				"title": "Chalet: Make Debug Build"
 			},
 			{
 				"command": "chalet-tools.initializeProject",
-				"title": "Chalet Tools: Initialize Project"
+				"title": "Chalet: Initialize Project"
 			},
 			{
 				"command": "chalet-tools.initializeCMakeProject",
-				"title": "Chalet Tools: Initialize Project with CMake"
+				"title": "Chalet: Initialize Project with CMake"
 			}
 		],
 		"jsonValidation": [

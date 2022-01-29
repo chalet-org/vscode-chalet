@@ -71,7 +71,12 @@ class ChaletToolsExtension {
     private onInitializeProject = () => this.runChalet(ChaletCommands.Init, null, this.cli);
     private onInitializeCMakeProject = () => this.runChalet(ChaletCommands.Init, "cmake", this.cli);
 
-    constructor(context: vscode.ExtensionContext, public platform: VSCodePlatform, private cwd: string) {
+    constructor(
+        context: vscode.ExtensionContext,
+        public platform: VSCodePlatform,
+        private cwd: string,
+        private handleError: (err: any) => void
+    ) {
         this.chaletTerminal = new ChaletTerminal();
         this.cli = new ChaletCliSettings();
 
@@ -90,11 +95,11 @@ class ChaletToolsExtension {
             )
         );
 
-        this.chaletCommand = new ChaletCmdCommandMenu(this.updateStatusBarItems, context, 5);
-        this.buildConfiguration = new BuildConfigurationCommandMenu(this.updateStatusBarItems, context, 4);
-        this.buildToolchain = new BuildToolchainCommandMenu(this.updateStatusBarItems, context, 3);
-        this.buildArchitecture = new BuildArchitectureCommandMenu(this.updateStatusBarItems, context, 2);
-        this.runChaletButton = new RunChaletCommandButton(this.onRunChalet, context, 1);
+        this.chaletCommand = new ChaletCmdCommandMenu(this.updateStatusBarItems, context, 7.75);
+        this.buildConfiguration = new BuildConfigurationCommandMenu(this.updateStatusBarItems, context, 7.74);
+        this.buildToolchain = new BuildToolchainCommandMenu(this.updateStatusBarItems, context, 7.73);
+        this.buildArchitecture = new BuildArchitectureCommandMenu(this.updateStatusBarItems, context, 7.72);
+        this.runChaletButton = new RunChaletCommandButton(this.onRunChalet, context, 7.71);
     }
 
     activate = async () => {
@@ -136,10 +141,12 @@ class ChaletToolsExtension {
             }
             this.fetchAttempts = 0;
         } catch (err) {
-            OutputChannel.logError(err);
-            throw new Error(
+            console.error(err);
+            err = new Error(
                 `Chalet ran into a problem getting details about this workspace. Check Problems panel or Chalet installation.`
             );
+            this.handleError(err);
+            throw err;
         }
     };
 
@@ -165,10 +172,12 @@ class ChaletToolsExtension {
             // OutputChannel.log(type, res);
             return res;
         } catch (err) {
-            OutputChannel.logError(err);
-            throw new Error(
+            console.error(err);
+            err = new Error(
                 `Chalet ran into a problem getting details about this workspace. Check Problems panel or Chalet installation.`
             );
+            this.handleError(err);
+            throw err;
         }
     };
 
@@ -236,8 +245,10 @@ class ChaletToolsExtension {
             if (this.enabled === enabled) return;
 
             this.enabled = enabled;
-            await this.handleChaletJsonChange();
-            await this.handleSettingsJsonChange();
+            if (this.enabled) {
+                await this.handleChaletJsonChange();
+                await this.handleSettingsJsonChange();
+            }
             await this.checkForVisibility();
         } catch (err) {
             OutputChannel.logError(err);

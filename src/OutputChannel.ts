@@ -27,7 +27,9 @@ class OutputChannel {
                 line += " ";
             }
         });
-        OutputChannel.output?.appendLine(line);
+        if (line.length > 0) {
+            OutputChannel.output?.appendLine(line);
+        }
     };
 
     static logWithName = (text: string): void => {
