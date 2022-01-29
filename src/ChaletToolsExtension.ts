@@ -162,6 +162,7 @@ class ChaletToolsExtension {
                 `Chalet ran into a problem getting details about this workspace. Check Problems panel or Chalet installation.`
             );
             this.handleError(err);
+            this.fetchAttempts = 0;
             throw err;
         }
     };
