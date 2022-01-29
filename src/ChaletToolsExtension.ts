@@ -1,5 +1,4 @@
 import * as fs from "fs";
-import * as path from "path";
 import * as vscode from "vscode";
 
 import { getTerminalEnv } from "./Functions";
@@ -10,7 +9,6 @@ import {
     CommandId,
     VSCodePlatform,
     Optional,
-    getHomeDirectory,
     Dictionary,
     BuildArchitecture,
 } from "./Types";
@@ -22,11 +20,11 @@ import {
     ChaletCmdCommandMenu,
     RunChaletCommandButton,
     BuildArchitectureCommandMenu,
+    BuildTargetsCommandMenu,
 } from "./Commands";
 import { getCommandID } from "./Functions";
 import { OutputChannel } from "./OutputChannel";
 import { getProcessOutput } from "./Functions/GetProcessOutput";
-import { FILE_CHALET_SETTINGS_GLOBAL } from "./Constants";
 import { ChaletToolsExtensionSettings } from "./ChaletToolsExtensionSettings";
 
 class ChaletCliSettings {
@@ -42,6 +40,7 @@ class ChaletToolsExtension {
     private buildConfiguration: BuildConfigurationCommandMenu;
     private buildArchitecture: BuildArchitectureCommandMenu;
     private buildToolchain: BuildToolchainCommandMenu;
+    private buildTargets: BuildTargetsCommandMenu;
     private runChaletButton: RunChaletCommandButton;
 
     private chaletTerminal: ChaletTerminal;
@@ -54,11 +53,14 @@ class ChaletToolsExtension {
     private uiSettingsJsonInitialized: boolean = false;
 
     private cli: ChaletCliSettings;
+    private globalSettingsFile: string = "";
 
     toolchainPresets: string[] = [];
     userToolchains: string[] = [];
     configurations: string[] = [];
     architectures: string[] = [];
+    targets: string[] = [];
+    runTargets: string[] = [];
     private currentToolchain: string = "";
     private currentArchitecture: string = "";
     private currentConfiguration: string = "";
@@ -96,15 +98,18 @@ class ChaletToolsExtension {
             )
         );
 
-        this.chaletCommand = new ChaletCmdCommandMenu(this.updateStatusBarItems, context, 7.75);
-        this.buildConfiguration = new BuildConfigurationCommandMenu(this.updateStatusBarItems, context, 7.74);
-        this.buildToolchain = new BuildToolchainCommandMenu(this.updateStatusBarItems, context, 7.73);
-        this.buildArchitecture = new BuildArchitectureCommandMenu(this.updateStatusBarItems, context, 7.72);
-        this.runChaletButton = new RunChaletCommandButton(this.onRunChalet, context, 7.71);
+        // Note: Assignment order = reverse visible order
+        this.runChaletButton = new RunChaletCommandButton(context, this.onRunChalet);
+        this.buildTargets = new BuildTargetsCommandMenu(context, this.updateStatusBarItems);
+        this.buildArchitecture = new BuildArchitectureCommandMenu(context, this.updateStatusBarItems);
+        this.buildToolchain = new BuildToolchainCommandMenu(context, this.updateStatusBarItems);
+        this.buildConfiguration = new BuildConfigurationCommandMenu(context, this.updateStatusBarItems);
+        this.chaletCommand = new ChaletCmdCommandMenu(context, this.updateStatusBarItems);
     }
 
     activate = async () => {
         await this.chaletCommand.initialize();
+        await this.buildTargets.initialize();
         await this.buildConfiguration.initialize();
         await this.buildToolchain.initialize();
         await this.buildArchitecture.initialize();
@@ -113,7 +118,7 @@ class ChaletToolsExtension {
     private fetchAttempts: number = 0;
     private getChaletState = async (type: "state-chalet-json" | "state-settings-json"): Promise<void> => {
         try {
-            if (this.fetchAttempts === 3) return;
+            if (this.fetchAttempts === 5) return;
 
             const chalet = this.settings.getChaletExecutable();
             const env = getTerminalEnv(this.platform);
@@ -131,7 +136,10 @@ class ChaletToolsExtension {
             // console.log(res);
 
             if (type == "state-chalet-json") {
+                console.log(res);
                 this.configurations = res?.["configurations"] ?? [];
+                this.targets = res?.["targets"] ?? [];
+                this.runTargets = res?.["runTargets"] ?? [];
                 this.currentRunTarget = res?.["defaultRunTarget"] ?? "";
             } else {
                 this.toolchainPresets = res?.["toolchainPresets"] ?? [];
@@ -174,29 +182,9 @@ class ChaletToolsExtension {
             return res;
         } catch (err) {
             console.error(err);
-            // err = new Error(
-            //     `Chalet ran into a problem getting details about this workspace. Check Problems panel or Chalet installation.`
-            // );
-            this.handleError(err);
             throw err;
         }
     };
-
-    /*private getChaletValueFromList = async (type: string, ...data: string[]): Promise<string> => {
-        const list = await this.getChaletList(type, false, ...data);
-        return list.length > 0 ? list[0] : "";
-    };*/
-
-    // private getChaletCommands = () => this.getChaletList("commands");
-    // private getChaletConfigurations = () => this.getChaletList("configurations");
-    // private getChaletToolchainPresets = () => this.getChaletList("toolchain-presets");
-    // private getChaletUserToolchains = () => this.getChaletList("user-toolchains", false);
-    // private getChaletAllToolchains = () => this.getChaletList("all-toolchains");
-
-    // private getChaletCurrentArchitecture = () => this.getChaletValueFromList("architecture");
-    // private getChaletCurrentToolchain = () => this.getChaletValueFromList("toolchain");
-    // private getChaletCurrentBuildConfiguration = () => this.getChaletValueFromList("configuration");
-    // private getChaletCurrentRunTarget = () => this.getChaletValueFromList("run-target");
 
     archCache: Dictionary<string[]> = {};
 
@@ -211,7 +199,7 @@ class ChaletToolsExtension {
             }
 
             return this.archCache[toolchain];
-        } catch (err) {
+        } catch {
             return [BuildArchitecture.Auto];
         }
     };
@@ -220,6 +208,7 @@ class ChaletToolsExtension {
         this.chaletTerminal.dispose();
 
         this.chaletCommand.dispose();
+        this.buildTargets.dispose();
         this.buildConfiguration.dispose();
         this.buildToolchain.dispose();
         this.buildArchitecture.dispose();
@@ -261,6 +250,7 @@ class ChaletToolsExtension {
         this.buildConfiguration.setVisible(value);
         this.buildToolchain.setVisible(value);
         this.buildArchitecture.setVisible(value);
+        this.buildTargets.setVisible(value);
         this.runChaletButton.setVisible(value);
     };
 
@@ -274,6 +264,10 @@ class ChaletToolsExtension {
 
     setSettingsFile = (inPath: string) => {
         this.cli.settingsFile = inPath;
+    };
+
+    setGlobalSettingsFile = (inPath: string) => {
+        this.globalSettingsFile = inPath;
     };
 
     setUpdateable = (inValue: boolean) => {
@@ -305,7 +299,7 @@ class ChaletToolsExtension {
         }
 
         await this.buildConfiguration.setDefaultMenu();
-        this.runChaletButton.setRunTarget(this.currentRunTarget);
+        this.buildTargets.setRunTarget(this.currentRunTarget);
 
         this.uiChaletJsonInitialized = true;
         await this.checkForVisibility();
@@ -320,8 +314,7 @@ class ChaletToolsExtension {
             rawData = fs.readFileSync(this.cli.settingsFile, "utf8");
         } catch {
             try {
-                const globalSettings: string = path.join(getHomeDirectory(), FILE_CHALET_SETTINGS_GLOBAL);
-                rawData = fs.readFileSync(globalSettings, "utf8");
+                rawData = fs.readFileSync(this.globalSettingsFile, "utf8");
             } catch {}
         }
 
@@ -344,6 +337,7 @@ class ChaletToolsExtension {
         } else {
             await this.buildToolchain.setDefaultMenu();
             await this.buildArchitecture.setDefaultMenu();
+            await this.buildTargets.setDefaultMenu();
 
             this.settingsJsonCache = "";
         }
@@ -437,6 +431,13 @@ class ChaletToolsExtension {
 
             shellArgs.push(this.chaletCommand.getCliSubCommand(command));
 
+            const runTarget = this.buildTargets.getLabel();
+            if (!!runTarget && runTarget !== this.currentRunTarget) {
+                if (this.chaletCommand.willRun()) {
+                    shellArgs.push(runTarget);
+                }
+            }
+
             const shellPath = this.settings.getChaletExecutable();
             const label = this.settings.getChaletTabLabel();
             const env = getTerminalEnv(this.platform);
@@ -470,9 +471,10 @@ class ChaletToolsExtension {
                 this.architectures = await this.getChaletArchitectures(toolchain);
             }
 
-            await this.buildConfiguration.requiredForVisibility(this.chaletCommand.getLabel());
+            await this.buildConfiguration.updateVisibility(this.chaletCommand.getLabel());
             // const isConfigure = this.chaletCommand.isConfigure();
-            await this.buildArchitecture.setToolchainAndVisibility(toolchain);
+            await this.buildArchitecture.updateVisibility(toolchain);
+            await this.buildTargets.updateVisibility(this.chaletCommand);
             this.runChaletButton.updateLabelFromChaletCommand(this.chaletCommand);
 
             this.chaletCommand.setVisible(true);

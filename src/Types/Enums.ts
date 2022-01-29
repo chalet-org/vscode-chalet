@@ -29,6 +29,7 @@ export enum CommandId {
     BuildToolchain = "buildToolchain",
     BuildArchitecture = "buildArchitecture",
     BuildConfiguration = "buildConfiguration",
+    BuildTarget = "buildTarget",
     MakeDebugBuild = "makeDebugBuild",
     InitializeProject = "initializeProject",
     InitializeCMakeProject = "initializeCMakeProject",

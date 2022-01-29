@@ -11,10 +11,9 @@ class StatusBarCommandButton extends StatusBarCommand {
         id: CommandId,
         private onClickCallback: CommandButtonCallback,
         protected onInitialize: CommandButtonCallback,
-        context: vscode.ExtensionContext,
-        priority: number
+        context: vscode.ExtensionContext
     ) {
-        super(id, context, priority);
+        super(id, context);
     }
 
     @bind

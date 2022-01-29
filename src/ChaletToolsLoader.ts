@@ -1,13 +1,12 @@
 import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
-import { debounce } from "lodash";
 
 import { ChaletToolsExtension } from "./ChaletToolsExtension";
 import { ChaletSchemaProvider } from "./ChaletSchemaProvider";
 import { OutputChannel } from "./OutputChannel";
-import { Dictionary, getVSCodePlatform, Optional, VSCodePlatform } from "./Types";
-import { FILE_CHALET_JSON, FILE_CHALET_SETTINGS_GLOBAL, FILE_CHALET_SETTINGS_LOCAL } from "./Constants";
+import { getHomeDirectory, getVSCodePlatform, Optional, VSCodePlatform } from "./Types";
+import { ChaletFile } from "./Constants";
 
 let chaletToolsInstance: Optional<ChaletToolsExtension> = null;
 
@@ -21,16 +20,17 @@ class ChaletToolsLoader {
 
     inputFile: Optional<string> = null;
     settingsFile: Optional<string> = null;
+    globalSettingsFile: Optional<string> = null;
     cwd: Optional<string> = null;
     workspaceWatcher: Optional<fs.FSWatcher> = null;
 
     workspaceCount: number = 0;
 
-    private diagCache: Dictionary<string[]> = {};
+    // private diagCache: Dictionary<string[]> = {};
 
     /*private updateDiagnostics = (uri: vscode.Uri): void => {
         const base = path.basename(uri.fsPath);
-        if (base === FILE_CHALET_SETTINGS_LOCAL || base === FILE_CHALET_SETTINGS_GLOBAL || base === FILE_CHALET_JSON) {
+        if (Object.values(ChaletFile).includes(base)) {
             let diags = vscode.languages.getDiagnostics(uri).map((d) => {
                 if (!this.diagCache[base]) this.diagCache[base] = [];
 
@@ -95,13 +95,23 @@ class ChaletToolsLoader {
         }
     };
 
+    private watchChaletFile = (
+        file: string,
+        setFile: (f: string) => void,
+        listener: (curr: fs.Stats, prev: fs.Stats) => void
+    ): string => {
+        const interval: number = 1000;
+        setFile(file);
+        fs.watchFile(file, { interval }, listener);
+
+        return file;
+    };
+
     private activate = async (workspaceFolder?: vscode.WorkspaceFolder): Promise<void> => {
         try {
             if (!workspaceFolder) return;
 
             const workspaceRoot = workspaceFolder.uri;
-            const inputFileBlank = this.inputFile === null;
-            const settingsFileBlank = this.settingsFile === null;
 
             let setWatcher: boolean = false;
             if (this.cwd !== workspaceRoot.fsPath) {
@@ -125,26 +135,31 @@ class ChaletToolsLoader {
                 this.workspaceWatcher = fs.watch(this.cwd, this.activateFromWorkspaceFolders);
             }
 
-            // TODO: get from local/global settings
+            // TODO: get from vscode settings
+            // Note: In each of these, assume the file exists. if it doesn't, watchFile will pick it up
 
-            if (settingsFileBlank) {
-                const settingsJsonUri = vscode.Uri.joinPath(workspaceRoot, FILE_CHALET_SETTINGS_LOCAL);
-                this.settingsFile = settingsJsonUri.fsPath;
-
-                // Note: assume the file exists. if it doesn't, watchFile will pick it up
-                chaletToolsInstance.setSettingsFile(this.settingsFile);
-
-                fs.watchFile(this.settingsFile, { interval: 1000 }, this.onSettingsJsonChange);
+            if (this.globalSettingsFile === null) {
+                this.globalSettingsFile = this.watchChaletFile(
+                    path.join(getHomeDirectory(), ChaletFile.GlobalConfig),
+                    chaletToolsInstance.setGlobalSettingsFile,
+                    this.onSettingsJsonChange
+                );
             }
 
-            if (inputFileBlank) {
-                const chaletJsonUri = vscode.Uri.joinPath(workspaceRoot, FILE_CHALET_JSON);
-                this.inputFile = chaletJsonUri.fsPath;
+            if (this.settingsFile === null) {
+                this.settingsFile = this.watchChaletFile(
+                    vscode.Uri.joinPath(workspaceRoot, ChaletFile.LocalConfig).fsPath,
+                    chaletToolsInstance.setSettingsFile,
+                    this.onSettingsJsonChange
+                );
+            }
 
-                // Note: assume the file exists. if it doesn't, watchFile will pick it up
-                chaletToolsInstance.setInputFile(this.inputFile);
-
-                fs.watchFile(this.inputFile, { interval: 1000 }, this.onChaletJsonChange);
+            if (this.inputFile === null) {
+                this.inputFile = this.watchChaletFile(
+                    vscode.Uri.joinPath(workspaceRoot, ChaletFile.ChaletJson).fsPath,
+                    chaletToolsInstance.setInputFile,
+                    this.onChaletJsonChange
+                );
             }
 
             await chaletToolsInstance.setEnabled(

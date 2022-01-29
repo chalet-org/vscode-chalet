@@ -8,20 +8,18 @@ import { getChaletToolsInstance } from "../ChaletToolsLoader";
 type MenuType = string;
 
 class BuildConfigurationCommandMenu extends StatusBarCommandMenu<MenuType> {
-    constructor(onClick: ValueChangeCallback, context: vscode.ExtensionContext, priority: number) {
-        super(CommandId.BuildConfiguration, onClick, context, priority);
+    constructor(context: vscode.ExtensionContext, onClick: ValueChangeCallback) {
+        super(CommandId.BuildConfiguration, onClick, context);
     }
 
     private getRawMenu = (): MenuType[] => getChaletToolsInstance()?.configurations ?? [];
 
     @bind
     protected getDefaultMenu(): MenuItem<MenuType>[] {
-        return this.getRawMenu().map((label) => ({
-            label,
-        }));
+        return this.getRawMenu().map((label) => ({ label }));
     }
 
-    requiredForVisibility = async (command: Optional<ChaletCommands>): Promise<void> => {
+    updateVisibility = async (command: Optional<ChaletCommands>): Promise<void> => {
         if (command === null) {
             this.setVisible(false);
         } else {

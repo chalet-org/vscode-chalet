@@ -77,6 +77,10 @@
 				"title": "Chalet: Change Chalet Command"
 			},
 			{
+				"command": "chalet-tools.buildTarget",
+				"title": "Chalet: Change Build/Run Target"
+			},
+			{
 				"command": "chalet-tools.buildToolchain",
 				"title": "Chalet: Change Build Toolchain"
 			},

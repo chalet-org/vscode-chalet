@@ -15,15 +15,13 @@ const kDefaultMenu: ChaletCommands[] = [
 ];
 
 class ChaletCmdCommandMenu extends StatusBarCommandMenu<ChaletCommands> {
-    constructor(onClick: ValueChangeCallback, context: vscode.ExtensionContext, priority: number) {
-        super(CommandId.ChaletCommand, onClick, context, priority);
+    constructor(context: vscode.ExtensionContext, onClick: ValueChangeCallback) {
+        super(CommandId.ChaletCommand, onClick, context);
     }
 
     @bind
     protected getDefaultMenu(): MenuItem<ChaletCommands>[] {
-        return kDefaultMenu.map((label) => ({
-            label,
-        }));
+        return kDefaultMenu.map((label) => ({ label }));
     }
 
     isConfigure = (): boolean => {

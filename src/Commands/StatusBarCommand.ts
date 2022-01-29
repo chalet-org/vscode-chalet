@@ -4,6 +4,8 @@ import * as vscode from "vscode";
 import { getCommandID } from "../Functions";
 import { CommandId, Optional } from "../Types";
 
+let priorityRange = 7.7;
+
 abstract class StatusBarCommand {
     protected visible: boolean = false;
     protected workspaceState: vscode.Memento;
@@ -12,10 +14,13 @@ abstract class StatusBarCommand {
     protected abstract onClick(): Promise<void>;
     protected abstract initialize(): Promise<void>;
 
-    constructor(protected id: CommandId, context: vscode.ExtensionContext, priority: number) {
+    constructor(protected id: CommandId, context: vscode.ExtensionContext) {
         this.workspaceState = context.workspaceState;
 
-        this.item = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, priority);
+        priorityRange = Math.round((priorityRange += 0.01) * 100) / 100;
+        console.log(priorityRange, id);
+
+        this.item = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, priorityRange);
         this.registerCommand(id, context);
     }
 

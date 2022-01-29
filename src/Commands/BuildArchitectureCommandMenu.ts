@@ -11,20 +11,18 @@ type MenuType = string;
 class BuildArchitectureCommandMenu extends StatusBarCommandMenu<MenuType> {
     private toolchain: Optional<string> = null;
 
-    constructor(onClick: ValueChangeCallback, context: vscode.ExtensionContext, priority: number) {
-        super(CommandId.BuildArchitecture, onClick, context, priority);
+    constructor(context: vscode.ExtensionContext, onClick: ValueChangeCallback) {
+        super(CommandId.BuildArchitecture, onClick, context);
     }
 
     private getRawMenu = (): MenuType[] => getChaletToolsInstance()?.architectures ?? [];
 
     @bind
     protected getDefaultMenu(): MenuItem<MenuType>[] {
-        return this.getRawMenu().map((label) => ({
-            label,
-        }));
+        return this.getRawMenu().map((label) => ({ label }));
     }
 
-    setToolchainAndVisibility = async (toolchain: Optional<string>): Promise<void> => {
+    updateVisibility = async (toolchain: Optional<string>): Promise<void> => {
         try {
             if (this.toolchain === toolchain) return;
 

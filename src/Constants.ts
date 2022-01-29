@@ -1,5 +1,7 @@
-const FILE_CHALET_JSON: string = "chalet.json";
-const FILE_CHALET_SETTINGS_LOCAL: string = ".chaletrc";
-const FILE_CHALET_SETTINGS_GLOBAL: string = ".chaletconfig";
+enum ChaletFile {
+    ChaletJson = "chalet.json",
+    LocalConfig = ".chaletrc",
+    GlobalConfig = ".chaletconfig",
+}
 
-export { FILE_CHALET_JSON, FILE_CHALET_SETTINGS_LOCAL, FILE_CHALET_SETTINGS_GLOBAL };
+export { ChaletFile };

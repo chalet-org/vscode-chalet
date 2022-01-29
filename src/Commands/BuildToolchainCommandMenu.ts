@@ -9,8 +9,8 @@ import { getChaletToolsInstance } from "../ChaletToolsLoader";
 type MenuType = string;
 
 class BuildToolchainCommandMenu extends StatusBarCommandMenu<MenuType> {
-    constructor(onClick: ValueChangeCallback, context: vscode.ExtensionContext, priority: number) {
-        super(CommandId.BuildToolchain, onClick, context, priority);
+    constructor(context: vscode.ExtensionContext, onClick: ValueChangeCallback) {
+        super(CommandId.BuildToolchain, onClick, context);
     }
 
     private getRawMenu = (): MenuType[] => getChaletToolsInstance()?.toolchainPresets ?? [];
