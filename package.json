@@ -5,7 +5,7 @@
 	"version": "0.3.0",
 	"publisher": "rewrking",
 	"license": "BSD 3-Clause License",
-	"icon": "chalet-logo-128.png",
+	"icon": "chalet-logo.png",
 	"bugs": {
 		"url": "https://github.com/chalet-org/chalet-tools/issues",
 		"email": "andrew.raymond.king@gmail.com"
