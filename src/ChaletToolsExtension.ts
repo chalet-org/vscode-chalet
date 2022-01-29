@@ -116,37 +116,44 @@ class ChaletToolsExtension {
     };
 
     private fetchAttempts: number = 0;
-    private getChaletState = async (type: "state-chalet-json" | "state-settings-json"): Promise<void> => {
+    private getChaletState = async (
+        type: "state-chalet-json" | "state-settings-json" | "architectures",
+        ...data: string[]
+    ): Promise<void> => {
         try {
             if (this.fetchAttempts === 5) return;
 
             const chalet = this.settings.getChaletExecutable();
             const env = getTerminalEnv(this.platform);
-            const output = await getProcessOutput(chalet, ["query", type], env, this.cwd);
+            const output = await getProcessOutput(chalet, ["query", type, ...data], env, this.cwd);
 
             if (output.startsWith("Chalet") || (this.fetchAttempts === 5 && output.length === 0)) {
                 throw new Error(`There was a problem querying Chalet for '${type}'`);
             }
+
             if (output.length === 0) {
                 this.fetchAttempts++;
-                return await this.getChaletState(type);
+                return await this.getChaletState(type, ...data);
             }
 
-            const res = JSON.parse(output);
-            // console.log(res);
-
-            if (type == "state-chalet-json") {
-                console.log(res);
-                this.configurations = res?.["configurations"] ?? [];
-                this.targets = res?.["targets"] ?? [];
-                this.runTargets = res?.["runTargets"] ?? [];
-                this.currentRunTarget = res?.["defaultRunTarget"] ?? "";
+            if (type == "architectures" && data.length > 0) {
+                const toolchain = data[0];
+                this.archCache[toolchain] = output.split(" ");
             } else {
-                this.toolchainPresets = res?.["toolchainPresets"] ?? [];
-                this.userToolchains = res?.["userToolchains"] ?? [];
-                this.currentArchitecture = res?.["architecture"] ?? BuildArchitecture.Auto;
-                this.currentConfiguration = res?.["configuration"] ?? "";
-                this.currentToolchain = res?.["toolchain"] ?? "";
+                if (type == "state-chalet-json") {
+                    const res = JSON.parse(output);
+                    this.configurations = res?.["configurations"] ?? [];
+                    this.targets = res?.["targets"] ?? [];
+                    this.runTargets = res?.["runTargets"] ?? [];
+                    this.currentRunTarget = res?.["defaultRunTarget"] ?? "";
+                } else {
+                    const res = JSON.parse(output);
+                    this.toolchainPresets = res?.["toolchainPresets"] ?? [];
+                    this.userToolchains = res?.["userToolchains"] ?? [];
+                    this.currentArchitecture = res?.["architecture"] ?? BuildArchitecture.Auto;
+                    this.currentConfiguration = res?.["configuration"] ?? "";
+                    this.currentToolchain = res?.["toolchain"] ?? "";
+                }
             }
             this.fetchAttempts = 0;
         } catch (err) {
@@ -162,30 +169,6 @@ class ChaletToolsExtension {
     private getChaletJsonState = () => this.getChaletState("state-chalet-json");
     private getSettingsJsonState = () => this.getChaletState("state-settings-json");
 
-    private getChaletList = async (
-        type: string,
-        failOnEmptyResult: boolean = true,
-        ...data: string[]
-    ): Promise<string[]> => {
-        try {
-            const chalet = this.settings.getChaletExecutable();
-            const env = getTerminalEnv(this.platform);
-            const output = await getProcessOutput(chalet, ["query", type, ...data], env, this.cwd);
-            OutputChannel.log(`${type} result: ${output}`);
-
-            if (output.startsWith("Chalet") || (failOnEmptyResult && output.length === 0)) {
-                throw new Error(`There was a problem querying Chalet for '${type}'`);
-            }
-
-            const res = output.split(" ");
-            // OutputChannel.log(type, res);
-            return res;
-        } catch (err) {
-            console.error(err);
-            throw err;
-        }
-    };
-
     archCache: Dictionary<string[]> = {};
 
     private getChaletArchitectures = async (toolchain: string) => {
@@ -195,7 +178,7 @@ class ChaletToolsExtension {
             }
 
             if (!this.archCache[toolchain]) {
-                this.archCache[toolchain] = await this.getChaletList("architectures", true, toolchain);
+                await this.getChaletState("architectures", toolchain);
             }
 
             return this.archCache[toolchain];

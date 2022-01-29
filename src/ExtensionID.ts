@@ -1,3 +1,3 @@
-const EXTENSION_ID = "chalet-tools";
+const EXTENSION_ID = "chalet";
 
 export { EXTENSION_ID };

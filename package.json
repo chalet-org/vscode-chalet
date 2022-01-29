@@ -25,14 +25,15 @@
 		"onLanguage:cpp",
 		"onLanguage:json",
 		"onLanguage:jsonc",
-		"onCommand:chalet-tools.runChalet",
-		"onCommand:chalet-tools.chaletCommand",
-		"onCommand:chalet-tools.buildToolchain",
-		"onCommand:chalet-tools.buildArchitecture",
-		"onCommand:chalet-tools.buildConfiguration",
-		"onCommand:chalet-tools.makeDebugBuild",
-		"onCommand:chalet-tools.initializeProject",
-		"onCommand:chalet-tools.initializeCMakeProject",
+		"onCommand:chalet.buildArchitecture",
+		"onCommand:chalet.buildConfiguration",
+		"onCommand:chalet.buildTarget",
+		"onCommand:chalet.buildToolchain",
+		"onCommand:chalet.chaletCommand",
+		"onCommand:chalet.initializeProject",
+		"onCommand:chalet.initializeCMakeProject",
+		"onCommand:chalet.makeDebugBuild",
+		"onCommand:chalet.runChalet",
 		"workspaceContains:**/chalet.json",
 		"workspaceContains:**/.chaletrc",
 		"onFileSystem:chalet-schema"
@@ -55,12 +56,12 @@
 		"configuration": {
 			"title": "Chalet Tools",
 			"properties": {
-				"chalet-tools.useDebugChalet": {
+				"chalet.useDebugChalet": {
 					"type": "boolean",
 					"default": false,
 					"description": "Use chalet-debug instead of chalet in commands"
 				},
-				"chalet-tools.enableStatusBarButtons": {
+				"chalet.statusBarButtons": {
 					"type": "boolean",
 					"default": true,
 					"description": "Display chalet actions in the status bar"
@@ -69,40 +70,40 @@
 		},
 		"commands": [
 			{
-				"command": "chalet-tools.runChalet",
-				"title": "Chalet: Run Chalet Command"
-			},
-			{
-				"command": "chalet-tools.chaletCommand",
-				"title": "Chalet: Change Chalet Command"
-			},
-			{
-				"command": "chalet-tools.buildTarget",
-				"title": "Chalet: Change Build/Run Target"
-			},
-			{
-				"command": "chalet-tools.buildToolchain",
-				"title": "Chalet: Change Build Toolchain"
-			},
-			{
-				"command": "chalet-tools.buildArchitecture",
+				"command": "chalet.buildArchitecture",
 				"title": "Chalet: Change Build Architecture"
 			},
 			{
-				"command": "chalet-tools.buildConfiguration",
+				"command": "chalet.buildConfiguration",
 				"title": "Chalet: Change Build Configuration"
 			},
 			{
-				"command": "chalet-tools.makeDebugBuild",
-				"title": "Chalet: Make Debug Build"
+				"command": "chalet.buildTarget",
+				"title": "Chalet: Change Build/Run Target"
 			},
 			{
-				"command": "chalet-tools.initializeProject",
+				"command": "chalet.buildToolchain",
+				"title": "Chalet: Change Build Toolchain"
+			},
+			{
+				"command": "chalet.chaletCommand",
+				"title": "Chalet: Change Chalet Command"
+			},
+			{
+				"command": "chalet.initializeProject",
 				"title": "Chalet: Initialize Project"
 			},
 			{
-				"command": "chalet-tools.initializeCMakeProject",
+				"command": "chalet.initializeCMakeProject",
 				"title": "Chalet: Initialize Project with CMake"
+			},
+			{
+				"command": "chalet.makeDebugBuild",
+				"title": "Chalet: Make Debug Build"
+			},
+			{
+				"command": "chalet.runChalet",
+				"title": "Chalet: Run Chalet Command"
 			}
 		],
 		"jsonValidation": [

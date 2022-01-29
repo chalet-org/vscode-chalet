@@ -5,13 +5,13 @@ import { EXTENSION_ID } from "./ExtensionID";
 
 type Impl = {
     useDebugChalet: boolean;
-    enableStatusBarButtons: boolean;
+    statusBarButtons: boolean;
 };
 
 class ChaletToolsExtensionSettings {
     private impl: Impl = {
         useDebugChalet: false,
-        enableStatusBarButtons: true,
+        statusBarButtons: true,
     };
 
     getChaletExecutable = (): string => {
@@ -23,7 +23,7 @@ class ChaletToolsExtensionSettings {
     };
 
     canShowStatusBarButtons = (): boolean => {
-        return this.impl.enableStatusBarButtons;
+        return this.impl.statusBarButtons;
     };
 
     private updateBoolean = (key: keyof Impl) => {
@@ -38,7 +38,7 @@ class ChaletToolsExtensionSettings {
 
     refresh = () => {
         this.updateBoolean("useDebugChalet");
-        this.updateBoolean("enableStatusBarButtons");
+        this.updateBoolean("statusBarButtons");
     };
 }
 
