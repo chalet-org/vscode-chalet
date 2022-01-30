@@ -79,11 +79,11 @@
 			},
 			{
 				"command": "chalet.buildTarget",
-				"title": "Chalet: Change Build/Run Target"
+				"title": "Chalet: Change Run Target"
 			},
 			{
 				"command": "chalet.buildToolchain",
-				"title": "Chalet: Change Build Toolchain"
+				"title": "Chalet: Change Build Toolchain or Preset"
 			},
 			{
 				"command": "chalet.chaletCommand",

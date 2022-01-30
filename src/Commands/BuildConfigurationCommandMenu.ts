@@ -10,6 +10,8 @@ type MenuType = string;
 class BuildConfigurationCommandMenu extends StatusBarCommandMenu<MenuType> {
     constructor(context: vscode.ExtensionContext, onClick: ValueChangeCallback) {
         super(CommandId.BuildConfiguration, onClick, context);
+
+        this.setTooltip("Change Build Configuration");
     }
 
     private getRawMenu = (): MenuType[] => getChaletToolsInstance()?.configurations ?? [];

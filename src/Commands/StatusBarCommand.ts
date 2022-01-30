@@ -18,7 +18,7 @@ abstract class StatusBarCommand {
         this.workspaceState = context.workspaceState;
 
         priorityRange = Math.round((priorityRange += 0.01) * 100) / 100;
-        console.log(priorityRange, id);
+        // console.log(priorityRange, id);
 
         this.item = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, priorityRange);
         this.registerCommand(id, context);
@@ -42,13 +42,25 @@ abstract class StatusBarCommand {
         else this.item.hide();
     };
 
-    setLabel = (value: string): void => {
+    protected setLabel = (value: string): void => {
         this.item.text = value;
     };
 
     @bind
     getLabel(): Optional<string> {
         return this.item.text;
+    }
+
+    protected setTooltip = (text: string): void => {
+        this.item.tooltip = text;
+    };
+
+    @bind
+    getTooltip(): string {
+        if (typeof this.item.tooltip === "string") {
+            return this.item.tooltip;
+        }
+        return "";
     }
 }
 

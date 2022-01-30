@@ -17,7 +17,18 @@ class RunChaletCommandButton extends StatusBarCommandButton {
 
     updateLabelFromChaletCommand = (commandMenu: ChaletCmdCommandMenu) => {
         const icon: string = commandMenu.getIcon();
-        this.setLabel(`$(${icon})`);
+        const iconLabel: string = `$(${icon})`;
+        if (this.getLabel() !== iconLabel) {
+            this.setLabel(iconLabel);
+        }
+
+        const label: Optional<string> = commandMenu.getLabel();
+        if (!!label) {
+            const tooltip: string = `${label} the Chalet project`;
+            if (this.getTooltip() !== tooltip) {
+                this.setTooltip(tooltip);
+            }
+        }
     };
 }
 

@@ -17,6 +17,8 @@ const kDefaultMenu: ChaletCommands[] = [
 class ChaletCmdCommandMenu extends StatusBarCommandMenu<ChaletCommands> {
     constructor(context: vscode.ExtensionContext, onClick: ValueChangeCallback) {
         super(CommandId.ChaletCommand, onClick, context);
+
+        this.setTooltip("Change Chalet Command");
     }
 
     @bind

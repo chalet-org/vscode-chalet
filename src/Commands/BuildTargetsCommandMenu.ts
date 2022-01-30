@@ -11,6 +11,8 @@ type MenuType = string;
 class BuildTargetsCommandMenu extends StatusBarCommandMenu<MenuType> {
     constructor(context: vscode.ExtensionContext, onClick: ValueChangeCallback) {
         super(CommandId.BuildTarget, onClick, context);
+
+        this.setTooltip("Change Run Target");
     }
 
     private getRawMenu = (): MenuType[] => getChaletToolsInstance()?.targets ?? [];

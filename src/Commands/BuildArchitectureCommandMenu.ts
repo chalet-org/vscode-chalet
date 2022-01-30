@@ -13,6 +13,8 @@ class BuildArchitectureCommandMenu extends StatusBarCommandMenu<MenuType> {
 
     constructor(context: vscode.ExtensionContext, onClick: ValueChangeCallback) {
         super(CommandId.BuildArchitecture, onClick, context);
+
+        this.setTooltip("Change Build Architecture");
     }
 
     private getRawMenu = (): MenuType[] => getChaletToolsInstance()?.architectures ?? [];
