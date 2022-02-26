@@ -416,7 +416,7 @@ class ChaletToolsExtension {
             shellArgs.push(this.chaletCommand.getCliSubCommand(command));
 
             const runTarget = this.buildTargets.getLabel();
-            if (!!runTarget && runTarget !== this.currentRunTarget) {
+            if (!!runTarget) {
                 if (this.chaletCommand.willRun()) {
                     shellArgs.push(runTarget);
                 }
