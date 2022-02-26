@@ -1,5 +1,5 @@
 {
-	"name": "chalet-tools",
+	"name": "vscode-chalet",
 	"displayName": "Chalet",
 	"description": "Support for Chalet projects in Visual Studio Code",
 	"version": "0.3.0",
@@ -7,12 +7,12 @@
 	"license": "BSD-3-Clause",
 	"icon": "chalet-logo.png",
 	"bugs": {
-		"url": "https://github.com/chalet-org/chalet-tools/issues",
+		"url": "https://github.com/chalet-org/vscode-chalet/issues",
 		"email": "andrew.raymond.king@gmail.com"
 	},
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/chalet-org/chalet-tools.git"
+		"url": "https://github.com/chalet-org/vscode-chalet.git"
 	},
 	"engines": {
 		"vscode": "^1.63.1"

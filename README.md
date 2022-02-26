@@ -1,6 +1,6 @@
-# chalet-tools README
+# vscode-chalet README
 
-This is the README for your extension "chalet-tools". After writing up a brief description, we recommend including the following sections.
+This is the README for your extension "vscode-chalet". After writing up a brief description, we recommend including the following sections.
 
 ## Features
 
