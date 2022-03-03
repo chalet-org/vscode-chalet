@@ -4,6 +4,7 @@ import { Optional } from "../Types";
 import { TerminalProcessOptions, TerminalProcess } from "./TerminalProcess";
 import { CustomPsuedoTerminal } from "./CustomPsuedoTerminal";
 import { sleep } from "../Functions";
+// import { getChaletToolsInstance } from "../ChaletToolsLoader";
 
 type ExecuteOptions = TerminalProcessOptions & {
     icon: string;
@@ -37,11 +38,13 @@ class ChaletTerminal {
         if (terminal) {
             terminal.show();
         } else {
+            // const resources = getChaletToolsInstance()!.resources;
             const pty = this.createPseudoTerminal();
             terminal = vscode.window.createTerminal({
                 name: label,
                 pty,
                 iconPath: new vscode.ThemeIcon(this.icon),
+                // iconPath: resources.home ?? new vscode.ThemeIcon(this.icon),
             });
         }
         return terminal;

@@ -15,7 +15,7 @@
 		"url": "https://github.com/chalet-org/vscode-chalet.git"
 	},
 	"engines": {
-		"vscode": "^1.63.1"
+		"vscode": "^1.64.0"
 	},
 	"categories": [
 		"Other"
@@ -137,7 +137,7 @@
 		"@types/lodash": "^4.14.178",
 		"@types/mocha": "^9.0.0",
 		"@types/node": "17.0.8",
-		"@types/vscode": "^1.63.1",
+		"@types/vscode": "^1.64.0",
 		"@typescript-eslint/eslint-plugin": "^5.9.1",
 		"@typescript-eslint/parser": "^5.9.1",
 		"eslint": "^8.6.0",

@@ -11,6 +11,7 @@ import {
     Optional,
     Dictionary,
     BuildArchitecture,
+    // IconDictionary,
 } from "./Types";
 import { SpawnError } from "./Terminal/TerminalProcess";
 import { ChaletTerminal } from "./Terminal/ChaletTerminal";
@@ -46,6 +47,7 @@ class ChaletToolsExtension {
     private chaletTerminal: ChaletTerminal;
 
     settings: ChaletToolsExtensionSettings;
+    // resources: IconDictionary;
 
     enabled: boolean = false;
     private canUpdate: boolean = true;
@@ -105,6 +107,13 @@ class ChaletToolsExtension {
         this.buildToolchain = new BuildToolchainCommandMenu(context, this.updateStatusBarItems);
         this.buildConfiguration = new BuildConfigurationCommandMenu(context, this.updateStatusBarItems);
         this.chaletCommand = new ChaletCmdCommandMenu(context, this.updateStatusBarItems);
+
+        /*this.resources = {
+            home: {
+                dark: vscode.Uri.file(context.asAbsolutePath("resources/dark/chalet.svg")),
+                light: vscode.Uri.file(context.asAbsolutePath("resources/light/chalet.svg")),
+            },
+        };*/
     }
 
     activate = async () => {

@@ -1,12 +1,4 @@
-export interface ClassType<T = any> {
-    new (...args: any[]): T;
-}
-
-export type Optional<T> = T | null;
-
-export type Dictionary<T> = {
-    [key: string]: T;
-};
-
+export * from "./BasicTypes";
 export * from "./Enums";
+export * from "./IconResource";
 export * from "./Platform";
