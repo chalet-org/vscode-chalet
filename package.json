@@ -2,10 +2,11 @@
 	"name": "vscode-chalet",
 	"displayName": "Chalet",
 	"description": "Support for Chalet projects in Visual Studio Code",
-	"version": "0.3.0",
+	"version": "0.3.3",
 	"publisher": "rewrking",
 	"license": "BSD-3-Clause",
 	"icon": "chalet-logo.png",
+	"readme": "README.md",
 	"bugs": {
 		"url": "https://github.com/chalet-org/vscode-chalet/issues",
 		"email": "andrew.raymond.king@gmail.com"
@@ -17,7 +18,16 @@
 	"engines": {
 		"vscode": "^1.64.0"
 	},
+	"homepage": "https://www.chalet-work.space",
+	"qna": "https://github.com/chalet-org/vscode-chalet/issues",
+	"keywords": [
+		"C",
+		"C++",
+		"Objective-C",
+		"Build System"
+	],
 	"categories": [
+		"Programming Languages",
 		"Other"
 	],
 	"activationEvents": [
