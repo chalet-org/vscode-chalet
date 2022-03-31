@@ -78,6 +78,8 @@ class ChaletCmdCommandMenu extends StatusBarCommandMenu<ChaletCommands> {
                 return "configure";
             case ChaletCommands.Init:
                 return "init";
+            case ChaletCommands.TestTerminal:
+                return "termtest";
         }
     };
 }

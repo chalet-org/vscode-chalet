@@ -71,6 +71,7 @@ class ChaletToolsExtension {
     private onRunChalet = () =>
         this.runChalet(this.chaletCommand.getLabel(), this.buildConfiguration.getLabel(), this.cli);
     private onMakeDebugBuild = () => this.runChalet(ChaletCommands.Build, BuildConfigurations.Debug, this.cli);
+    private onTestTerminal = () => this.runChalet(ChaletCommands.TestTerminal, null, this.cli);
 
     private onInitializeProject = () => this.runChalet(ChaletCommands.Init, null, this.cli);
     private onInitializeCMakeProject = () => this.runChalet(ChaletCommands.Init, "cmake", this.cli);
@@ -98,6 +99,10 @@ class ChaletToolsExtension {
                 getCommandID(CommandId.InitializeCMakeProject),
                 this.onInitializeCMakeProject
             )
+        );
+
+        context.subscriptions.push(
+            vscode.commands.registerCommand(getCommandID(CommandId.TestTerminal), this.onTestTerminal)
         );
 
         // Note: Assignment order = reverse visible order
@@ -376,6 +381,8 @@ class ChaletToolsExtension {
                     shellArgs.push("--template");
                     shellArgs.push(param);
                 }
+            } else if (command === ChaletCommands.TestTerminal) {
+                //
             } else {
                 if (settings.inputFile.length > 0 && fs.existsSync(settings.inputFile)) {
                     shellArgs.push("--input-file");

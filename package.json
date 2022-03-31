@@ -44,6 +44,7 @@
 		"onCommand:chalet.initializeCMakeProject",
 		"onCommand:chalet.makeDebugBuild",
 		"onCommand:chalet.runChalet",
+		"onCommand:chalet.testTerminal",
 		"workspaceContains:**/chalet.json",
 		"workspaceContains:**/.chaletrc",
 		"onFileSystem:chalet-schema"
@@ -114,6 +115,10 @@
 			{
 				"command": "chalet.runChalet",
 				"title": "Chalet: Run Chalet Command"
+			},
+			{
+				"command": "chalet.testTerminal",
+				"title": "Chalet: Test Terminal"
 			}
 		],
 		"jsonValidation": [
