@@ -152,7 +152,7 @@ class ChaletToolsExtension {
 
             if (type == "architectures" && data.length > 0) {
                 const toolchain = data[0];
-                this.archCache[toolchain] = output.split(" ");
+                this.archCache[toolchain] = output.split("\t");
             } else {
                 if (type == "state-chalet-json") {
                     const res = JSON.parse(output);
