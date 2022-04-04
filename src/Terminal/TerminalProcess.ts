@@ -196,6 +196,7 @@ class TerminalProcess {
                     cwd: cwd ?? process.cwd(),
                     env,
                     stdio: ["pipe", "pipe", "pipe"],
+                    windowsHide: true,
                 };
 
                 this.onWrite("\r\n");

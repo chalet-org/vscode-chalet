@@ -18,6 +18,7 @@ export const getProcessOutput = (
             cwd: cwd ?? process.cwd(),
             env,
             stdio: ["inherit", "pipe", "pipe"],
+            windowsHide: true,
         });
 
         OutputChannel.logCommand(`${executable} ${args.join(" ")}`);
