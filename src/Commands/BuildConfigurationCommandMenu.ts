@@ -41,7 +41,8 @@ class BuildConfigurationCommandMenu extends StatusBarCommandMenu<MenuType> {
             command === ChaletCommands.Run ||
             command === ChaletCommands.BuildRun ||
             command === ChaletCommands.Rebuild ||
-            command === ChaletCommands.Clean
+            command === ChaletCommands.Clean ||
+            command === ChaletCommands.Bundle
         );
     };
 }
