@@ -1,5 +1,5 @@
-Chalet Tools - Support for Chalet projects in Visual Studio Code
-Copyright (c) 2020-2022 Andrew R. King, author
+Chalet - A cross-platform JSON-based project & build tool
+Copyright (c) 2020-2022 Andrew R. King & Cosmic Road Interactive, LLC
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -13,9 +13,9 @@ are met:
   notice, this list of conditions and the following disclaimer in the
   documentation and/or other materials provided with the distribution.
 
-* Neither the name of ChaletOrg nor the names of Contributors
-  may be used to endorse or promote products derived from this
-  software without specific prior written permission.
+* Neither the name of Cosmic Road Interactive, LLC nor the names of
+  Contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
