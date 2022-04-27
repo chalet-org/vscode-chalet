@@ -1,4 +1,4 @@
-export enum EscapeCodes {
+export const enum EscapeCodes {
     Backspace = "\x7F",
     CursorBack = "\x1B[D",
     DeleteChar = "\x1B[P",

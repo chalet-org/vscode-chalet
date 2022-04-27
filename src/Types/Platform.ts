@@ -1,12 +1,12 @@
 import * as os from "os";
 
-export enum VSCodePlatform {
+export const enum VSCodePlatform {
     MacOS = "osx",
     Linux = "linux",
     Windows = "windows",
 }
 
-export enum ChaletPlatform {
+export const enum ChaletPlatform {
     MacOS = "macos",
     Linux = "linux",
     Windows = "windows",

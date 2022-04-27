@@ -1,4 +1,4 @@
-export enum ChaletCommands {
+export const enum ChaletCommands {
     BuildRun = "Build & Run",
     Run = "Run",
     Build = "Build",
@@ -10,21 +10,21 @@ export enum ChaletCommands {
     TestTerminal = "Test Terminal",
 }
 
-export enum BuildConfigurations {
+export const enum BuildConfigurations {
     Invalid = "[No valid configurations]",
     Debug = "Debug",
 }
 
-export enum BuildArchitecture {
+export const enum BuildArchitecture {
     Auto = "auto",
 }
 
-export enum ChaletVersion {
+export const enum ChaletVersion {
     Release = "chalet",
     Debug = "chalet-debug",
 }
 
-export enum CommandId {
+export const enum CommandId {
     Run = "runChalet",
     ChaletCommand = "chaletCommand",
     BuildToolchain = "buildToolchain",

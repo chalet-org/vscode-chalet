@@ -5,7 +5,7 @@ import { ChaletVersion, getVSCodePlatform, Optional, VSCodePlatform } from "./Ty
 import { getTerminalEnv } from "./Functions";
 import { getProcessOutput } from "./Functions/GetProcessOutput";
 
-enum SchemaType {
+const enum SchemaType {
     ChaletJson = "schema-chalet-json",
     SettingsJson = "schema-settings-json",
 }
