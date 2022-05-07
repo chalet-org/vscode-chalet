@@ -140,6 +140,7 @@
 		]
 	},
 	"scripts": {
+		"vscode:publish": "vsce publish --target win32-x64 darwin-x64 darwin-arm64 linux-x64 linux-armhf",
 		"vscode:prepublish": "yarn run build",
 		"build": "tsc -p ./src",
 		"lint": "eslint src --ext ts",
