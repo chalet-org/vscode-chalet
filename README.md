@@ -8,5 +8,5 @@ This extension integrates the Chalet command line application into Visual Studio
 
 This extension currently requires an existing Chalet installation. The latest version can be [downloaded from here](https://www.chalet-work.space/download).
 
-For more information, visit the [Website](https://www.chalet-work.space) and [Documentation](https://www.chalet-work.space/docs)
+For more information, visit the [Website](https://www.chalet-work.space), [Documentation](https://www.chalet-work.space/docs) as well as the [extension guide](https://www.chalet-work.space/integrations/visual-studio-code).
 
