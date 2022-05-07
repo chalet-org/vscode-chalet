@@ -3,7 +3,7 @@
 	"displayName": "Chalet",
 	"description": "Support for Chalet projects in Visual Studio Code",
 	"version": "0.3.9",
-	"publisher": "chalet-org",
+	"publisher": "rewrking",
 	"license": "BSD-3-Clause",
 	"icon": "chalet-logo.png",
 	"readme": "README.md",
