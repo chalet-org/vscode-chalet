@@ -1,0 +1,30 @@
+name: "🍍 Publish to Extension Marketplace"
+
+on:
+  push:
+    tags:
+      - "v*"
+  release:
+    types: [created]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    working-directory: ./Extension
+    env:
+      VSCE_PAT: ${{ secrets.VSCE_TOKEN }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: "16.x"
+          registry-url: "https://registry.npmjs.org/"
+      - name: "🌌 Prepare"
+        run: |
+          npm install -g vsce
+          npm ci
+      - name: "🛠️ Build"
+        run: npm run build
+      - name: "🚀 Publish"
+        run: vsce publish --target win32-x64 darwin-x64 darwin-arm64 linux-x64 linux-armhf
+

@@ -1,6 +1,6 @@
-out
-node_modules
-.vscode-test/
+Extension/out/
+Extension/node_modules/
+Extension/.vscode-test/
 *.vsix
 yarn.lock
 yarn-error.log

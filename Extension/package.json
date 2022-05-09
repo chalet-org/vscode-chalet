@@ -2,14 +2,13 @@
 	"name": "vscode-chalet",
 	"displayName": "Chalet",
 	"description": "Support for Chalet projects in Visual Studio Code",
-	"version": "0.3.9",
+	"version": "0.3.10",
 	"publisher": "chalet-org",
 	"license": "BSD-3-Clause",
 	"icon": "chalet-logo.png",
 	"readme": "README.md",
 	"bugs": {
-		"url": "https://github.com/chalet-org/vscode-chalet/issues",
-		"email": "andrew.raymond.king@gmail.com"
+		"url": "https://github.com/chalet-org/vscode-chalet/issues"
 	},
 	"repository": {
 		"type": "git",
@@ -42,7 +41,6 @@
 		"onCommand:chalet.chaletCommand",
 		"onCommand:chalet.initializeProject",
 		"onCommand:chalet.initializeCMakeProject",
-		"onCommand:chalet.makeDebugBuild",
 		"onCommand:chalet.runChalet",
 		"onCommand:chalet.testTerminal",
 		"workspaceContains:**/chalet.json",
@@ -109,10 +107,6 @@
 				"title": "Chalet: Initialize Project with CMake"
 			},
 			{
-				"command": "chalet.makeDebugBuild",
-				"title": "Chalet: Make Debug Build"
-			},
-			{
 				"command": "chalet.runChalet",
 				"title": "Chalet: Run Chalet Command"
 			},
@@ -140,12 +134,11 @@
 		]
 	},
 	"scripts": {
-		"vscode:publish": "vsce publish --target win32-x64 darwin-x64 darwin-arm64 linux-x64 linux-armhf",
-		"vscode:prepublish": "yarn run build",
+		"vscode:prepublish": "npm run build",
 		"build": "tsc -p ./src",
 		"lint": "eslint src --ext ts",
 		"watch": "tsc -watch -p ./src",
-		"pretest": "yarn run build && yarn run lint",
+		"pretest": "npm run build && npm run lint",
 		"test": "node ./out/test/runTest.js"
 	},
 	"devDependencies": {

@@ -3,8 +3,6 @@ import * as vscode from "vscode";
 
 import { getTerminalEnv } from "./Functions";
 import {
-    // BuildArchitecture,
-    BuildConfigurations,
     ChaletCommands,
     CommandId,
     VSCodePlatform,
@@ -70,7 +68,6 @@ class ChaletToolsExtension {
 
     private onRunChalet = () =>
         this.runChalet(this.chaletCommand.getLabel(), this.buildConfiguration.getLabel(), this.cli);
-    private onMakeDebugBuild = () => this.runChalet(ChaletCommands.Build, BuildConfigurations.Debug, this.cli);
     private onTestTerminal = () => this.runChalet(ChaletCommands.TestTerminal, null, this.cli);
 
     private onInitializeProject = () => this.runChalet(ChaletCommands.Init, null, this.cli);
@@ -85,10 +82,6 @@ class ChaletToolsExtension {
         this.chaletTerminal = new ChaletTerminal();
         this.cli = new ChaletCliSettings();
         this.settings = new ChaletToolsExtensionSettings();
-
-        context.subscriptions.push(
-            vscode.commands.registerCommand(getCommandID(CommandId.MakeDebugBuild), this.onMakeDebugBuild)
-        );
 
         context.subscriptions.push(
             vscode.commands.registerCommand(getCommandID(CommandId.InitializeProject), this.onInitializeProject)

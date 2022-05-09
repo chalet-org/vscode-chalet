@@ -12,7 +12,6 @@ export const enum ChaletCommands {
 
 export const enum BuildConfigurations {
     Invalid = "[No valid configurations]",
-    Debug = "Debug",
 }
 
 export const enum BuildArchitecture {
@@ -31,7 +30,6 @@ export const enum CommandId {
     BuildArchitecture = "buildArchitecture",
     BuildConfiguration = "buildConfiguration",
     BuildTarget = "buildTarget",
-    MakeDebugBuild = "makeDebugBuild",
     InitializeProject = "initializeProject",
     InitializeCMakeProject = "initializeCMakeProject",
     TestTerminal = "testTerminal",
