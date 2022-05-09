@@ -10,7 +10,6 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    working-directory: ./Extension
     env:
       VSCE_PAT: ${{ secrets.VSCE_TOKEN }}
     steps:
@@ -20,11 +19,14 @@ jobs:
           node-version: "16.x"
           registry-url: "https://registry.npmjs.org/"
       - name: "🌌 Prepare"
+        working-directory: ./Extension
         run: |
           npm install -g vsce
           npm ci
       - name: "🛠️ Build"
+        working-directory: ./Extension
         run: npm run build
       - name: "🚀 Publish"
+        working-directory: ./Extension
         run: vsce publish --target win32-x64 darwin-x64 darwin-arm64 linux-x64 linux-armhf
 
