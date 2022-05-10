@@ -21,11 +21,11 @@ jobs:
       - name: "🌌 Prepare"
         working-directory: ./Extension
         run: |
-          npm install -g vsce
-          npm ci
+          yarn add -g vsce
+          yarn install
       - name: "🛠️ Build"
         working-directory: ./Extension
-        run: npm run build
+        run: yarn build
       - name: "🚀 Publish"
         working-directory: ./Extension
         run: vsce publish --target win32-x64 darwin-x64 darwin-arm64 linux-x64 linux-armhf
