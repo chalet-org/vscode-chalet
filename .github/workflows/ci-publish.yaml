@@ -21,7 +21,7 @@ jobs:
       - name: "🌌 Prepare"
         working-directory: ./Extension
         run: |
-          yarn add -g vsce
+          yarn global add vsce
           yarn install
       - name: "🛠️ Build"
         working-directory: ./Extension
