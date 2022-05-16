@@ -15,7 +15,7 @@ class BuildTargetsCommandMenu extends StatusBarCommandMenu<MenuType> {
         this.setTooltip("Change Run Target");
     }
 
-    private getRawMenu = (): MenuType[] => getChaletToolsInstance()?.targets ?? [];
+    private getRawMenu = (): MenuType[] => [];
 
     @bind
     protected getDefaultMenu(): MenuItem<MenuType>[] {
