@@ -2,7 +2,7 @@ import * as proc from "child_process";
 import * as treeKill from "tree-kill";
 import { OutputChannel } from "../OutputChannel";
 
-import { Dictionary, Optional } from "../Types";
+import { Dictionary, getVSCodePlatform, Optional, VSCodePlatform } from "../Types";
 import { Readable, Writable } from "stream";
 import { EscapeCodes } from "./EscapeCodes";
 
@@ -37,7 +37,11 @@ class TerminalProcess {
     private shellPath: string = "";
     private label: string = "";
 
-    constructor(public onWrite: (text: string) => void) {}
+    private platform: VSCodePlatform;
+
+    constructor(public onWrite: (text: string) => void) {
+        this.platform = getVSCodePlatform();
+    }
 
     private onProcessClose = (code: Optional<number>, signal: Optional<NodeJS.Signals>): void => {
         let color: number = 37;
@@ -82,8 +86,12 @@ class TerminalProcess {
     inputOffset: number = 0;
 
     private writeInputBuffer = () => {
-        this.subprocess?.stdin.write(this.inputBuffer);
-        // this.subprocess?.stdin.end();
+        if (this.subprocess) {
+            this.subprocess.stdin.cork();
+            this.subprocess.stdin.write(this.inputBuffer);
+            this.subprocess.stdin.uncork();
+            // this.subprocess.stdin.end();
+        }
         this.inputBuffer = "";
         this.inputOffset = 0;
     };
@@ -159,9 +167,15 @@ class TerminalProcess {
         }
 
         this.onWrite(data);
-        this.inputBuffer += data;
         if (data === "\r\n") {
+            if (this.platform !== VSCodePlatform.Windows) {
+                this.inputBuffer += data;
+            } else {
+                this.inputBuffer += "\n";
+            }
             this.writeInputBuffer();
+        } else {
+            this.inputBuffer += data;
         }
     };
 
@@ -201,6 +215,8 @@ class TerminalProcess {
 
                 this.onWrite("\r\n");
                 this.subprocess = proc.spawn(options.shellPath, shellArgs, spawnOptions);
+                this.subprocess.stdin.setDefaultEncoding("utf-8");
+
                 onStart?.();
 
                 this.label = label;
