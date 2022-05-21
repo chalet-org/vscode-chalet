@@ -168,7 +168,7 @@ class TerminalProcess {
 
         this.onWrite(data);
         if (data === "\r\n") {
-            if (this.platform !== VSCodePlatform.Windows) {
+            if (this.platform === VSCodePlatform.Windows) {
                 this.inputBuffer += data;
             } else {
                 this.inputBuffer += "\n";
