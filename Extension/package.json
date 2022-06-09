@@ -2,7 +2,7 @@
 	"name": "vscode-chalet",
 	"displayName": "Chalet",
 	"description": "Support for Chalet projects in Visual Studio Code",
-	"version": "0.3.12",
+	"version": "0.4.0",
 	"publisher": "chalet-org",
 	"license": "BSD-3-Clause",
 	"icon": "chalet-logo.png",
@@ -16,6 +16,9 @@
 	},
 	"engines": {
 		"vscode": "^1.64.0"
+	},
+	"sponsor": {
+		"url": "https://github.com/sponsors/rewrking"
 	},
 	"homepage": "https://www.chalet-work.space",
 	"qna": "https://github.com/chalet-org/vscode-chalet/issues",
