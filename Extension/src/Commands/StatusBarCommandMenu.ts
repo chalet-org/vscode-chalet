@@ -24,7 +24,9 @@ abstract class StatusBarCommandMenu<T extends string> extends StatusBarCommand {
     @bind
     protected async onClick(): Promise<void> {
         try {
-            const result = await vscode.window.showQuickPick(this.menu);
+            const result = await vscode.window.showQuickPick(this.menu, {
+                placeHolder: this.getTooltip(),
+            });
             if (!!result) {
                 await this.setValue(result);
             }
