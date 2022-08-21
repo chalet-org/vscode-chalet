@@ -12,6 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       VSCE_PAT: ${{ secrets.VSCE_TOKEN }}
+      OPENVSX_TOKEN: ${{ secrets.OPENVSX_TOKEN }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -26,7 +27,10 @@ jobs:
       - name: "🛠️ Build"
         working-directory: ./Extension
         run: yarn build
-      - name: "🚀 Publish"
+      - name: "🚀 Publish to Visual Studio Marketplace"
         working-directory: ./Extension
-        run: vsce publish --target win32-x64 darwin-x64 darwin-arm64 linux-x64 linux-armhf
+        run: vsce publish --target win32-x64 win32-arm64 darwin-x64 darwin-arm64 linux-x64 linux-armhf
+      - name: "🚀 Publish to Open VSX Registry"
+        working-directory: ./Extension
+        run: npx --yes ovsx publish -p $OPENVSX_TOKEN
 
