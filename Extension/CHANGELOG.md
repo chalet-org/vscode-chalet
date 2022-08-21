@@ -1,5 +1,10 @@
 # Change Log
 
+## Version 0.4.0
+
+- bugfix: fix terminal process input on windows, use utf-8 as default encoding  
+- Updated changelog
+
 ## Version 0.3.14
 ## Version 0.3.13
 
