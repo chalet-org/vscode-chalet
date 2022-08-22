@@ -107,25 +107,26 @@ class ChaletToolsLoader {
         };
     };
 
-    private isVersionValid = async (): Promise<boolean> => {
+    private isVersionValid = async (): Promise<[boolean, SemanticVersion]> => {
         const version = await this.getVersionFromChalet();
         const min = this.getMinimumVersion();
         if (version.major < min.major || (version.major === min.major && version.minor < min.minor)) {
-            return false;
+            return [false, version];
         }
 
-        return true;
+        return [true, version];
     };
 
     private checkedVersion: boolean = false;
     private versionValid: boolean = false;
     private checkForCompatibleVersion = async (): Promise<void> => {
         if (!this.checkedVersion) {
-            this.versionValid = await this.isVersionValid();
+            const [valid, ver] = await this.isVersionValid();
+            this.versionValid = valid;
             if (!this.versionValid) {
                 const min = this.getMinimumVersion();
                 this.handleInformation(
-                    `This version of Chalet Tools requires at least version ${min.major}.${min.minor}.${min.patch} of Chalet.`,
+                    `This version of the Chalet extension requires Chalet version ${min.major}.${min.minor}.${min.patch} or higher, but version ${ver.major}.${ver.minor}.${ver.patch} was found.`,
                     ["Download", "Cancel"],
                     {
                         Download: () =>
