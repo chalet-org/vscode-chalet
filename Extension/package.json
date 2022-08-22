@@ -41,6 +41,8 @@
 		"onCommand:chalet.buildConfiguration",
 		"onCommand:chalet.buildTarget",
 		"onCommand:chalet.buildToolchain",
+		"onCommand:chalet.buildStrategy",
+		"onCommand:chalet.buildPathStyle",
 		"onCommand:chalet.chaletCommand",
 		"onCommand:chalet.initializeProject",
 		"onCommand:chalet.initializeCMakeProject",
@@ -96,6 +98,14 @@
 			{
 				"command": "chalet.buildToolchain",
 				"title": "Chalet: Change Build Toolchain or Preset"
+			},
+			{
+				"command": "chalet.buildStrategy",
+				"title": "Chalet: Change Build Strategy"
+			},
+			{
+				"command": "chalet.buildPathStyle",
+				"title": "Chalet: Change Build Path Style"
 			},
 			{
 				"command": "chalet.chaletCommand",

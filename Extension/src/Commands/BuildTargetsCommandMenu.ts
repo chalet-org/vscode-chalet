@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import { bind } from "bind-decorator";
 
-import { BuildConfigurations, ChaletCommands, CommandId, Optional } from "../Types";
+import { CommandId } from "../Types";
 import { StatusBarCommandMenu, ValueChangeCallback, MenuItem } from "./StatusBarCommandMenu";
 import { getChaletToolsInstance } from "../ChaletToolsLoader";
 import { ChaletCmdCommandMenu } from "./ChaletCmdCommandMenu";

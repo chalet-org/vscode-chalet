@@ -26,9 +26,11 @@ export const enum ChaletVersion {
 export const enum CommandId {
     Run = "runChalet",
     ChaletCommand = "chaletCommand",
-    BuildToolchain = "buildToolchain",
     BuildArchitecture = "buildArchitecture",
     BuildConfiguration = "buildConfiguration",
+    BuildStrategy = "buildStrategy",
+    BuildPathStyle = "buildPathStyle",
+    BuildToolchain = "buildToolchain",
     BuildTarget = "buildTarget",
     InitializeProject = "initializeProject",
     InitializeCMakeProject = "initializeCMakeProject",

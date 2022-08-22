@@ -25,6 +25,8 @@ import { getCommandID } from "./Functions";
 import { OutputChannel } from "./OutputChannel";
 import { getProcessOutput } from "./Functions/GetProcessOutput";
 import { ChaletToolsExtensionSettings } from "./ChaletToolsExtensionSettings";
+import { BuildStrategyCommandMenu } from "./Commands/BuildStrategyCommandMenu";
+import { BuildPathStyleCommandMenu } from "./Commands/BuildPathStyleCommandMenu";
 
 class ChaletCliSettings {
     inputFile: string = "";
@@ -39,6 +41,8 @@ class ChaletToolsExtension {
     private buildConfiguration: BuildConfigurationCommandMenu;
     private buildArchitecture: BuildArchitectureCommandMenu;
     private buildToolchain: BuildToolchainCommandMenu;
+    private buildStrategy: BuildStrategyCommandMenu;
+    private buildPathStyle: BuildPathStyleCommandMenu;
     private buildTargets: BuildTargetsCommandMenu;
     private runChaletButton: RunChaletCommandButton;
 
@@ -61,10 +65,14 @@ class ChaletToolsExtension {
     architectures: string[] = [];
     targets: string[] = [];
     runTargets: string[] = [];
+    buildStrategies: string[] = [];
+    buildPathStyles: string[] = [];
     private currentToolchain: string = "";
     private currentArchitecture: string = "";
     private currentConfiguration: string = "";
     private currentRunTarget: string = "";
+    private currentBuildStrategy: string = "";
+    private currentBuildPathStyle: string = "";
 
     private onRunChalet = () =>
         this.runChalet(this.chaletCommand.getLabel(), this.buildConfiguration.getLabel(), this.cli);
@@ -104,6 +112,8 @@ class ChaletToolsExtension {
         this.buildArchitecture = new BuildArchitectureCommandMenu(context, this.updateStatusBarItems);
         this.buildToolchain = new BuildToolchainCommandMenu(context, this.updateStatusBarItems);
         this.buildConfiguration = new BuildConfigurationCommandMenu(context, this.updateStatusBarItems);
+        this.buildStrategy = new BuildStrategyCommandMenu(context, this.updateStatusBarItems);
+        this.buildPathStyle = new BuildPathStyleCommandMenu(context, this.updateStatusBarItems);
         this.chaletCommand = new ChaletCmdCommandMenu(context, this.updateStatusBarItems);
 
         /*this.resources = {
@@ -114,13 +124,16 @@ class ChaletToolsExtension {
         };*/
     }
 
-    activate = async () => {
-        await this.chaletCommand.initialize();
-        await this.buildTargets.initialize();
-        await this.buildConfiguration.initialize();
-        await this.buildToolchain.initialize();
-        await this.buildArchitecture.initialize();
-    };
+    activate = () =>
+        Promise.all([
+            this.chaletCommand.initialize(),
+            this.buildTargets.initialize(),
+            this.buildConfiguration.initialize(),
+            this.buildToolchain.initialize(),
+            this.buildStrategy.initialize(),
+            this.buildPathStyle.initialize(),
+            this.buildArchitecture.initialize(),
+        ]);
 
     private fetchAttempts: number = 0;
     private getChaletState = async (
@@ -157,9 +170,13 @@ class ChaletToolsExtension {
                     const res = JSON.parse(output);
                     this.toolchainPresets = res?.["toolchainPresets"] ?? [];
                     this.userToolchains = res?.["userToolchains"] ?? [];
+                    this.buildStrategies = res?.["buildStrategies"] ?? [];
+                    this.buildPathStyles = res?.["buildPathStyles"] ?? [];
                     this.currentArchitecture = res?.["architecture"] ?? BuildArchitecture.Auto;
                     this.currentConfiguration = res?.["configuration"] ?? "";
                     this.currentToolchain = res?.["toolchain"] ?? "";
+                    this.currentBuildStrategy = res?.["buildStrategy"] ?? "";
+                    this.currentBuildPathStyle = res?.["buildPathStyle"] ?? "";
                 }
             }
             this.fetchAttempts = 0;
@@ -203,6 +220,8 @@ class ChaletToolsExtension {
         this.buildConfiguration.dispose();
         this.buildToolchain.dispose();
         this.buildArchitecture.dispose();
+        this.buildStrategy.dispose();
+        this.buildPathStyle.dispose();
         this.runChaletButton.dispose();
     };
 
@@ -326,16 +345,24 @@ class ChaletToolsExtension {
                 this.settingsJsonCache = rawData;
             }
         } else {
-            await this.buildToolchain.setDefaultMenu();
-            await this.buildArchitecture.setDefaultMenu();
-            await this.buildTargets.setDefaultMenu();
+            await Promise.all([
+                this.buildToolchain.setDefaultMenu(),
+                this.buildArchitecture.setDefaultMenu(),
+                this.buildStrategy.setDefaultMenu(),
+                this.buildPathStyle.setDefaultMenu(),
+                this.buildTargets.setDefaultMenu(),
+            ]);
 
             this.settingsJsonCache = "";
         }
 
-        await this.buildArchitecture.setValueFromString(this.currentArchitecture);
-        await this.buildConfiguration.setValueFromString(this.currentConfiguration);
-        await this.buildToolchain.setValueFromString(this.currentToolchain);
+        await Promise.all([
+            this.buildToolchain.setValueFromString(this.currentToolchain),
+            this.buildArchitecture.setValueFromString(this.currentArchitecture),
+            this.buildConfiguration.setValueFromString(this.currentConfiguration),
+            this.buildStrategy.setValueFromString(this.currentBuildStrategy),
+            this.buildPathStyle.setValueFromString(this.currentBuildPathStyle),
+        ]);
 
         this.uiSettingsJsonInitialized = true;
         await this.checkForVisibility();
@@ -409,6 +436,18 @@ class ChaletToolsExtension {
                     }
                 }
 
+                const buildStrategy = this.buildStrategy.getLabel();
+                if (!!buildStrategy) {
+                    shellArgs.push("--build-strategy");
+                    shellArgs.push(buildStrategy);
+                }
+
+                const buildPathStyle = this.buildPathStyle.getLabel();
+                if (!!buildPathStyle) {
+                    shellArgs.push("--build-path-style");
+                    shellArgs.push(buildPathStyle);
+                }
+
                 const toolchain = this.buildToolchain.getLabel();
                 if (!!toolchain) {
                     shellArgs.push("--toolchain");
@@ -459,6 +498,9 @@ class ChaletToolsExtension {
 
     private updateStatusBarItems = async (): Promise<void> => {
         try {
+            this.buildStrategy.setVisible(false);
+            this.buildPathStyle.setVisible(false);
+            await Promise.all([this.buildStrategy.setDefaultMenu(), this.buildPathStyle.setDefaultMenu()]);
             const toolchain = this.buildToolchain.getLabel();
             if (toolchain) {
                 this.architectures = await this.getChaletArchitectures(toolchain);
