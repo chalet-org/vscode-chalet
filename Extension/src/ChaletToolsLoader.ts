@@ -110,7 +110,11 @@ class ChaletToolsLoader {
     private isVersionValid = async (): Promise<[boolean, SemanticVersion]> => {
         const version = await this.getVersionFromChalet();
         const min = this.getMinimumVersion();
-        if (version.major < min.major || (version.major === min.major && version.minor < min.minor)) {
+        if (
+            version.major < min.major ||
+            (version.major === min.major && version.minor < min.minor) ||
+            (version.major === min.major && version.minor === min.minor && version.patch < min.patch)
+        ) {
             return [false, version];
         }
 
