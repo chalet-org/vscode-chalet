@@ -498,6 +498,11 @@ class ChaletToolsExtension {
 
     private updateStatusBarItems = async (): Promise<void> => {
         try {
+            if (!this.enabled) {
+                this.setVisible(false);
+                return;
+            }
+
             this.buildStrategy.setVisible(false);
             this.buildPathStyle.setVisible(false);
             await Promise.all([this.buildStrategy.setDefaultMenu(), this.buildPathStyle.setDefaultMenu()]);

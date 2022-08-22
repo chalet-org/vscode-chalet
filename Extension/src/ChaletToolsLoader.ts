@@ -5,8 +5,10 @@ import * as vscode from "vscode";
 import { ChaletToolsExtension } from "./ChaletToolsExtension";
 import { ChaletSchemaProvider } from "./ChaletSchemaProvider";
 import { OutputChannel } from "./OutputChannel";
-import { getHomeDirectory, getVSCodePlatform, Optional, VSCodePlatform } from "./Types";
+import { ChaletVersion, getHomeDirectory, getVSCodePlatform, Optional, SemanticVersion, VSCodePlatform } from "./Types";
 import { ChaletFile } from "./Constants";
+import { getProcessOutput } from "./Functions/GetProcessOutput";
+import { getTerminalEnv } from "./Functions";
 
 let chaletToolsInstance: Optional<ChaletToolsExtension> = null;
 
@@ -83,7 +85,61 @@ class ChaletToolsLoader {
         this.activateFromWorkspaceFolders();
     }
 
+    private getVersionFromChalet = async (): Promise<SemanticVersion> => {
+        const chalet = ChaletVersion.Release;
+        const env = getTerminalEnv(this.platform);
+        const str = await getProcessOutput(chalet, ["--version"], env);
+        const versionStr = str.split(" ")?.[2] ?? "0.0.0";
+        const arr = versionStr.split(".");
+
+        return {
+            major: parseInt(arr[0]),
+            minor: parseInt(arr[1]),
+            patch: parseInt(arr[2]),
+        };
+    };
+
+    private getMinimumVersion = (): SemanticVersion => {
+        return {
+            major: 0,
+            minor: 5,
+            patch: 0,
+        };
+    };
+
+    private isVersionValid = async (): Promise<boolean> => {
+        const version = await this.getVersionFromChalet();
+        const min = this.getMinimumVersion();
+        if (version.major < min.major || (version.major === min.major && version.minor < min.minor)) {
+            return false;
+        }
+
+        return true;
+    };
+
+    private checkedVersion: boolean = false;
+    private versionValid: boolean = false;
+    private checkForCompatibleVersion = async (): Promise<void> => {
+        if (!this.checkedVersion) {
+            this.versionValid = await this.isVersionValid();
+            if (!this.versionValid) {
+                const min = this.getMinimumVersion();
+                this.handleInformation(
+                    `This version of Chalet Tools requires at least version ${min.major}.${min.minor}.${min.patch} of Chalet.`,
+                    ["Download", "Cancel"],
+                    {
+                        Download: () =>
+                            vscode.env.openExternal(vscode.Uri.parse("https://www.chalet-work.space/download")),
+                        Cancel: () => {},
+                    }
+                );
+            }
+            this.checkedVersion = true;
+        }
+    };
     private activateFromWorkspaceFolders = async () => {
+        await this.checkForCompatibleVersion();
+
         const folders = vscode.workspace.workspaceFolders;
         if (folders) {
             this.workspaceCount = folders.length;
@@ -128,6 +184,12 @@ class ChaletToolsLoader {
                 chaletToolsInstance = new ChaletToolsExtension(this.context, this.platform, this.cwd, this.handleError);
                 await chaletToolsInstance.activate();
                 chaletToolsInstance.settings.refresh();
+            }
+
+            if (!this.versionValid) {
+                chaletToolsInstance.setEnabled(false);
+                chaletToolsInstance.setVisible(false);
+                return;
             }
 
             if (setWatcher) {
@@ -217,6 +279,23 @@ class ChaletToolsLoader {
 
         if (!!err.message) vscode.window.showErrorMessage(err.message);
         OutputChannel.logError(err);
+    };
+
+    private handleInformation = async <T extends string>(
+        msg: string,
+        options: T[],
+        handlers: Record<string, () => void>
+    ) => {
+        // We want activate to trigger next time
+        this.clearActivateVars();
+
+        chaletToolsInstance?.setEnabled(false);
+
+        OutputChannel.log(msg);
+        const selected = await vscode.window.showInformationMessage(msg, ...options);
+        if (!!selected && handlers[selected]) {
+            handlers[selected]();
+        }
     };
 
     private clearWatcher = () => {
