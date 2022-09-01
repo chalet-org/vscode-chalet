@@ -62,7 +62,7 @@
 				],
 				"filenames": [
 					".chaletrc",
-					".chalet/config"
+					".chalet/config.json"
 				]
 			}
 		],
@@ -139,7 +139,7 @@
 			{
 				"fileMatch": [
 					".chaletrc",
-					".chalet/config"
+					".chalet/config.json"
 				],
 				"url": "chalet-schema:///schema-settings-json"
 			}
