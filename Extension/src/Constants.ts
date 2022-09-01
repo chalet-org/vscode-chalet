@@ -1,7 +1,8 @@
 const enum ChaletFile {
     ChaletJson = "chalet.json",
     LocalConfig = ".chaletrc",
-    GlobalConfig = ".chaletconfig",
+    GlobalDirectory = ".chalet",
+    GlobalConfig = "config",
 }
 
 export { ChaletFile };

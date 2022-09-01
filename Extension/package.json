@@ -58,12 +58,11 @@
 			{
 				"id": "jsonc",
 				"extensions": [
-					".chaletrc",
-					".chaletconfig"
+					".chaletrc"
 				],
 				"filenames": [
 					".chaletrc",
-					".chaletconfig"
+					".chalet/config"
 				]
 			}
 		],
@@ -140,7 +139,7 @@
 			{
 				"fileMatch": [
 					".chaletrc",
-					".chaletconfig"
+					".chalet/config"
 				],
 				"url": "chalet-schema:///schema-settings-json"
 			}
