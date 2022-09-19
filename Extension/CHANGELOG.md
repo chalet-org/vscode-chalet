@@ -1,5 +1,12 @@
 # Change Log
 
+## Version 0.5.0
+
+- Chalet version 0.5.0 sync
+- Add support for Build Strategy & Build Path Style CLI commands
+- Add minimum version check message
+- Global settings: ~/.chaletconfig > ~/.chalet/config.json
+
 ## Version 0.4.0
 
 - bugfix: fix terminal process input on windows, use utf-8 as default encoding  
