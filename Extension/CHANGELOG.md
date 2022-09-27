@@ -1,8 +1,15 @@
 # Change Log
 
-## Version 0.4.1
+## Version 0.5.1
 
 - bugfix: Build strategy & path style should be unset unless otherwise set
+
+## Version 0.5.0
+
+- Chalet version 0.5.0 sync
+- Add support for Build Strategy & Build Path Style CLI commands
+- Add minimum version check message
+- Global settings: ~/.chaletconfig > ~/.chalet/config.json
 
 ## Version 0.4.0
 

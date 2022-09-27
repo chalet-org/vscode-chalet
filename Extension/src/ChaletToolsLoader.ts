@@ -207,7 +207,7 @@ class ChaletToolsLoader {
 
             if (this.globalSettingsFile === null) {
                 this.globalSettingsFile = this.watchChaletFile(
-                    path.join(getHomeDirectory(), ChaletFile.GlobalConfig),
+                    path.join(getHomeDirectory(), ChaletFile.GlobalDirectory, ChaletFile.GlobalConfig),
                     chaletToolsInstance.setGlobalSettingsFile,
                     this.onSettingsJsonChange
                 );
