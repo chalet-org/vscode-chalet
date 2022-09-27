@@ -27,6 +27,7 @@ import { getProcessOutput } from "./Functions/GetProcessOutput";
 import { ChaletToolsExtensionSettings } from "./ChaletToolsExtensionSettings";
 import { BuildStrategyCommandMenu } from "./Commands/BuildStrategyCommandMenu";
 import { BuildPathStyleCommandMenu } from "./Commands/BuildPathStyleCommandMenu";
+import { UNSET } from "./Constants";
 
 class ChaletCliSettings {
     inputFile: string = "";
@@ -175,8 +176,8 @@ class ChaletToolsExtension {
                     this.currentArchitecture = res?.["architecture"] ?? BuildArchitecture.Auto;
                     this.currentConfiguration = res?.["configuration"] ?? "";
                     this.currentToolchain = res?.["toolchain"] ?? "";
-                    this.currentBuildStrategy = res?.["buildStrategy"] ?? "";
-                    this.currentBuildPathStyle = res?.["buildPathStyle"] ?? "";
+                    this.currentBuildStrategy = res?.["buildStrategy"] ?? null;
+                    this.currentBuildPathStyle = res?.["buildPathStyle"] ?? null;
                 }
             }
             this.fetchAttempts = 0;
@@ -437,13 +438,13 @@ class ChaletToolsExtension {
                 }
 
                 const buildStrategy = this.buildStrategy.getLabel();
-                if (!!buildStrategy) {
+                if (!!buildStrategy && buildStrategy !== UNSET) {
                     shellArgs.push("--build-strategy");
                     shellArgs.push(buildStrategy);
                 }
 
                 const buildPathStyle = this.buildPathStyle.getLabel();
-                if (!!buildPathStyle) {
+                if (!!buildPathStyle && buildPathStyle !== UNSET) {
                     shellArgs.push("--build-path-style");
                     shellArgs.push(buildPathStyle);
                 }

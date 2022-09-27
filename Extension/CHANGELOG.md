@@ -1,5 +1,9 @@
 # Change Log
 
+## Version 0.4.1
+
+- bugfix: Build strategy & path style should be unset unless otherwise set
+
 ## Version 0.4.0
 
 - bugfix: fix terminal process input on windows, use utf-8 as default encoding  

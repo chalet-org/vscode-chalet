@@ -4,4 +4,6 @@ const enum ChaletFile {
     GlobalConfig = ".chaletconfig",
 }
 
-export { ChaletFile };
+const UNSET: string = "<unset>";
+
+export { UNSET, ChaletFile };

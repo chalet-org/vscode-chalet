@@ -4,6 +4,7 @@ import { bind } from "bind-decorator";
 import { CommandId } from "../Types";
 import { StatusBarCommandMenu, ValueChangeCallback, MenuItem } from "./StatusBarCommandMenu";
 import { getChaletToolsInstance } from "../ChaletToolsLoader";
+import { UNSET } from "../Constants";
 
 type MenuType = string;
 
@@ -14,7 +15,7 @@ class BuildPathStyleCommandMenu extends StatusBarCommandMenu<MenuType> {
         this.setTooltip("Change Build Path Style");
     }
 
-    private getRawMenu = (): MenuType[] => getChaletToolsInstance()?.buildPathStyles ?? [];
+    private getRawMenu = (): MenuType[] => [UNSET, ...(getChaletToolsInstance()?.buildPathStyles ?? [])];
 
     @bind
     protected getDefaultMenu(): MenuItem<MenuType>[] {
