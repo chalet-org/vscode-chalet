@@ -1,5 +1,9 @@
 # Change Log
 
+## Version 0.5.2
+
+- bugfix: Allow architecture menu if toolchain starts with `llvm-`
+
 ## Version 0.5.1
 
 - bugfix: Build strategy & path style should be unset unless otherwise set
