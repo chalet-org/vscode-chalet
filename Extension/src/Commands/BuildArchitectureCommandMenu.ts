@@ -29,7 +29,7 @@ class BuildArchitectureCommandMenu extends StatusBarCommandMenu<MenuType> {
             if (this.toolchain === toolchain) return;
 
             const toolchainPresets = getChaletToolsInstance()?.toolchainPresets ?? [];
-            if (!!toolchain && toolchainPresets.includes(toolchain)) {
+            if (!!toolchain && (toolchainPresets.includes(toolchain) || toolchain.startsWith("llvm-"))) {
                 this.toolchain = toolchain;
             } else {
                 this.toolchain = null;
