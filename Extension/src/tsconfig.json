@@ -6,12 +6,16 @@
 		"lib": [
 			"ESNext"
 		],
+		"experimentalDecorators": true,
+		"isolatedModules": true,
 		"sourceMap": true,
 		"strict": true,
-		"isolatedModules": true,
+		"strictFunctionTypes": true,
+		"strictNullChecks": true,
+		"strictPropertyInitialization": true,
+		"strictBindCallApply": true,
 		"preserveConstEnums": true,
 		"removeComments": true,
-		"experimentalDecorators": true,
 		/* Additional Checks */
 		// "noImplicitReturns": true, /* Report error when not all code paths in function return a value. */
 		// "noFallthroughCasesInSwitch": true, /* Report errors for fallthrough cases in switch statement. */

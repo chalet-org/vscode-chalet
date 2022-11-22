@@ -1,3 +1,4 @@
+import * as fsp from "fs/promises";
 import * as fs from "fs";
 import * as vscode from "vscode";
 
@@ -291,7 +292,7 @@ class ChaletToolsExtension {
         if (!this.canUpdate) return;
         let rawData: string = "";
         try {
-            rawData = fs.readFileSync(this.cli.inputFile, "utf8");
+            rawData = await fsp.readFile(this.cli.inputFile, "utf8");
         } catch {}
 
         const update: boolean = rawData != this.chaletJsonCache;
@@ -322,10 +323,10 @@ class ChaletToolsExtension {
         if (!this.canUpdate) return;
         let rawData: string = "";
         try {
-            rawData = fs.readFileSync(this.cli.settingsFile, "utf8");
+            rawData = await fsp.readFile(this.cli.settingsFile, "utf8");
         } catch {
             try {
-                rawData = fs.readFileSync(this.globalSettingsFile, "utf8");
+                rawData = await fsp.readFile(this.globalSettingsFile, "utf8");
             } catch {}
         }
 

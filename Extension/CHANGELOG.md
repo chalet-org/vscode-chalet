@@ -1,5 +1,9 @@
 # Change Log
 
+## Version 0.5.3
+
+- bugfix: Use fs/promises when checking for changes in chalet.json & .chaletrc
+
 ## Version 0.5.2
 
 - bugfix: Allow architecture menu if toolchain starts with `llvm-`
