@@ -26,7 +26,7 @@ class BuildArchitectureCommandMenu extends StatusBarCommandMenu<MenuType> {
 
     updateVisibility = async (toolchain: Optional<string>): Promise<void> => {
         try {
-            if (this.toolchain === toolchain) return;
+            if (this.toolchain === toolchain) {return;}
 
             const toolchainPresets = getChaletToolsInstance()?.toolchainPresets ?? [];
             if (!!toolchain && (toolchainPresets.includes(toolchain) || toolchain.startsWith("llvm-"))) {

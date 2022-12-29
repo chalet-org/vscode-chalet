@@ -41,10 +41,10 @@ class BuildToolchainCommandMenu extends StatusBarCommandMenu<MenuType> {
             let menu: MenuType[] = [];
             const userToolchains = getChaletToolsInstance()?.userToolchains ?? [];
             for (const key of userToolchains) {
-                if (!menu.includes(key)) menu.push(key);
+                if (!menu.includes(key)) {menu.push(key);}
             }
             for (const item of this.getRawMenu()) {
-                if (!menu.includes(item)) menu.push(item);
+                if (!menu.includes(item)) {menu.push(item);}
             }
             await this.setMenu(menu.map(this.stringToMenuItem));
         } catch (err) {

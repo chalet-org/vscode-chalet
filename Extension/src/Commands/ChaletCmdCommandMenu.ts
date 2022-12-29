@@ -59,7 +59,7 @@ class ChaletCmdCommandMenu extends StatusBarCommandMenu<ChaletCommands> {
 
     getCliSubCommand = (label: Optional<ChaletCommands>): string => {
         const value = label ?? this.value?.label ?? null;
-        if (value === null) return "";
+        if (value === null) {return "";}
 
         switch (value) {
             case ChaletCommands.BuildRun:

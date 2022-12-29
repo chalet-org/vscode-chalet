@@ -38,8 +38,8 @@ abstract class StatusBarCommand {
     setVisible = (value: boolean): void => {
         this.visible = value;
 
-        if (this.visible) this.item.show();
-        else this.item.hide();
+        if (this.visible) {this.item.show();}
+        else {this.item.hide();}
     };
 
     protected setLabel = (value: string): void => {

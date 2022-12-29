@@ -53,7 +53,7 @@ abstract class StatusBarCommandMenu<T extends string> extends StatusBarCommand {
 
     setValue = async (value: Optional<MenuItem<T>>): Promise<void> => {
         try {
-            if (JSON.stringify(this.value) === JSON.stringify(value)) return;
+            if (JSON.stringify(this.value) === JSON.stringify(value)) {return;}
 
             this.value = value;
             if (this.value !== null) {

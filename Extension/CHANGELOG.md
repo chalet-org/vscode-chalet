@@ -1,5 +1,9 @@
 # Change Log
 
+## Version 0.5.5
+
+- bugfix: Use esbuild to bundle extension
+
 ## Version 0.5.4
 
 - bugfix: Don't explicitly set build strategy or build path unless asked (use whatever is in settings)

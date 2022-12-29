@@ -1,7 +1,8 @@
 // Place your settings in this file to overwrite default and user settings.
 {
     "files.exclude": {
-        "out": true,
+        ".vscode-test/": true,
+        // "out": true,
         "package-lock.json": true,
         "node_modules": true,
     },

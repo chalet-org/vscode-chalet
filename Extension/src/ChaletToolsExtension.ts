@@ -145,7 +145,9 @@ class ChaletToolsExtension {
         ...data: string[]
     ): Promise<void> => {
         try {
-            if (this.fetchAttempts === 5) return;
+            if (this.fetchAttempts === 5) {
+                return;
+            }
 
             const chalet = this.settings.getChaletExecutable();
             const env = getTerminalEnv(this.platform);
@@ -160,11 +162,11 @@ class ChaletToolsExtension {
                 return await this.getChaletState(type, ...data);
             }
 
-            if (type == "architectures" && data.length > 0) {
+            if (type === "architectures" && data.length > 0) {
                 const toolchain = data[0];
                 this.archCache[toolchain] = output.split("\t");
             } else {
-                if (type == "state-chalet-json") {
+                if (type === "state-chalet-json") {
                     const res = JSON.parse(output);
                     this.configurations = res?.["configurations"] ?? [];
                     this.targets = res?.["targets"] ?? [];
@@ -248,7 +250,9 @@ class ChaletToolsExtension {
 
     setEnabled = async (enabled: boolean): Promise<void> => {
         try {
-            if (this.enabled === enabled) return;
+            if (this.enabled === enabled) {
+                return;
+            }
 
             this.enabled = enabled;
             if (this.enabled) {
@@ -293,13 +297,15 @@ class ChaletToolsExtension {
     private chaletJsonCache: string = "<initial>";
 
     handleChaletJsonChange = async (): Promise<void> => {
-        if (!this.canUpdate) return;
+        if (!this.canUpdate) {
+            return;
+        }
         let rawData: string = "";
         try {
             rawData = await fsp.readFile(this.cli.inputFile, "utf8");
         } catch {}
 
-        const update: boolean = rawData != this.chaletJsonCache;
+        const update: boolean = rawData !== this.chaletJsonCache;
         if (update) {
             // this.configurations = await this.getChaletConfigurations();
             // this.currentRunTarget = await this.getChaletCurrentRunTarget();
@@ -324,7 +330,9 @@ class ChaletToolsExtension {
     private settingsJsonCache: string = "<initial>";
 
     handleSettingsJsonChange = async (): Promise<void> => {
-        if (!this.canUpdate) return;
+        if (!this.canUpdate) {
+            return;
+        }
         let rawData: string = "";
         try {
             rawData = await fsp.readFile(this.cli.settingsFile, "utf8");
@@ -334,7 +342,7 @@ class ChaletToolsExtension {
             } catch {}
         }
 
-        const update: boolean = rawData != this.settingsJsonCache;
+        const update: boolean = rawData !== this.settingsJsonCache;
         if (update) {
             // this.toolchainPresets = await this.getChaletToolchainPresets();
             // this.userToolchains = await this.getChaletUserToolchains();
@@ -398,7 +406,9 @@ class ChaletToolsExtension {
         settings: ChaletCliSettings
     ): Promise<void> => {
         try {
-            if (command === null) return;
+            if (command === null) {
+                return;
+            }
 
             let shellArgs: string[] = [];
 

@@ -1,5 +1,5 @@
 import * as proc from "child_process";
-import * as treeKill from "tree-kill";
+import treeKill from "tree-kill";
 import * as vscode from "vscode";
 
 import { OutputChannel } from "../OutputChannel";
@@ -27,7 +27,7 @@ export const getProcessOutput = (
             ret += chunk.toString();
         });
         runningProcess.on("error", (err: SpawnError) => {
-            if (err.code == "ENOENT") {
+            if (err.code === "ENOENT") {
                 OutputChannel.logError({
                     ...err,
                     message: `Error: '${executable}' was not found in PATH.`,

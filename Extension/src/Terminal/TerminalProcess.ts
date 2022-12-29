@@ -1,5 +1,5 @@
 import * as proc from "child_process";
-import * as treeKill from "tree-kill";
+import treeKill from "tree-kill";
 import { OutputChannel } from "../OutputChannel";
 
 import { Dictionary, getVSCodePlatform, Optional, VSCodePlatform } from "../Types";
@@ -97,7 +97,9 @@ class TerminalProcess {
     };
 
     write = (data: string) => {
-        if (data.length === 0) return;
+        if (data.length === 0) {
+            return;
+        }
 
         console.log(JSON.stringify(data));
 
@@ -226,7 +228,7 @@ class TerminalProcess {
                     if (onFailure) {
                         onFailure(err);
                     } else {
-                        if (err.code == "ENOENT") {
+                        if (err.code === "ENOENT") {
                             this.onWrite(
                                 `\x1b[31;1mError:\n\x1b[0m   '${options.shellPath}' was not found in PATH.\n\n`
                             );

@@ -69,7 +69,9 @@ class ChaletToolsLoader {
         );*/
         context.subscriptions.push(
             vscode.window.onDidChangeActiveTextEditor(async (ev) => {
-                if (this.workspaceCount <= 1) return;
+                if (this.workspaceCount <= 1) {
+                    return;
+                }
 
                 if (ev) {
                     const workspaceFolder = vscode.workspace.getWorkspaceFolder(ev.document.uri);
@@ -151,7 +153,9 @@ class ChaletToolsLoader {
 
             for (const folder of folders) {
                 await this.activate(folder);
-                if (chaletToolsInstance?.enabled ?? false) return;
+                if (chaletToolsInstance?.enabled ?? false) {
+                    return;
+                }
             }
         }
     };
@@ -170,7 +174,7 @@ class ChaletToolsLoader {
 
     private activate = async (workspaceFolder?: vscode.WorkspaceFolder): Promise<void> => {
         try {
-            if (!workspaceFolder) return;
+            if (!workspaceFolder) {return;}
 
             const workspaceRoot = workspaceFolder.uri;
 
@@ -282,7 +286,7 @@ class ChaletToolsLoader {
 
         chaletToolsInstance?.setEnabled(false);
 
-        if (!!err.message) vscode.window.showErrorMessage(err.message);
+        if (!!err.message) {vscode.window.showErrorMessage(err.message);}
         OutputChannel.logError(err);
     };
 

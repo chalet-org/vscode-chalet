@@ -28,16 +28,16 @@ class ChaletSchemaProvider implements vscode.TextDocumentContentProvider {
 
     provideTextDocumentContent = async (uri: vscode.Uri): Promise<string> => {
         try {
-            const schemaFile = uri.path.substr(1);
+            const schemaFile = uri.path.substring(1);
 
             if (schemaFile === SchemaType.SettingsJson) {
-                if (this.settingsSchema == null) {
+                if (this.settingsSchema === null) {
                     this.settingsSchema = await this.fetchSchema(SchemaType.SettingsJson);
                 }
 
                 return this.settingsSchema;
             } else if (schemaFile === SchemaType.ChaletJson) {
-                if (this.chaletSchema == null) {
+                if (this.chaletSchema === null) {
                     this.chaletSchema = await this.fetchSchema(SchemaType.ChaletJson);
                 }
 
