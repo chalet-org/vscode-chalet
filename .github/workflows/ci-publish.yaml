@@ -22,11 +22,11 @@ jobs:
       - name: "🌌 Prepare"
         working-directory: ./Extension
         run: |
-          yarn global add vsce
-          yarn install
+          npm install -g vsce
+          npm install
       - name: "🛠️ Build"
         working-directory: ./Extension
-        run: yarn build
+        run: npm run build
       - name: "🚀 Publish to Visual Studio Marketplace"
         working-directory: ./Extension
         run: vsce publish --target win32-x64 win32-arm64 darwin-x64 darwin-arm64 linux-x64 linux-armhf
