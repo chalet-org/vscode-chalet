@@ -73,8 +73,8 @@ class ChaletToolsExtension {
     private currentArchitecture: string = "";
     private currentConfiguration: string = "";
     private currentRunTarget: string = "";
-    private currentBuildStrategy: string = "";
-    private currentBuildPathStyle: string = "";
+    private currentBuildStrategy: Optional<string> = null;
+    private currentBuildPathStyle: Optional<string> = null;
 
     private onRunChalet = () =>
         this.runChalet(this.chaletCommand.getLabel(), this.buildConfiguration.getLabel(), this.cli);
@@ -117,6 +117,8 @@ class ChaletToolsExtension {
         this.buildStrategy = new BuildStrategyCommandMenu(context, this.updateStatusBarItems);
         this.buildPathStyle = new BuildPathStyleCommandMenu(context, this.updateStatusBarItems);
         this.chaletCommand = new ChaletCmdCommandMenu(context, this.updateStatusBarItems);
+
+        OutputChannel.log("Yes fuck");
 
         /*this.resources = {
             home: {
@@ -177,8 +179,10 @@ class ChaletToolsExtension {
                     this.currentArchitecture = res?.["architecture"] ?? BuildArchitecture.Auto;
                     this.currentConfiguration = res?.["configuration"] ?? "";
                     this.currentToolchain = res?.["toolchain"] ?? "";
-                    this.currentBuildStrategy = res?.["buildStrategy"] ?? null;
-                    this.currentBuildPathStyle = res?.["buildPathStyle"] ?? null;
+                    // this.currentBuildStrategy = res?.["buildStrategy"] ?? null;
+                    // this.currentBuildPathStyle = res?.["buildPathStyle"] ?? null;
+                    this.currentBuildStrategy = null;
+                    this.currentBuildPathStyle = null;
                 }
             }
             this.fetchAttempts = 0;

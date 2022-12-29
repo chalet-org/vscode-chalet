@@ -2,7 +2,7 @@
 	"compilerOptions": {
 		"module": "commonjs",
 		"target": "ES2019",
-		"outDir": "../out",
+		"outDir": "./out",
 		"lib": [
 			"ESNext"
 		],
@@ -21,6 +21,10 @@
 		// "noFallthroughCasesInSwitch": true, /* Report errors for fallthrough cases in switch statement. */
 		// "noUnusedParameters": true,  /* Report errors on unused parameters. */
 	},
+	"include": [
+		"./src/**/*.ts",
+		"./test/**/*.ts"
+	],
 	"exclude": [
 		"node_modules",
 		".vscode-test"

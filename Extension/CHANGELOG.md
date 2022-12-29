@@ -1,5 +1,9 @@
 # Change Log
 
+## Version 0.5.4
+
+- bugfix: Don't explicitly set build strategy or build path unless asked (use whatever is in settings)
+
 ## Version 0.5.3
 
 - bugfix: Use fs/promises when checking for changes in chalet.json & .chaletrc
