@@ -9,6 +9,7 @@ import { ChaletVersion, getHomeDirectory, getVSCodePlatform, Optional, SemanticV
 import { ChaletFile } from "./Constants";
 import { getProcessOutput } from "./Functions/GetProcessOutput";
 import { getTerminalEnv } from "./Functions";
+import { Utils } from "vscode-uri";
 
 let chaletToolsInstance: Optional<ChaletToolsExtension> = null;
 
@@ -174,7 +175,9 @@ class ChaletToolsLoader {
 
     private activate = async (workspaceFolder?: vscode.WorkspaceFolder): Promise<void> => {
         try {
-            if (!workspaceFolder) {return;}
+            if (!workspaceFolder) {
+                return;
+            }
 
             const workspaceRoot = workspaceFolder.uri;
 
@@ -219,7 +222,7 @@ class ChaletToolsLoader {
 
             if (this.settingsFile === null) {
                 this.settingsFile = this.watchChaletFile(
-                    vscode.Uri.joinPath(workspaceRoot, ChaletFile.LocalConfig).fsPath,
+                    Utils.joinPath(workspaceRoot, ChaletFile.LocalConfig).fsPath,
                     chaletToolsInstance.setSettingsFile,
                     this.onSettingsJsonChange
                 );
@@ -227,7 +230,7 @@ class ChaletToolsLoader {
 
             if (this.inputFile === null) {
                 this.inputFile = this.watchChaletFile(
-                    vscode.Uri.joinPath(workspaceRoot, ChaletFile.ChaletJson).fsPath,
+                    Utils.joinPath(workspaceRoot, ChaletFile.ChaletJson).fsPath,
                     chaletToolsInstance.setInputFile,
                     this.onChaletJsonChange
                 );
@@ -286,7 +289,9 @@ class ChaletToolsLoader {
 
         chaletToolsInstance?.setEnabled(false);
 
-        if (!!err.message) {vscode.window.showErrorMessage(err.message);}
+        if (!!err.message) {
+            vscode.window.showErrorMessage(err.message);
+        }
         OutputChannel.logError(err);
     };
 

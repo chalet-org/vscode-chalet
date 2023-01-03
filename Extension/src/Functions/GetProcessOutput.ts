@@ -1,6 +1,5 @@
 import * as proc from "child_process";
 import treeKill from "tree-kill";
-import * as vscode from "vscode";
 
 import { OutputChannel } from "../OutputChannel";
 import { SpawnError } from "../Terminal/TerminalProcess";

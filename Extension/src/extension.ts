@@ -7,7 +7,7 @@ import { Optional } from "./Types";
 let extensionLoader: Optional<ChaletToolsLoader> = null;
 
 export function activate(context: vscode.ExtensionContext) {
-    OutputChannel.create("Chalet Tools");
+    OutputChannel.create("Chalet");
     extensionLoader = new ChaletToolsLoader(context);
     OutputChannel.logWithName("activated");
 }

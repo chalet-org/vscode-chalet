@@ -1,5 +1,9 @@
 # Change Log
 
+## Version 0.5.6
+
+- bugfix: Typechecks in new vscode lib, vscode-uri dep
+
 ## Version 0.5.5
 
 - bugfix: Use esbuild to bundle extension

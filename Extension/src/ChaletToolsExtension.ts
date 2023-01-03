@@ -118,8 +118,6 @@ class ChaletToolsExtension {
         this.buildPathStyle = new BuildPathStyleCommandMenu(context, this.updateStatusBarItems);
         this.chaletCommand = new ChaletCmdCommandMenu(context, this.updateStatusBarItems);
 
-        OutputChannel.log("Yes fuck");
-
         /*this.resources = {
             home: {
                 dark: vscode.Uri.file(context.asAbsolutePath("resources/dark/chalet.svg")),

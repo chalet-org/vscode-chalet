@@ -39,11 +39,12 @@ class ChaletTerminal {
             terminal.show();
         } else {
             // const resources = getChaletToolsInstance()!.resources;
+            const iconCtor: any = vscode.ThemeIcon;
             const pty = this.createPseudoTerminal();
             terminal = vscode.window.createTerminal({
                 name: label,
                 pty,
-                iconPath: new vscode.ThemeIcon(this.icon),
+                iconPath: new iconCtor(this.icon),
                 // iconPath: resources.home ?? new vscode.ThemeIcon(this.icon),
             });
         }
