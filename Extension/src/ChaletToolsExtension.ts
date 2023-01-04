@@ -437,6 +437,19 @@ class ChaletToolsExtension {
             } else if (command === ChaletCommands.Export) {
                 if (!!param) {
                     shellArgs.push(this.chaletCommand.getCliSubCommand(command));
+
+                    const toolchain = this.buildToolchain.getLabel();
+                    if (!!toolchain) {
+                        shellArgs.push("--toolchain");
+                        shellArgs.push(toolchain);
+                    }
+
+                    const arch = this.buildArchitecture.getLabel();
+                    if (!!arch) {
+                        shellArgs.push("--arch");
+                        shellArgs.push(arch);
+                    }
+
                     shellArgs.push(param);
                 }
             } else if (command === ChaletCommands.TestTerminal) {
