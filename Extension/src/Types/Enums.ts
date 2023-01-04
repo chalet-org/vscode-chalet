@@ -7,6 +7,7 @@ export const enum ChaletCommands {
     Bundle = "Bundle",
     Configure = "Configure",
     Init = "Init",
+    Export = "Export",
     TestTerminal = "Test Terminal",
 }
 
@@ -34,5 +35,6 @@ export const enum CommandId {
     BuildTarget = "buildTarget",
     InitializeProject = "initializeProject",
     InitializeCMakeProject = "initializeCMakeProject",
+    GenerateProjectFiles = "generateProjectFiles",
     TestTerminal = "testTerminal",
 }

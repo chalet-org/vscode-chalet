@@ -2,7 +2,7 @@
 	"name": "vscode-chalet",
 	"displayName": "Chalet",
 	"description": "Support for Chalet projects in Visual Studio Code",
-	"version": "0.5.7",
+	"version": "0.5.8",
 	"publisher": "chalet-org",
 	"license": "BSD-3-Clause",
 	"icon": "chalet-logo.png",
@@ -46,6 +46,7 @@
 		"onCommand:chalet.chaletCommand",
 		"onCommand:chalet.initializeProject",
 		"onCommand:chalet.initializeCMakeProject",
+		"onCommand:chalet.generateProjectFiles",
 		"onCommand:chalet.runChalet",
 		"onCommand:chalet.testTerminal",
 		"workspaceContains:**/chalet.json",
@@ -117,6 +118,10 @@
 			{
 				"command": "chalet.initializeCMakeProject",
 				"title": "Chalet: Initialize Project with CMake"
+			},
+			{
+				"command": "chalet.generateProjectFiles",
+				"title": "Chalet: Generate VS Code Project Files"
 			},
 			{
 				"command": "chalet.runChalet",

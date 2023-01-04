@@ -1,5 +1,9 @@
 # Change Log
 
+## Version 0.5.8
+
+- Add "Generate VS Code Project Files" command to run 'chalet export vscode' and copy the resulting .vscode dir if it doesn't exist
+
 ## Version 0.5.7
 
 - Update button order to cmd, toolchain, arch, config, run target

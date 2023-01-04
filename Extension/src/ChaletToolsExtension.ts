@@ -1,5 +1,6 @@
 import * as fsp from "fs/promises";
 import * as fs from "fs";
+import * as path from "path";
 import * as vscode from "vscode";
 
 import { getTerminalEnv } from "./Functions";
@@ -29,6 +30,7 @@ import { ChaletToolsExtensionSettings } from "./ChaletToolsExtensionSettings";
 import { BuildStrategyCommandMenu } from "./Commands/BuildStrategyCommandMenu";
 import { BuildPathStyleCommandMenu } from "./Commands/BuildPathStyleCommandMenu";
 import { UNSET } from "./Constants";
+import { copyDirectory } from "./Functions/CopyDir";
 
 class ChaletCliSettings {
     inputFile: string = "";
@@ -83,6 +85,19 @@ class ChaletToolsExtension {
     private onInitializeProject = () => this.runChalet(ChaletCommands.Init, null, this.cli);
     private onInitializeCMakeProject = () => this.runChalet(ChaletCommands.Init, "cmake", this.cli);
 
+    private generateProjectFiles = async () => {
+        await this.runChalet(ChaletCommands.Export, "vscode", this.cli);
+
+        // note: cli.outputDir is blank for now anyway
+        const buildDir = this.cli.outputDir.length > 0 ? this.cli.outputDir : "build";
+        const buildPath = path.join(this.cwd, buildDir, ".project", ".vscode");
+        const outputPath = path.join(this.cwd, ".vscode");
+
+        if (fs.existsSync(buildPath) && !fs.existsSync(outputPath)) {
+            await copyDirectory(buildPath, outputPath);
+        }
+    };
+
     constructor(
         context: vscode.ExtensionContext,
         public platform: VSCodePlatform,
@@ -102,6 +117,10 @@ class ChaletToolsExtension {
                 getCommandID(CommandId.InitializeCMakeProject),
                 this.onInitializeCMakeProject
             )
+        );
+
+        context.subscriptions.push(
+            vscode.commands.registerCommand(getCommandID(CommandId.GenerateProjectFiles), this.generateProjectFiles)
         );
 
         context.subscriptions.push(
@@ -415,6 +434,11 @@ class ChaletToolsExtension {
                     shellArgs.push("--template");
                     shellArgs.push(param);
                 }
+            } else if (command === ChaletCommands.Export) {
+                if (!!param) {
+                    shellArgs.push(this.chaletCommand.getCliSubCommand(command));
+                    shellArgs.push(param);
+                }
             } else if (command === ChaletCommands.TestTerminal) {
                 //
             } else {
@@ -475,7 +499,9 @@ class ChaletToolsExtension {
                 }
             }
 
-            shellArgs.push(this.chaletCommand.getCliSubCommand(command));
+            if (command !== ChaletCommands.Export) {
+                shellArgs.push(this.chaletCommand.getCliSubCommand(command));
+            }
 
             const runTarget = this.buildTargets.getLabel();
             if (!!runTarget) {
