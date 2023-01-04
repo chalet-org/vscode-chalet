@@ -1,5 +1,9 @@
 # Change Log
 
+## Version 0.5.7
+
+- Update button order to cmd, toolchain, arch, config, run target
+
 ## Version 0.5.6
 
 - bugfix: Typechecks in new vscode lib, vscode-uri dep

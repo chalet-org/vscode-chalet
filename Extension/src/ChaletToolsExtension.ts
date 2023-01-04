@@ -111,11 +111,11 @@ class ChaletToolsExtension {
         // Note: Assignment order = reverse visible order
         this.runChaletButton = new RunChaletCommandButton(context, this.onRunChalet);
         this.buildTargets = new BuildTargetsCommandMenu(context, this.updateStatusBarItems);
-        this.buildArchitecture = new BuildArchitectureCommandMenu(context, this.updateStatusBarItems);
-        this.buildToolchain = new BuildToolchainCommandMenu(context, this.updateStatusBarItems);
         this.buildConfiguration = new BuildConfigurationCommandMenu(context, this.updateStatusBarItems);
         this.buildStrategy = new BuildStrategyCommandMenu(context, this.updateStatusBarItems);
         this.buildPathStyle = new BuildPathStyleCommandMenu(context, this.updateStatusBarItems);
+        this.buildArchitecture = new BuildArchitectureCommandMenu(context, this.updateStatusBarItems);
+        this.buildToolchain = new BuildToolchainCommandMenu(context, this.updateStatusBarItems);
         this.chaletCommand = new ChaletCmdCommandMenu(context, this.updateStatusBarItems);
 
         /*this.resources = {
