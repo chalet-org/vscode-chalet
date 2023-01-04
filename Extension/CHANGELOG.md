@@ -2,6 +2,10 @@
 
 ## Version 0.5.8
 
+- bugfix: send current state of toolchain & arch buttons to "Generate VS Code Project Files" command
+
+## Version 0.5.8
+
 - Add "Generate VS Code Project Files" command to run 'chalet export vscode' and copy the resulting .vscode dir if it doesn't exist
 
 ## Version 0.5.7
