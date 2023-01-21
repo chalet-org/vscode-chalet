@@ -2,6 +2,10 @@
 
 ## Version 0.5.9
 
+- change "Configure" icon in status bar
+
+## Version 0.5.9
+
 - bugfix: send current state of toolchain & arch buttons to "Generate VS Code Project Files" command
 
 ## Version 0.5.8

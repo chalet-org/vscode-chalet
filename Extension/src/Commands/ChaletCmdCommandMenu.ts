@@ -46,7 +46,7 @@ class ChaletCmdCommandMenu extends StatusBarCommandMenu<ChaletCommands> {
             case ChaletCommands.Bundle:
                 return "package";
             case ChaletCommands.Configure:
-                return "circuit-board";
+                return "debug-configure";
             case ChaletCommands.Init:
                 return "rocket";
 
