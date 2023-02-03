@@ -112,6 +112,10 @@ class ChaletToolsLoader {
 
     private isVersionValid = async (): Promise<[boolean, SemanticVersion]> => {
         const version = await this.getVersionFromChalet();
+        if (version.major === 0 && version.minor === 0 && version.patch === 0) {
+            throw new Error("Error fetching chalet version");
+        }
+
         const min = this.getMinimumVersion();
         if (
             version.major < min.major ||
@@ -127,22 +131,26 @@ class ChaletToolsLoader {
     private checkedVersion: boolean = false;
     private versionValid: boolean = false;
     private checkForCompatibleVersion = async (): Promise<void> => {
-        if (!this.checkedVersion) {
-            const [valid, ver] = await this.isVersionValid();
-            this.versionValid = valid;
-            if (!this.versionValid) {
-                const min = this.getMinimumVersion();
-                this.handleInformation(
-                    `This version of the Chalet extension requires Chalet version ${min.major}.${min.minor}.${min.patch} or higher, but version ${ver.major}.${ver.minor}.${ver.patch} was found.`,
-                    ["Download", "Cancel"],
-                    {
-                        Download: () =>
-                            vscode.env.openExternal(vscode.Uri.parse("https://www.chalet-work.space/download")),
-                        Cancel: () => {},
-                    }
-                );
+        try {
+            if (!this.checkedVersion) {
+                const [valid, ver] = await this.isVersionValid();
+                this.versionValid = valid;
+                if (!this.versionValid) {
+                    const min = this.getMinimumVersion();
+                    this.handleInformation(
+                        `This version of the Chalet extension requires Chalet version ${min.major}.${min.minor}.${min.patch} or higher, but version ${ver.major}.${ver.minor}.${ver.patch} was found.`,
+                        ["Download", "Cancel"],
+                        {
+                            Download: () =>
+                                vscode.env.openExternal(vscode.Uri.parse("https://www.chalet-work.space/download")),
+                            Cancel: () => {},
+                        }
+                    );
+                }
+                this.checkedVersion = true;
             }
-            this.checkedVersion = true;
+        } catch (err: any) {
+            OutputChannel.logError(err);
         }
     };
     private activateFromWorkspaceFolders = async () => {
