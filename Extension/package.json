@@ -2,7 +2,7 @@
 	"name": "vscode-chalet",
 	"displayName": "Chalet",
 	"description": "Support for Chalet projects in Visual Studio Code",
-	"version": "0.5.11",
+	"version": "0.5.12",
 	"publisher": "chalet-org",
 	"license": "BSD-3-Clause",
 	"icon": "chalet-logo.png",

@@ -1,5 +1,9 @@
 # Change Log
 
+## Version 0.5.12
+
+- Only hide the architecture button if the query result returns 1 item
+
 ## Version 0.5.11
 
 - bugfix: don't show update popup of verion query fails (would have shown 0.0.0)

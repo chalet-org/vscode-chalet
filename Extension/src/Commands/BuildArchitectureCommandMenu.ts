@@ -26,21 +26,18 @@ class BuildArchitectureCommandMenu extends StatusBarCommandMenu<MenuType> {
 
     updateVisibility = async (toolchain: Optional<string>): Promise<void> => {
         try {
-            if (this.toolchain === toolchain) {return;}
-
-            const toolchainPresets = getChaletToolsInstance()?.toolchainPresets ?? [];
-            if (!!toolchain && (toolchainPresets.includes(toolchain) || toolchain.startsWith("llvm-"))) {
-                this.toolchain = toolchain;
-            } else {
-                this.toolchain = null;
+            if (this.toolchain === toolchain) {
+                return;
             }
+
+            this.toolchain = toolchain;
 
             await this.setDefaultMenu();
 
             const menu = this.getRawMenu();
             const onlyAuto = menu.length === 1 && menu[0] === BuildArchitecture.Auto;
 
-            if (onlyAuto || this.toolchain === null) {
+            if (onlyAuto) {
                 this.setVisible(false);
             } else {
                 this.setVisible(true);
