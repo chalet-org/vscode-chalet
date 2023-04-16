@@ -31,6 +31,7 @@ import { BuildStrategyCommandMenu } from "./Commands/BuildStrategyCommandMenu";
 import { BuildPathStyleCommandMenu } from "./Commands/BuildPathStyleCommandMenu";
 import { UNSET } from "./Constants";
 import { copyDirectory } from "./Functions/CopyDir";
+import { HelloWorldPanel } from "./Webview/Panels/HelloWorldPanel";
 
 class ChaletCliSettings {
     inputFile: string = "";
@@ -143,6 +144,12 @@ class ChaletToolsExtension {
                 light: vscode.Uri.file(context.asAbsolutePath("resources/light/chalet.svg")),
             },
         };*/
+
+        context.subscriptions.push(
+            vscode.commands.registerCommand(getCommandID(CommandId.OpenProjectSettings), () => {
+                HelloWorldPanel.render(context.extensionUri);
+            })
+        );
     }
 
     activate = () =>

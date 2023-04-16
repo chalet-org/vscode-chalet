@@ -37,4 +37,5 @@ export const enum CommandId {
     InitializeCMakeProject = "initializeCMakeProject",
     GenerateProjectFiles = "generateProjectFiles",
     TestTerminal = "testTerminal",
+    OpenProjectSettings = "openProjectSettings",
 }

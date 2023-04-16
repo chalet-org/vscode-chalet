@@ -4,7 +4,8 @@
 		"target": "ES2019",
 		"outDir": "./out",
 		"lib": [
-			"ESNext"
+			"ESNext",
+			"DOM"
 		],
 		"esModuleInterop": true,
 		"experimentalDecorators": true,
