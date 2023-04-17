@@ -147,7 +147,7 @@ class ChaletToolsExtension {
 
         context.subscriptions.push(
             vscode.commands.registerCommand(getCommandID(CommandId.OpenProjectSettings), () => {
-                HelloWorldPanel.render(context.extensionUri);
+                HelloWorldPanel.render(context.extensionUri, this);
             })
         );
     }
@@ -318,16 +318,35 @@ class ChaletToolsExtension {
         this.canUpdate = inValue;
     };
 
+    getInputFileContents = async (): Promise<string> => {
+        let rawData: string = "";
+        try {
+            rawData = await fsp.readFile(this.cli.inputFile, "utf8");
+        } catch {}
+        return rawData;
+    };
+
+    getSettingsFileContents = async (globalFallback: boolean = false): Promise<string> => {
+        let rawData: string = "";
+        try {
+            rawData = await fsp.readFile(this.cli.settingsFile, "utf8");
+        } catch {
+            if (globalFallback) {
+                try {
+                    rawData = await fsp.readFile(this.globalSettingsFile, "utf8");
+                } catch {}
+            }
+        }
+        return rawData;
+    };
+
     private chaletJsonCache: string = "<initial>";
 
     handleChaletJsonChange = async (): Promise<void> => {
         if (!this.canUpdate) {
             return;
         }
-        let rawData: string = "";
-        try {
-            rawData = await fsp.readFile(this.cli.inputFile, "utf8");
-        } catch {}
+        const rawData = await this.getInputFileContents();
 
         const update: boolean = rawData !== this.chaletJsonCache;
         if (update) {
@@ -357,14 +376,7 @@ class ChaletToolsExtension {
         if (!this.canUpdate) {
             return;
         }
-        let rawData: string = "";
-        try {
-            rawData = await fsp.readFile(this.cli.settingsFile, "utf8");
-        } catch {
-            try {
-                rawData = await fsp.readFile(this.globalSettingsFile, "utf8");
-            } catch {}
-        }
+        let rawData = await this.getSettingsFileContents();
 
         const update: boolean = rawData !== this.settingsJsonCache;
         if (update) {

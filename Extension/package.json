@@ -184,6 +184,7 @@
 	"dependencies": {
 		"@vscode/webview-ui-toolkit": "1.2.2",
 		"bind-decorator": "^1.0.11",
+		"comment-json": "^4.2.3",
 		"glob": "^7.2.0",
 		"lodash": "^4.17.21",
 		"tree-kill": "^1.2.2",

@@ -1,22 +1,57 @@
-import { Button, provideVSCodeDesignSystem, vsCodeButton, vsCodeCheckbox } from "@vscode/webview-ui-toolkit";
-
-provideVSCodeDesignSystem().register(vsCodeButton(), vsCodeCheckbox());
+import * as vscodeui from "@vscode/webview-ui-toolkit";
 
 const vscode = acquireVsCodeApi();
 
-window.addEventListener("load", main);
+vscodeui
+    .provideVSCodeDesignSystem()
+    .register(vscodeui.vsCodeButton(), vscodeui.vsCodeCheckbox(), vscodeui.vsCodeProgressRing());
 
-function main() {
-    // To get improved type annotations/IntelliSense the associated class for
-    // a given toolkit component can be imported and used to type cast a reference
-    // to the element (i.e. the `as Button` syntax)
-    const howdyButton = document.getElementById("howdy") as Button;
-    howdyButton?.addEventListener("click", handleHowdyClick);
+type Optional<T> = T | null;
+type Listener = (...args: any[]) => void;
+type ListenerCache = {
+    id: string;
+    event: string;
+    listener: Listener;
+};
+
+class WebviewLoader {
+    private listeners: ListenerCache[] = [];
+
+    private handleHowdyClick = () => {
+        vscode.postMessage({
+            command: "hello",
+            text: "Hey there partner! 🤠",
+        });
+    };
+
+    load = () => {
+        this.addElementListener<vscodeui.Button>("howdy", "click", this.handleHowdyClick);
+    };
+
+    unload = () => {
+        while (this.listeners.length > 0) {
+            const { id, event, listener } = this.listeners.pop()!;
+            this.removeElementListener(id, event, listener);
+        }
+    };
+
+    private addElementListener<T extends HTMLElement>(id: string, event: string, listener: (...args: any[]) => void) {
+        const element = document.getElementById(id) as Optional<T>;
+        if (element) {
+            element.addEventListener(event, listener);
+            this.listeners.push({ id, event, listener });
+        }
+    }
+
+    private removeElementListener(id: string, event: string, listener: (...args: any[]) => void) {
+        const element = document.getElementById(id);
+        if (element) {
+            element.removeEventListener(event, listener);
+        }
+    }
 }
 
-function handleHowdyClick() {
-    vscode.postMessage({
-        command: "hello",
-        text: "Hey there partner! 🤠",
-    });
-}
+const loader = new WebviewLoader();
+
+window.addEventListener("load", loader.load);
+window.addEventListener("unload", loader.unload);

@@ -1,22 +1,48 @@
 import * as vscode from "vscode";
-import { CommandId } from "../../Types";
+import * as JSONC from "comment-json";
+
+import { CommandId, Optional } from "../../Types";
 import { getWebviewNonce, getWebviewUri } from "../WebviewUtilities";
+import { ChaletToolsExtension } from "../../ChaletToolsExtension";
 
 export class HelloWorldPanel {
-    public static currentPanel: HelloWorldPanel | undefined;
+    public static currentPanel: Optional<HelloWorldPanel> = null;
     private readonly _panel: vscode.WebviewPanel;
     private _disposables: vscode.Disposable[] = [];
 
-    private constructor(panel: vscode.WebviewPanel, extensionUri: vscode.Uri) {
+    private _chaletJson: any = {};
+    private _settingsJson: any = { options: {} };
+
+    private constructor(
+        panel: vscode.WebviewPanel,
+        private extensionUri: vscode.Uri,
+        private extension: ChaletToolsExtension
+    ) {
         this._panel = panel;
 
-        this._panel.webview.html = this._getWebviewContent(this._panel.webview, extensionUri);
+        this._panel.webview.html = this.getLoadingScreen();
         this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
 
         this._setWebviewMessageListener(this._panel.webview);
     }
 
-    public static render(extensionUri: vscode.Uri) {
+    private loadPanel = async () => {
+        try {
+            const [chaletJson, settingsJson] = await Promise.all([
+                this.extension.getInputFileContents(),
+                this.extension.getSettingsFileContents(false),
+            ]);
+
+            this._chaletJson = JSONC.parse(chaletJson);
+            this._settingsJson = JSONC.parse(settingsJson);
+            console.log(this._chaletJson);
+            console.log(this._settingsJson);
+
+            this._panel.webview.html = this.getMainSettingsScreen();
+        } catch {}
+    };
+
+    public static render(extensionUri: vscode.Uri, extension: ChaletToolsExtension) {
         if (HelloWorldPanel.currentPanel) {
             HelloWorldPanel.currentPanel._panel.reveal(vscode.ViewColumn.One);
         } else {
@@ -32,16 +58,17 @@ export class HelloWorldPanel {
                 }
             );
 
-            HelloWorldPanel.currentPanel = new HelloWorldPanel(panel, extensionUri);
+            HelloWorldPanel.currentPanel = new HelloWorldPanel(panel, extensionUri, extension);
         }
+        HelloWorldPanel.currentPanel.loadPanel();
     }
 
     public dispose() {
-        HelloWorldPanel.currentPanel = undefined;
+        HelloWorldPanel.currentPanel = null;
 
         this._panel.dispose();
 
-        while (this._disposables.length) {
+        while (this._disposables.length > 0) {
             const disposable = this._disposables.pop();
             if (disposable) {
                 disposable.dispose();
@@ -49,8 +76,37 @@ export class HelloWorldPanel {
         }
     }
 
-    private _getWebviewContent(webview: vscode.Webview, extensionUri: vscode.Uri) {
-        const webviewUri = getWebviewUri(webview, extensionUri, ["out", "webview.min.js"]);
+    private getWebviewUri(webview: vscode.Webview, extensionUri: vscode.Uri) {
+        return getWebviewUri(webview, extensionUri, ["out", "webview.min.js"]);
+    }
+
+    private getLoadingScreen() {
+        const webview = this._panel.webview;
+        const webviewUri = this.getWebviewUri(webview, this.extensionUri);
+        const nonce = getWebviewNonce();
+
+        // Tip: Install the es6-string-html VS Code extension to enable code highlighting below
+        return /*html*/ `
+    	  <!DOCTYPE html>
+    	  <html lang="en">
+    		<head>
+    		  <meta charset="UTF-8">
+    		  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    		  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'nonce-${nonce}'; https:;">
+    		  <title>Loading...</title>
+              <style>body { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; }</style>
+    		</head>
+    		<body>
+              <vscode-progress-ring></vscode-progress-ring>
+    		  <script type="module" nonce="${nonce}" src="${webviewUri}"></script>
+    		</body>
+    	  </html>
+    	`;
+    }
+
+    private getMainSettingsScreen() {
+        const webview = this._panel.webview;
+        const webviewUri = this.getWebviewUri(webview, this.extensionUri);
         const nonce = getWebviewNonce();
 
         // Tip: Install the es6-string-html VS Code extension to enable code highlighting below
@@ -60,12 +116,11 @@ export class HelloWorldPanel {
 			<head>
 			  <meta charset="UTF-8">
 			  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-			  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-${nonce}'; img-src ${webview.cspSource} https:;">
+			  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${webview.cspSource} https:; script-src 'nonce-${nonce}';">
 			  <title>Hello World!</title>
 			</head>
 			<body>
 			  <h1>Hello World!</h1>
-			  <img src="https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif" width="300" />
 			  <vscode-button id="howdy">Howdy!</vscode-button>
 
 			  <script type="module" nonce="${nonce}" src="${webviewUri}"></script>

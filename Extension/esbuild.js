@@ -4,7 +4,7 @@ const isProduction = process.env.NODE_ENV === "production";
 
 const baseConfig = {
     bundle: true,
-    minify: isProduction,
+    minify: true,
     sourcemap: !isProduction,
 };
 
