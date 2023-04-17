@@ -164,6 +164,7 @@
 		"test": "ts-node ./test/runTest.ts"
 	},
 	"devDependencies": {
+		"@types/capitalize": "^2.0.0",
 		"@types/glob": "^7.2.0",
 		"@types/lodash": "^4.14.178",
 		"@types/mocha": "^9.0.0",
@@ -184,6 +185,7 @@
 	"dependencies": {
 		"@vscode/webview-ui-toolkit": "1.2.2",
 		"bind-decorator": "^1.0.11",
+		"capitalize": "^2.0.4",
 		"comment-json": "^4.2.3",
 		"glob": "^7.2.0",
 		"lodash": "^4.17.21",

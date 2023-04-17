@@ -4,7 +4,12 @@ const vscode = acquireVsCodeApi();
 
 vscodeui
     .provideVSCodeDesignSystem()
-    .register(vscodeui.vsCodeButton(), vscodeui.vsCodeCheckbox(), vscodeui.vsCodeProgressRing());
+    .register(
+        vscodeui.vsCodeButton(),
+        vscodeui.vsCodeCheckbox(),
+        vscodeui.vsCodeProgressRing(),
+        vscodeui.vsCodeTextField()
+    );
 
 type Optional<T> = T | null;
 type Listener = (...args: any[]) => void;
