@@ -186,8 +186,12 @@ class ChaletToolsExtension {
                 if (type === "state-chalet-json") {
                     const res = JSON.parse(output);
                     this.configurations = res?.["configurations"] ?? [];
-                    this.menuBuildTargets = res?.["buildTargets"] ?? [];
+                    this.buildTargets = res?.["buildTargets"] ?? [];
                     this.runTargets = res?.["runTargets"] ?? [];
+
+                    if (this.currentRunTarget === "") {
+                        this.currentRunTarget = res?.["defaultRunTarget"] ?? "";
+                    }
                 } else {
                     const res = JSON.parse(output);
                     this.toolchainPresets = res?.["toolchainPresets"] ?? [];
@@ -337,8 +341,10 @@ class ChaletToolsExtension {
             this.chaletJsonCache = "";
         }
 
-        await this.menuBuildConfiguration.setDefaultMenu();
-        this.menuBuildTargets.setRunTarget(this.currentRunTarget);
+        await Promise.all([
+            this.menuBuildConfiguration.setDefaultMenu(),
+            this.menuBuildTargets.setRunTarget(this.currentRunTarget),
+        ]);
 
         this.uiChaletJsonInitialized = true;
         await this.checkForVisibility();
@@ -558,8 +564,9 @@ class ChaletToolsExtension {
 
             this.menuBuildStrategy.setVisible(false);
             this.menuBuildPathStyle.setVisible(false);
-            await Promise.all([this.menuBuildStrategy.setDefaultMenu(), this.menuBuildPathStyle.setDefaultMenu()]);
+
             const toolchain = this.menuBuildToolchain.getLabel();
+            await Promise.all([this.menuBuildStrategy.setDefaultMenu(), this.menuBuildPathStyle.setDefaultMenu()]);
             if (toolchain) {
                 this.architectures = await this.getChaletArchitectures(toolchain);
             }
