@@ -41,6 +41,8 @@ class ChaletCliSettings {
 }
 
 class ChaletToolsExtension {
+    public extensionPath: string;
+
     private menuChaletCommand: ChaletCmdCommandMenu;
     private menuBuildConfiguration: BuildConfigurationCommandMenu;
     private menuBuildArchitecture: BuildArchitectureCommandMenu;
@@ -107,6 +109,11 @@ class ChaletToolsExtension {
         this.chaletTerminal = new ChaletTerminal();
         this.cli = new ChaletCliSettings();
         this.settings = new ChaletToolsExtensionSettings();
+
+        this.extensionPath = context.extension.extensionUri.path;
+        if (this.platform === VSCodePlatform.Windows && this.extensionPath.startsWith("/")) {
+            this.extensionPath = this.extensionPath.substring(1);
+        }
 
         context.subscriptions.push(
             vscode.commands.registerCommand(getCommandID(CommandId.InitializeProject), this.onInitializeProject)

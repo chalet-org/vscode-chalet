@@ -1,10 +1,14 @@
 import * as proc from "child_process";
+import * as path from "path";
+import * as vscode from "vscode";
 import treeKill from "tree-kill";
 import { OutputChannel } from "../OutputChannel";
 
 import { Dictionary, getVSCodePlatform, Optional, VSCodePlatform } from "../Types";
 import { Readable, Writable } from "stream";
 import { EscapeCodes } from "./EscapeCodes";
+import { EXTENSION_ID } from "../ExtensionID";
+import { getChaletToolsInstance } from "../ChaletToolsLoader";
 
 export type SpawnError = Error & {
     code?: string;
@@ -33,6 +37,7 @@ export type TerminalProcessOptions = {
 class TerminalProcess {
     private subprocess: Optional<proc.ChildProcessByStdio<Writable, Readable, Readable>> = null;
     private interrupted: boolean = false;
+    private killed: boolean = false;
 
     private shellPath: string = "";
     private label: string = "";
@@ -60,23 +65,50 @@ class TerminalProcess {
             }
         }
 
-        return this.haltSubProcess(signal);
+        if (!this.interrupted && !!signal) {
+            this.haltSubProcess(signal);
+        }
     };
 
     private haltSubProcess = (signal: Optional<NodeJS.Signals> = null, onHalt?: () => void): void => {
-        if (!!this.subprocess?.pid) {
+        if (!!this.subprocess?.pid && !this.killed) {
             let sig = !!signal ? signal : "SIGTERM";
-            // this.subprocess.kill(sig);
-            // this.subprocess = null;
-            // resolve();
 
-            treeKill(this.subprocess.pid, sig, (_err?: Error) => {
+            const callback = (err: any) => {
                 // Note: We don't care about the error
                 // if (!!err) OutputChannel.logError(err);
 
-                this.subprocess = null;
-                onHalt?.();
-            });
+                if (!!err) {
+                    console.error(err);
+                    console.error("there was an error halting the process");
+                } else {
+                    this.subprocess = null;
+                    onHalt?.();
+                }
+            };
+
+            if (this.platform === VSCodePlatform.Windows) {
+                const pid = this.subprocess.pid;
+                if (sig === "SIGINT") {
+                    // Note: on Windows, we have to use 3rd party app to bypass a nodejs shortcoming
+                    //   In Node, you can't send a CTRL_C_EVENT to a child process
+                    //
+
+                    // TODO: calling windows-kill twice is a bit of a hack
+                    //  The first time it's called, it might not work
+                    //
+                    const extensionPath = getChaletToolsInstance()!.extensionPath;
+                    const windowsKill = path.join(extensionPath, "bin", "windows-x64", "windows-kill.exe");
+                    const cmd = `${windowsKill} -${sig} ${pid}`;
+                    proc.exec(cmd, () => proc.exec(cmd, callback));
+                } else {
+                    proc.exec(`taskkill /pid ${pid} /T /F`, callback);
+                    this.killed = true;
+                }
+            } else {
+                treeKill(this.subprocess.pid, sig, callback);
+                this.killed = true;
+            }
         } else {
             onHalt?.();
         }
@@ -200,7 +232,8 @@ class TerminalProcess {
                 this.subprocess.removeAllListeners("error");
             }
 
-            this.haltSubProcess("SIGTERM", () => {
+            const onCreate = () => {
+                this.killed = false;
                 this.interrupted = false;
 
                 // console.log(cwd);
@@ -254,15 +287,13 @@ class TerminalProcess {
                         reject(err);
                     }
                 });
-            });
+            };
+
+            this.haltSubProcess("SIGTERM", onCreate);
         });
     };
 
     interrupt = () => {
-        // Note: on Windows, the process will always be killed immediately
-        //  Days lost trying to figure out otherwise: 1
-        //  Does not work: GenerateConsoleCtrlEvent (winapi), "\u0003" or "\x03"
-        //
         this.haltSubProcess("SIGINT");
         this.interrupted = true;
     };
