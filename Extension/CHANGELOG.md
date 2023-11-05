@@ -1,5 +1,9 @@
 # Change Log
 
+## Version 0.6.0
+
+- Handle CTRL_C_EVENT to child process in Windows to exit latest development Chalet builds gracefully (for v0.7.0+ or possibly v0.6.10+) - downside is, a 3rd party app has to be used for this, [windows-kill](https://github.com/ElyDotDev/windows-kill)
+
 ## Version 0.5.12
 
 - Only hide the architecture button if the query result returns 1 item
