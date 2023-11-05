@@ -1,13 +1,11 @@
 import * as proc from "child_process";
 import * as path from "path";
-import * as vscode from "vscode";
-import treeKill from "tree-kill";
+// import treeKill from "tree-kill";
 import { OutputChannel } from "../OutputChannel";
 
 import { Dictionary, getVSCodePlatform, Optional, VSCodePlatform } from "../Types";
 import { Readable, Writable } from "stream";
 import { EscapeCodes } from "./EscapeCodes";
-import { EXTENSION_ID } from "../ExtensionID";
 import { getChaletToolsInstance } from "../ChaletToolsLoader";
 
 export type SpawnError = Error & {
@@ -106,8 +104,10 @@ class TerminalProcess {
                     this.killed = true;
                 }
             } else {
-                treeKill(this.subprocess.pid, sig, callback);
-                this.killed = true;
+                if (this.subprocess.kill(sig)) {
+                    callback(null);
+                    this.killed = true;
+                }
             }
         } else {
             onHalt?.();
