@@ -1,5 +1,10 @@
 # Change Log
 
+## Version 0.6.2
+
+- Always send SIGINT to Chalet process when restarting terminal or disposing it. SIGTERM can leave emrun server open if using emscripten (in development)
+- Revert 'preserveFocus' change - old behavior is a little more expected
+
 ## Version 0.6.1
 
 - Fix a regression where 'Chalet' pseudoterminal wouldn't launch if one was already open

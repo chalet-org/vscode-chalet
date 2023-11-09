@@ -80,7 +80,7 @@ class ChaletTerminal {
             // this.icon = icon;
             this.onTerminalCreate(options.label);
             if (this.view !== null) {
-                const preserveFocus = true;
+                const preserveFocus = false;
                 this.view.show(preserveFocus);
             }
 

@@ -64,13 +64,14 @@ class TerminalProcess {
         }
 
         if (!this.interrupted && !!signal) {
-            this.haltSubProcess(signal);
+            this.haltSubProcess();
         }
     };
 
-    private haltSubProcess = (signal: Optional<NodeJS.Signals> = null, onHalt?: () => void): void => {
+    private haltSubProcess = (onHalt?: () => void): void => {
         if (!!this.subprocess?.pid && !this.killed) {
-            let sig = !!signal ? signal : "SIGTERM";
+            const signal: NodeJS.Signals = "SIGINT";
+            const pid = this.subprocess.pid;
 
             const callback = (err: any) => {
                 // Note: We don't care about the error
@@ -86,8 +87,7 @@ class TerminalProcess {
             };
 
             if (this.platform === VSCodePlatform.Windows) {
-                const pid = this.subprocess.pid;
-                if (sig === "SIGINT") {
+                if (signal === "SIGINT") {
                     // Note: on Windows, we have to use 3rd party app to bypass a nodejs shortcoming
                     //   In Node, you can't send a CTRL_C_EVENT to a child process
                     //
@@ -97,19 +97,16 @@ class TerminalProcess {
                     //
                     const extensionPath = getChaletToolsInstance()!.extensionPath;
                     const windowsKill = path.join(extensionPath, "bin", "windows-x64", "windows-kill.exe");
-                    const cmd = `${windowsKill} -${sig} ${pid}`;
+                    const cmd = `${windowsKill} -${signal} ${pid}`;
                     proc.exec(cmd, () => proc.exec(cmd, callback));
                 } else {
                     proc.exec(`taskkill /pid ${pid} /T /F`, callback);
                     this.killed = true;
                 }
             } else {
-                if (this.subprocess.kill(sig)) {
-                    callback(null);
-                    this.killed = true;
-                } else {
-                    onHalt?.();
-                }
+                const sigId = signal === "SIGINT" ? 2 : 9;
+                proc.exec(`kill -${sigId} ${pid}`, callback);
+                this.killed = true;
             }
         } else {
             onHalt?.();
@@ -226,15 +223,15 @@ class TerminalProcess {
         ...options
     }: TerminalProcessOptions): Promise<number> => {
         return new Promise((resolve, reject) => {
-            if (!!this.subprocess) {
-                // Note: Fixes a bug where if the process is recreated, the old listeners don't get fired
-                this.subprocess.stdout.removeAllListeners("data");
-                this.subprocess.stderr.removeAllListeners("data");
-                this.subprocess.removeAllListeners("close");
-                this.subprocess.removeAllListeners("error");
-            }
-
             const onCreate = () => {
+                if (!!this.subprocess) {
+                    // Note: Fixes a bug where if the process is recreated, the old listeners don't get fired
+                    this.subprocess.stdout.removeAllListeners("data");
+                    this.subprocess.stderr.removeAllListeners("data");
+                    this.subprocess.removeAllListeners("close");
+                    this.subprocess.removeAllListeners("error");
+                }
+
                 this.killed = false;
                 this.interrupted = false;
 
@@ -291,17 +288,17 @@ class TerminalProcess {
                 });
             };
 
-            this.haltSubProcess("SIGTERM", onCreate);
+            this.haltSubProcess(onCreate);
         });
     };
 
     interrupt = () => {
-        this.haltSubProcess("SIGINT");
+        this.haltSubProcess();
         this.interrupted = true;
     };
 
     terminate = () => {
-        this.haltSubProcess("SIGTERM");
+        this.haltSubProcess();
         this.interrupted = true;
     };
 
