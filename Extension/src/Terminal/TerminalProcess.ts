@@ -107,6 +107,8 @@ class TerminalProcess {
                 if (this.subprocess.kill(sig)) {
                     callback(null);
                     this.killed = true;
+                } else {
+                    onHalt?.();
                 }
             }
         } else {
@@ -133,7 +135,7 @@ class TerminalProcess {
             return;
         }
 
-        console.log(JSON.stringify(data));
+        // console.log(JSON.stringify(data));
 
         switch (data) {
             case EscapeCodes.Interrupt: {

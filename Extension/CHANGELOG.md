@@ -1,5 +1,10 @@
 # Change Log
 
+## Version 0.6.1
+
+- Fix a regression where 'Chalet' pseudoterminal wouldn't launch if one was already open
+- Added 'preserveFocus" param when pseudoterminal launches, so it wouldn't change the keyboard shortcut context
+
 ## Version 0.6.0
 
 - Handle CTRL_C_EVENT to child process in Windows to exit latest development Chalet builds gracefully (for v0.7.0+ or possibly v0.6.10+) - downside is, a 3rd party app has to be used for this, [windows-kill](https://github.com/ElyDotDev/windows-kill)
