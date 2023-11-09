@@ -1,5 +1,9 @@
 # Change Log
 
+## Version 0.6.3
+
+- Make terminal restart behavior from 0.6.2 work the same way on Windows
+
 ## Version 0.6.2
 
 - Always send SIGINT to Chalet process when restarting terminal or disposing it. SIGTERM can leave emrun server open if using emscripten (in development)

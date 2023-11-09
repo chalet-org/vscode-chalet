@@ -101,13 +101,12 @@ class TerminalProcess {
                     proc.exec(cmd, () => proc.exec(cmd, callback));
                 } else {
                     proc.exec(`taskkill /pid ${pid} /T /F`, callback);
-                    this.killed = true;
                 }
             } else {
                 const sigId = signal === "SIGINT" ? 2 : 9;
                 proc.exec(`kill -${sigId} ${pid}`, callback);
-                this.killed = true;
             }
+            this.killed = true;
         } else {
             onHalt?.();
         }
