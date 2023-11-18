@@ -36,6 +36,7 @@ class TerminalProcess {
     private subprocess: Optional<proc.ChildProcessByStdio<Writable, Readable, Readable>> = null;
     private interrupted: boolean = false;
     private killed: boolean = false;
+    private completed: boolean = false;
 
     private shellPath: string = "";
     private label: string = "";
@@ -68,6 +69,16 @@ class TerminalProcess {
         }
     };
 
+    private clearListeners = (): void => {
+        if (this.subprocess) {
+            // Note: Fixes a bug where if the process is recreated, the old listeners don't get fired
+            this.subprocess.stdout.removeAllListeners("data");
+            this.subprocess.stderr.removeAllListeners("data");
+            this.subprocess.removeAllListeners("close");
+            this.subprocess.removeAllListeners("error");
+        }
+    };
+
     private haltSubProcess = (onHalt?: () => void): void => {
         if (!!this.subprocess?.pid && !this.killed) {
             const signal: NodeJS.Signals = "SIGINT";
@@ -80,10 +91,11 @@ class TerminalProcess {
                 if (!!err) {
                     console.error(err);
                     console.error("there was an error halting the process");
-                } else {
-                    this.subprocess = null;
-                    onHalt?.();
                 }
+
+                this.clearListeners();
+                this.subprocess = null;
+                onHalt?.();
             };
 
             if (this.platform === VSCodePlatform.Windows) {
@@ -223,16 +235,11 @@ class TerminalProcess {
     }: TerminalProcessOptions): Promise<number> => {
         return new Promise((resolve, reject) => {
             const onCreate = () => {
-                if (!!this.subprocess) {
-                    // Note: Fixes a bug where if the process is recreated, the old listeners don't get fired
-                    this.subprocess.stdout.removeAllListeners("data");
-                    this.subprocess.stderr.removeAllListeners("data");
-                    this.subprocess.removeAllListeners("close");
-                    this.subprocess.removeAllListeners("error");
-                }
+                this.clearListeners();
 
                 this.killed = false;
                 this.interrupted = false;
+                this.completed = false;
 
                 // console.log(cwd);
                 // console.log(env);
@@ -279,6 +286,7 @@ class TerminalProcess {
                 this.subprocess.on("close", (code, signal) => {
                     try {
                         this.onProcessClose(code, signal);
+                        this.completed = true;
                         onSuccess?.(code ?? 0, signal);
                         resolve(code ?? 0);
                     } catch (err) {
@@ -286,6 +294,11 @@ class TerminalProcess {
                     }
                 });
             };
+
+            if (!!this.subprocess && !this.completed) {
+                this.interrupted = true;
+                this.onProcessClose(null, "SIGINT");
+            }
 
             this.haltSubProcess(onCreate);
         });

@@ -1,5 +1,9 @@
 # Change Log
 
+## Version 0.6.4
+
+- Fix a terminal issue where it wouldn't restart when it should
+
 ## Version 0.6.3
 
 - Make terminal restart behavior from 0.6.2 work the same way on Windows
