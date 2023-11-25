@@ -1,5 +1,9 @@
 # Change Log
 
+## Version 0.6.5
+
+- Add `yamlValidation` support for `chalet.yaml` (in development)
+
 ## Version 0.6.4
 
 - Fix a terminal issue where it wouldn't restart when it should

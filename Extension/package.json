@@ -2,7 +2,7 @@
 	"name": "vscode-chalet",
 	"displayName": "Chalet",
 	"description": "Support for Chalet projects in Visual Studio Code",
-	"version": "0.6.4",
+	"version": "0.6.5",
 	"publisher": "chalet-org",
 	"license": "BSD-3-Clause",
 	"icon": "chalet-logo.png",
@@ -147,6 +147,16 @@
 					".chalet/config.json"
 				],
 				"url": "chalet-schema:///schema-settings-json"
+			}
+		],
+		"yamlValidation": [
+			{
+				"fileMatch": [
+					"chalet.yaml",
+					"chalet.*.yaml",
+					"chalet-*.yaml"
+				],
+				"url": "https://www.chalet-work.space/api/schema/latest/chalet-json"
 			}
 		]
 	},
