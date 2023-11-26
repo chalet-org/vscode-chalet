@@ -22,6 +22,7 @@ class ChaletToolsLoader {
     private platform: VSCodePlatform;
 
     inputFile: Optional<string> = null;
+    inputYamlFile: Optional<string> = null;
     settingsFile: Optional<string> = null;
     globalSettingsFile: Optional<string> = null;
     cwd: Optional<string> = null;
@@ -244,8 +245,17 @@ class ChaletToolsLoader {
                 );
             }
 
+            if (this.inputYamlFile === null) {
+                this.inputYamlFile = this.watchChaletFile(
+                    Utils.joinPath(workspaceRoot, ChaletFile.ChaletYaml).fsPath,
+                    chaletToolsInstance.setInputFile,
+                    this.onChaletJsonChange
+                );
+            }
+
             await chaletToolsInstance.setEnabled(
                 (!!this.inputFile && fs.existsSync(this.inputFile)) ||
+                    (!!this.inputYamlFile && fs.existsSync(this.inputYamlFile)) ||
                     (!!this.settingsFile && fs.existsSync(this.settingsFile))
             );
         } catch (err: any) {
@@ -282,11 +292,16 @@ class ChaletToolsLoader {
             fs.unwatchFile(this.inputFile);
         }
 
+        if (this.inputYamlFile) {
+            fs.unwatchFile(this.inputYamlFile);
+        }
+
         if (this.settingsFile) {
             fs.unwatchFile(this.settingsFile);
         }
 
         this.inputFile = null;
+        this.inputYamlFile = null;
         this.settingsFile = null;
         this.cwd = null;
     };

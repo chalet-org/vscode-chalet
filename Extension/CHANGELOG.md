@@ -1,5 +1,9 @@
 # Change Log
 
+## Version 0.6.6
+
+- Detect `chalet.yaml` changes (in development)
+
 ## Version 0.6.5
 
 - Add `yamlValidation` support for `chalet.yaml` (in development)
