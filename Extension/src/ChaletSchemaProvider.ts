@@ -5,6 +5,8 @@ import { ChaletVersion, getVSCodePlatform, Optional, VSCodePlatform } from "./Ty
 import { getTerminalEnv } from "./Functions";
 import { getProcessOutput } from "./Functions/GetProcessOutput";
 
+export const SCHEMA_PROVIDER_ID: string = "chalet-schema";
+
 const enum SchemaType {
     ChaletJson = "schema-chalet-json",
     SettingsJson = "schema-settings-json",
@@ -24,6 +26,11 @@ class ChaletSchemaProvider implements vscode.TextDocumentContentProvider {
         const chalet = ChaletVersion.Release;
         const env = getTerminalEnv(this.platform);
         return getProcessOutput(chalet, ["query", schema], env);
+    };
+
+    isSchemaTypeValid = (uri: string) => {
+        uri = uri.substring(`${SCHEMA_PROVIDER_ID}:///`.length);
+        return uri == SchemaType.ChaletJson || uri == SchemaType.SettingsJson;
     };
 
     provideTextDocumentContent = async (uri: vscode.Uri): Promise<string> => {
