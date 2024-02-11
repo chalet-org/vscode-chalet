@@ -1,5 +1,9 @@
 # Change Log
 
+## Version 0.7.3
+
+- Fix halting Chalet process via trash icon on Windows
+
 ## Version 0.7.2
 
 - Remove some logging in 0.7.1, simplify some code
