@@ -68,9 +68,8 @@ class TerminalProcess {
         }
     };
 
-    private haltSubProcess = (onHalt?: () => void): void => {
+    private haltSubProcess = (signal: NodeJS.Signals = "SIGINT", onHalt?: () => void): void => {
         if (!!this.subprocess?.pid && !this.killed) {
-            const signal: NodeJS.Signals = "SIGINT";
             const pid = this.subprocess.pid;
 
             const callback = (err: any) => {
@@ -284,17 +283,17 @@ class TerminalProcess {
                 });
             };
 
-            this.haltSubProcess(onCreate);
+            this.haltSubProcess("SIGINT", onCreate);
         });
     };
 
     interrupt = () => {
-        this.haltSubProcess();
+        this.haltSubProcess("SIGINT");
         this.interrupted = true;
     };
 
     terminate = () => {
-        this.haltSubProcess();
+        this.haltSubProcess("SIGTERM");
         this.interrupted = true;
     };
 
