@@ -1,5 +1,9 @@
 # Change Log
 
+## Version 0.7.1
+
+- When ending the Chalet process via the trash icon on unix platforms, use `tree-kill` to make sure child processes close as well
+
 ## Version 0.7.0
 
 - Use the TextDocumentContentProvider for `chalet.yaml` files instead of the hard-coded URL, if using Red Hat YAML extension (thanks to [vaclavHala](https://github.com/redhat-developer/vscode-yaml/issues/986))

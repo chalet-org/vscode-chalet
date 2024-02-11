@@ -1,6 +1,6 @@
 import * as proc from "child_process";
 import * as path from "path";
-// import treeKill from "tree-kill";
+import treeKill from "tree-kill";
 import { OutputChannel } from "../OutputChannel";
 
 import { Dictionary, getVSCodePlatform, Optional, VSCodePlatform } from "../Types";
@@ -89,9 +89,11 @@ class TerminalProcess {
                     if (!!err) {
                         console.error(err);
                         console.error("there was an error halting the process");
+                    } else {
+                        console.log("task killed successfully");
+                        this.subprocess = null;
+                        onHalt?.();
                     }
-                    this.subprocess = null;
-                    onHalt?.();
                 }
             };
 
@@ -112,8 +114,7 @@ class TerminalProcess {
                     proc.exec(`taskkill /pid ${pid} /T /F`, callback);
                 }
             } else {
-                const sigId = signal === "SIGINT" ? 2 : 9;
-                proc.exec(`kill -${sigId} ${pid}`, callback);
+                treeKill(this.subprocess.pid, signal, callback);
             }
             this.killed = true;
         } else {
