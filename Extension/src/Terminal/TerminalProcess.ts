@@ -74,26 +74,13 @@ class TerminalProcess {
             const pid = this.subprocess.pid;
 
             const callback = (err: any) => {
-                // Note: We don't care about the error
-                // if (!!err) OutputChannel.logError(err);
-
-                if (this.platform === VSCodePlatform.Windows) {
-                    if (!!err) {
-                        console.error(err);
-                        console.error("there was an error halting the process");
-                    } else {
-                        this.subprocess = null;
-                        onHalt?.();
-                    }
+                if (!!err) {
+                    // OutputChannel.logError(err);
+                    console.error(err);
+                    console.error("there was an error halting the process");
                 } else {
-                    if (!!err) {
-                        console.error(err);
-                        console.error("there was an error halting the process");
-                    } else {
-                        console.log("task killed successfully");
-                        this.subprocess = null;
-                        onHalt?.();
-                    }
+                    this.subprocess = null;
+                    onHalt?.();
                 }
             };
 

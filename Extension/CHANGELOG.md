@@ -1,5 +1,9 @@
 # Change Log
 
+## Version 0.7.2
+
+- Remove some logging in 0.7.1, simplify some code
+
 ## Version 0.7.1
 
 - When ending the Chalet process via the trash icon on unix platforms, use `tree-kill` to make sure child processes close as well
