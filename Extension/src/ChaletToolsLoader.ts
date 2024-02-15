@@ -224,14 +224,16 @@ class ChaletToolsLoader {
         return file;
     };
 
-    private watchChaletFile2 = (file: string, listener: (curr: fs.Stats, prev: fs.Stats) => void): string => {
-        const interval: number = 1000;
-        fs.watchFile(file, { interval }, listener);
-
-        return file;
-    };
-
     private inputFiles: string[] = [];
+    private watchers: string[] = [];
+
+    private watchChaletFile2 = (file: string, listener: (curr: fs.Stats, prev: fs.Stats) => void): void => {
+        if (!this.watchers.includes(file)) {
+            const interval: number = 1000;
+            fs.watchFile(file, { interval }, listener);
+            this.watchers.push(file);
+        }
+    };
 
     private activate = async (workspaceFolder?: vscode.WorkspaceFolder): Promise<void> => {
         try {

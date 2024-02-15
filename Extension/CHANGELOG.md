@@ -1,5 +1,9 @@
 # Change Log
 
+## Version 0.7.5
+
+- Fix a file watcher caching regression from 0.7.4
+
 ## Version 0.7.4
 
 - If a workspace contains both a yaml and json build file, favor the json file to match the behavior of the Chalet executable
