@@ -1,5 +1,10 @@
 # Change Log
 
+## Version 0.7.4
+
+- If a workspace contains both a yaml and json build file, favor the json file to match the behavior of the Chalet executable
+- Fixed a minor issue trashing the Chalet terminal if the process has finished already
+
 ## Version 0.7.3
 
 - Fix halting Chalet process via trash icon on Windows

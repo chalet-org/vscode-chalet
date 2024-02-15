@@ -73,7 +73,11 @@ class TerminalProcess {
             const pid = this.subprocess.pid;
 
             const callback = (err: any) => {
-                if (!!err) {
+                // We don't care if the process was not found - it means it finished already but the subprocess context still exists
+                const message: string = err?.message ?? "";
+                const processNotFound: boolean =
+                    message.includes('ERROR: The process "') && message.includes('" not found.');
+                if (!!err && !processNotFound) {
                     // OutputChannel.logError(err);
                     console.error(err);
                     console.error("there was an error halting the process");

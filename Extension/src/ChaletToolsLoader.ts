@@ -23,7 +23,6 @@ class ChaletToolsLoader {
     private platform: VSCodePlatform;
 
     inputFile: Optional<string> = null;
-    inputYamlFile: Optional<string> = null;
     settingsFile: Optional<string> = null;
     globalSettingsFile: Optional<string> = null;
     cwd: Optional<string> = null;
@@ -225,6 +224,15 @@ class ChaletToolsLoader {
         return file;
     };
 
+    private watchChaletFile2 = (file: string, listener: (curr: fs.Stats, prev: fs.Stats) => void): string => {
+        const interval: number = 1000;
+        fs.watchFile(file, { interval }, listener);
+
+        return file;
+    };
+
+    private inputFiles: string[] = [];
+
     private activate = async (workspaceFolder?: vscode.WorkspaceFolder): Promise<void> => {
         try {
             if (!workspaceFolder) {
@@ -280,30 +288,45 @@ class ChaletToolsLoader {
                 );
             }
 
+            const chaletJsonPath = Utils.joinPath(workspaceRoot, ChaletFile.ChaletJson).fsPath;
+            const chaletYamlPath = Utils.joinPath(workspaceRoot, ChaletFile.ChaletYaml).fsPath;
+            this.inputFiles.push(chaletJsonPath);
+            this.inputFiles.push(chaletYamlPath);
+
             if (this.inputFile === null) {
-                this.inputFile = this.watchChaletFile(
-                    Utils.joinPath(workspaceRoot, ChaletFile.ChaletJson).fsPath,
-                    chaletToolsInstance.setInputFile,
-                    this.onChaletJsonChange
-                );
+                this.inputFile = this.getCurrentInputFile();
             }
 
-            if (this.inputYamlFile === null) {
-                this.inputYamlFile = this.watchChaletFile(
-                    Utils.joinPath(workspaceRoot, ChaletFile.ChaletYaml).fsPath,
-                    chaletToolsInstance.setInputFile,
-                    this.onChaletJsonChange
-                );
+            for (const file of this.inputFiles) {
+                this.watchChaletFile2(file, this.onChangeInputFile);
             }
 
             await chaletToolsInstance.setEnabled(
                 (!!this.inputFile && fs.existsSync(this.inputFile)) ||
-                    (!!this.inputYamlFile && fs.existsSync(this.inputYamlFile)) ||
                     (!!this.settingsFile && fs.existsSync(this.settingsFile))
             );
         } catch (err: any) {
             this.handleError(err);
         }
+    };
+
+    private getCurrentInputFile = (): string => {
+        for (const file of this.inputFiles) {
+            if (fs.existsSync(file)) {
+                return file;
+            }
+        }
+        if (this.inputFiles.length == 0) {
+            throw new Error("No input files");
+        }
+        return this.inputFiles[0];
+    };
+
+    private onChangeInputFile = (curr: fs.Stats, prev: fs.Stats) => {
+        const inputFile = this.getCurrentInputFile();
+        if (!!chaletToolsInstance) chaletToolsInstance.setInputFile(inputFile);
+
+        return this.onChaletJsonChange(curr, prev);
     };
 
     private onChaletJsonChange = async (_curr: fs.Stats, _prev: fs.Stats) => {
@@ -335,16 +358,11 @@ class ChaletToolsLoader {
             fs.unwatchFile(this.inputFile);
         }
 
-        if (this.inputYamlFile) {
-            fs.unwatchFile(this.inputYamlFile);
-        }
-
         if (this.settingsFile) {
             fs.unwatchFile(this.settingsFile);
         }
 
         this.inputFile = null;
-        this.inputYamlFile = null;
         this.settingsFile = null;
         this.cwd = null;
     };
