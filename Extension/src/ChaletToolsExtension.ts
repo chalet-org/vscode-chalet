@@ -31,6 +31,7 @@ import { BuildStrategyCommandMenu } from "./Commands/BuildStrategyCommandMenu";
 import { BuildPathStyleCommandMenu } from "./Commands/BuildPathStyleCommandMenu";
 import { UNSET } from "./Constants";
 import { copyDirectory } from "./Functions/CopyDir";
+import { ProblemController } from "./ProblemController";
 
 class ChaletCliSettings {
     inputFile: string = "";
@@ -53,6 +54,7 @@ class ChaletToolsExtension {
     private buttonRunChalet: RunChaletCommandButton;
 
     private chaletTerminal: ChaletTerminal;
+    private problemCtrlr: ProblemController;
 
     settings: ChaletToolsExtensionSettings;
     // resources: IconDictionary;
@@ -109,6 +111,7 @@ class ChaletToolsExtension {
         this.chaletTerminal = new ChaletTerminal();
         this.cli = new ChaletCliSettings();
         this.settings = new ChaletToolsExtensionSettings();
+        this.problemCtrlr = new ProblemController(context, platform, this.cwd);
 
         this.extensionPath = context.extension.extensionUri.path;
         if (this.platform === VSCodePlatform.Windows && this.extensionPath.startsWith("/")) {
@@ -556,6 +559,7 @@ class ChaletToolsExtension {
                 onStart: this.onTerminalStart,
                 onSuccess: this.onTerminalSuccess,
                 onFailure: this.onTerminalFailure,
+                onGetOutput: this.problemCtrlr.onGetOutput,
             });
         } catch (err) {
             OutputChannel.logError(err);

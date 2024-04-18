@@ -19,6 +19,7 @@ export type SpawnError = Error & {
 
 type SucessCallback = (code?: Optional<number>, signal?: Optional<NodeJS.Signals>) => void;
 type FailureCallback = (err?: SpawnError) => void;
+type ProblemCallback = (lastOutput: string) => void;
 
 export type TerminalProcessOptions = {
     label: string;
@@ -30,6 +31,7 @@ export type TerminalProcessOptions = {
     onStart?: () => void;
     onSuccess?: SucessCallback;
     onFailure?: FailureCallback;
+    onGetOutput?: ProblemCallback;
 };
 
 class TerminalProcess {
@@ -39,6 +41,7 @@ class TerminalProcess {
 
     private shellPath: string = "";
     private label: string = "";
+    private lastOutput: string = "";
 
     private platform: VSCodePlatform;
 
@@ -219,6 +222,7 @@ class TerminalProcess {
         onStart,
         onSuccess,
         onFailure,
+        onGetOutput,
         ...options
     }: TerminalProcessOptions): Promise<number> => {
         return new Promise((resolve, reject) => {
@@ -250,6 +254,7 @@ class TerminalProcess {
                 this.subprocess = proc.spawn(options.shellPath, shellArgs, spawnOptions);
                 this.subprocess.stdin.setDefaultEncoding("utf-8");
 
+                this.lastOutput = "";
                 onStart?.();
 
                 this.label = label;
@@ -271,14 +276,23 @@ class TerminalProcess {
                 });
 
                 // this.subprocess.stdin.on("data", (chunk: Buffer) => this.onWrite(chunk.toString()));
-                this.subprocess.stdout.on("data", (chunk: Buffer) => this.onWrite(chunk.toString()));
-                this.subprocess.stderr.on("data", (chunk: Buffer) => this.onWrite(chunk.toString()));
+                this.subprocess.stdout.on("data", (chunk: Buffer) => {
+                    const data = chunk.toString();
+                    this.lastOutput += data;
+                    this.onWrite(data);
+                });
+                this.subprocess.stderr.on("data", (chunk: Buffer) => {
+                    const data = chunk.toString();
+                    this.lastOutput += data;
+                    this.onWrite(data);
+                });
 
                 // exit - stdio streams have not finished
                 // close - stdio streams have finished
                 this.subprocess.on("close", (code, signal) => {
                     try {
                         this.onProcessClose(code, signal);
+                        onGetOutput?.(this.lastOutput.replace(/\x1b\[[0-9;]*[Km]/g, "").replace(/\r\n/g, "\n"));
                         onSuccess?.(code ?? 0, signal);
                         resolve(code ?? 0);
                     } catch (err) {
