@@ -1,5 +1,9 @@
 # Change Log
 
+## Version 0.7.6
+
+- Added internal problem matcher that runs at the end of a build - supports Clang, GCC and MSVC style diagnostics
+
 ## Version 0.7.5
 
 - Fix a file watcher caching regression from 0.7.4
