@@ -3,11 +3,13 @@ import * as path from "path";
 import * as fs from "fs";
 import { VSCodePlatform } from "./Types";
 
-export type CodeProblem = {
+type ProblemType = "error" | "warning" | "note";
+
+type CodeProblem = {
     source: "msvc" | "gcc";
     line: number;
     column: number;
-    type: string;
+    type: ProblemType;
     message: string;
     code?: string;
 };
@@ -37,8 +39,20 @@ class ProblemController {
         // context.subscriptions.push(vscode.workspace.onDidCloseTextDocument((doc) => this.collection.delete(doc.uri)));
     }
 
-    refreshDiagnostics = (doc: vscode.TextDocument): void => {
+    private refreshDiagnostics = (doc: vscode.TextDocument): void => {
         this.collection.set(doc.uri, this.diagnostics[doc.uri.fsPath] ?? []);
+    };
+
+    private getSeverity = (type: ProblemType): vscode.DiagnosticSeverity => {
+        switch (type) {
+            case "error":
+                return vscode.DiagnosticSeverity.Error;
+            case "warning":
+                return vscode.DiagnosticSeverity.Warning;
+            case "note":
+            default:
+                return vscode.DiagnosticSeverity.Information;
+        }
     };
 
     onGetOutput = (lastOutput: string) => {
@@ -54,7 +68,7 @@ class ProblemController {
             if (outputLine === "") continue;
 
             // gcc / clang style
-            let captures = /(.*):([0-9]+):([0-9]+):\s*(error|warning):\s*(.*)/.exec(outputLine);
+            let captures = /(.*):([0-9]+):([0-9]+):\s*(error|warning|note):\s*(.*)/.exec(outputLine);
             if (captures) {
                 let [_, file, line, column, type, message] = captures;
                 if (!fs.existsSync(file)) {
@@ -67,7 +81,7 @@ class ProblemController {
                     source: "gcc",
                     line: parseInt(line),
                     column: parseInt(column),
-                    type,
+                    type: type as ProblemType,
                     message,
                 });
             }
@@ -86,7 +100,7 @@ class ProblemController {
                         line: parseInt(line),
                         column: parseInt(column),
                         code,
-                        type,
+                        type: type as ProblemType,
                         message,
                     });
                 }
@@ -100,7 +114,7 @@ class ProblemController {
                 const positionA = new vscode.Position(line - 1, column - 1);
                 const positionB = new vscode.Position(line - 1, column);
                 const range = new vscode.Range(positionA, positionB);
-                const severity = type === "error" ? vscode.DiagnosticSeverity.Error : vscode.DiagnosticSeverity.Warning;
+                const severity = this.getSeverity(type);
                 const diagnostic = new vscode.Diagnostic(range, message, severity);
                 diagnostic.source = source;
                 diagnostic.code = code;
