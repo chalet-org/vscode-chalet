@@ -275,15 +275,48 @@ class TerminalProcess {
                     reject(err);
                 });
 
+                let captureOutput = true;
+                let passedProblems = false;
+                const searchStringA = "▼  Run:";
+                const searchStringB =
+                    "--------------------------------------------------------------------------------";
+
+                const passChaletOutputToProblemMatcher = () => {
+                    if (!passedProblems) {
+                        onGetOutput?.(
+                            this.lastOutput
+                                .replace(/\x1b\[[0-9;]*[Km]/g, "")
+                                .replace(/\r\n/g, "\n")
+                                .replace(/\r/g, "")
+                        );
+                        passedProblems = true;
+                    }
+                };
+
+                // stdin
                 // this.subprocess.stdin.on("data", (chunk: Buffer) => this.onWrite(chunk.toString()));
+
+                // stdout
                 this.subprocess.stdout.on("data", (chunk: Buffer) => {
                     const data = chunk.toString();
-                    this.lastOutput += data;
+                    if (captureOutput) {
+                        if (data.indexOf(searchStringA) >= 0 || data.indexOf(searchStringB) >= 0) {
+                            passChaletOutputToProblemMatcher();
+                            captureOutput = false;
+                        }
+                    }
+                    if (captureOutput) {
+                        this.lastOutput += data;
+                    }
                     this.onWrite(data);
                 });
+
+                // stderr
                 this.subprocess.stderr.on("data", (chunk: Buffer) => {
                     const data = chunk.toString();
-                    this.lastOutput += data;
+                    if (captureOutput) {
+                        this.lastOutput += data;
+                    }
                     this.onWrite(data);
                 });
 
@@ -292,7 +325,7 @@ class TerminalProcess {
                 this.subprocess.on("close", (code, signal) => {
                     try {
                         this.onProcessClose(code, signal);
-                        onGetOutput?.(this.lastOutput.replace(/\x1b\[[0-9;]*[Km]/g, "").replace(/\r\n/g, "\n"));
+                        passChaletOutputToProblemMatcher();
                         onSuccess?.(code ?? 0, signal);
                         resolve(code ?? 0);
                     } catch (err) {

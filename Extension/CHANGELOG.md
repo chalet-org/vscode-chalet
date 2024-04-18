@@ -1,5 +1,9 @@
 # Change Log
 
+## Version 0.7.9
+
+- Problem matcher: If running (`chalet run` / `chalet buildrun`), update the problem matcher before the user's application starts running
+
 ## Version 0.7.8
 
 - Problem matcher: cache duplicate lines in the case of errors coming from large template hierarchies

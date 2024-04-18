@@ -14,7 +14,7 @@ type CodeProblem = {
     code?: string;
 };
 
-class ProblemController {
+class ProblemMatcher {
     collection: vscode.DiagnosticCollection;
     diagnostics: Record<string, vscode.Diagnostic[]> = {};
 
@@ -59,13 +59,8 @@ class ProblemController {
         const problemMap: Record<string, CodeProblem[]> = {};
         const cache: Record<string, boolean> = {};
 
-        /*
-            src/main.c:10:7: error: incompatible integer to pointer conversion initializing 'int *' with an expression of type 'int' [-Wint-conversion]
-            c:\Users\...\src\main.c(11,9): warning C4477: 'printf' : format string '%d' requires an argument of type 'int', but variadic argument 1 has type 'int *'
-        */
-
         const lines = lastOutput.split("\n");
-        for (const outputLine of lines) {
+        for (let outputLine of lines) {
             if (outputLine === "" || cache[outputLine]) continue;
 
             // gcc / clang style
@@ -86,8 +81,8 @@ class ProblemController {
                     type: type as ProblemType,
                     message,
                 });
-            }
-            if (this.platform === VSCodePlatform.Windows) {
+            } else if (this.platform === VSCodePlatform.Windows) {
+                // msvc style
                 captures = /(.*)\(([0-9]+),([0-9]+)\):\s*(error|warning)\s*([A-Z]\d+):\s*(.*)/.exec(outputLine);
                 if (captures) {
                     let [_, file, line, column, type, code, message] = captures;
@@ -130,4 +125,4 @@ class ProblemController {
     };
 }
 
-export { ProblemController };
+export { ProblemMatcher };
