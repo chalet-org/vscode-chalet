@@ -57,6 +57,7 @@ class ProblemController {
 
     onGetOutput = (lastOutput: string) => {
         const problemMap: Record<string, CodeProblem[]> = {};
+        const cache: Record<string, boolean> = {};
 
         /*
             src/main.c:10:7: error: incompatible integer to pointer conversion initializing 'int *' with an expression of type 'int' [-Wint-conversion]
@@ -65,7 +66,7 @@ class ProblemController {
 
         const lines = lastOutput.split("\n");
         for (const outputLine of lines) {
-            if (outputLine === "") continue;
+            if (outputLine === "" || cache[outputLine]) continue;
 
             // gcc / clang style
             let captures = /(.*):([0-9]+):([0-9]+):\s*(error|warning|note):\s*(.*)/.exec(outputLine);
@@ -77,6 +78,7 @@ class ProblemController {
                 if (!problemMap[file]) {
                     problemMap[file] = [];
                 }
+                cache[outputLine] = true;
                 problemMap[file].push({
                     source: "gcc",
                     line: parseInt(line),
@@ -95,6 +97,7 @@ class ProblemController {
                     if (!problemMap[file]) {
                         problemMap[file] = [];
                     }
+                    cache[outputLine] = true;
                     problemMap[file].push({
                         source: "msvc",
                         line: parseInt(line),

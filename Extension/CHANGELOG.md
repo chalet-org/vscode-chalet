@@ -1,5 +1,9 @@
 # Change Log
 
+## Version 0.7.8
+
+- Problem matcher: cache duplicate lines in the case of errors coming from large template hierarchies
+
 ## Version 0.7.7
 
 - Fix Open VSX deployment
