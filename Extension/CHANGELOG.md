@@ -1,5 +1,9 @@
 # Change Log
 
+## Version 0.7.7
+
+- Fix Open VSX deployment
+
 ## Version 0.7.6
 
 - Added internal problem matcher that runs at the end of a build - supports Clang, GCC and MSVC style diagnostics
