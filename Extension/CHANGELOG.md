@@ -1,5 +1,9 @@
 # Change Log
 
+## Version 0.7.11
+
+- Problem matcher: fix a bug where the file cache was not cleared with the rest of the diagnostics
+
 ## Version 0.7.10
 
 - Problem matcher: Support 'note' in MSVC, allowing for full parsing of template errors

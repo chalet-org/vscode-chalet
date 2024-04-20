@@ -107,6 +107,7 @@ class ProblemMatcher {
         }
 
         this.collection.clear();
+        this.diagnostics = {};
 
         for (const [file, problems] of Object.entries(problemMap)) {
             const diagnostics = problems.map(({ source, line, column, code, type, message }) => {
