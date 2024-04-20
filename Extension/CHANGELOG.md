@@ -2,7 +2,7 @@
 
 ## Version 0.7.10
 
-- Problem matcher: Support 'note' in MSVC
+- Problem matcher: Support 'note' in MSVC, allowing for full parsing of template errors
 
 ## Version 0.7.9
 
