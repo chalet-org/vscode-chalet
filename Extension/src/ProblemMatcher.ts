@@ -83,7 +83,8 @@ class ProblemMatcher {
                 });
             } else if (this.platform === VSCodePlatform.Windows) {
                 // msvc style
-                captures = /(.*)\(([0-9]+),([0-9]+)\):\s*(error|warning)\s*([A-Z]\d+):\s*(.*)/.exec(outputLine);
+                // note: in the case of 'note', there is no 'code'
+                captures = /(.*)\(([0-9]+),([0-9]+)\):\s*(error|warning|note)\s*([A-Z]*\d*):\s*(.*)/.exec(outputLine);
                 if (captures) {
                     let [_, file, line, column, type, code, message] = captures;
                     if (!fs.existsSync(file)) {
@@ -97,7 +98,7 @@ class ProblemMatcher {
                         source: "msvc",
                         line: parseInt(line),
                         column: parseInt(column),
-                        code,
+                        code: code.length > 0 ? code : undefined,
                         type: type as ProblemType,
                         message,
                     });
