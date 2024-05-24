@@ -1,5 +1,9 @@
 # Change Log
 
+## Version 0.7.12
+
+- Add additional publishing targets: `linux-arm64` `web`
+
 ## Version 0.7.11
 
 - Problem matcher: fix a bug where the file cache was not cleared with the rest of the diagnostics
