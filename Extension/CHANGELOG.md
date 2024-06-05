@@ -1,5 +1,9 @@
 # Change Log
 
+## Version 0.7.13
+
+- Don't pass `--arch` during "Generate VS Code Project Files" command
+
 ## Version 0.7.12
 
 - Add additional publishing targets: `linux-arm64` `web`

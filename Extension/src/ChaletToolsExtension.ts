@@ -460,12 +460,6 @@ class ChaletToolsExtension {
                         shellArgs.push(toolchain);
                     }
 
-                    const arch = this.menuBuildArchitecture.getLabel();
-                    if (!!arch) {
-                        shellArgs.push("--arch");
-                        shellArgs.push(arch);
-                    }
-
                     shellArgs.push(param);
                 }
             } else if (command === ChaletCommands.TestTerminal) {
@@ -523,7 +517,7 @@ class ChaletToolsExtension {
 
                 const arch = this.menuBuildArchitecture.getLabel();
                 if (!!arch) {
-                    shellArgs.push("--arch");
+                    shellArgs.push("-a");
                     shellArgs.push(arch);
                 }
             }
