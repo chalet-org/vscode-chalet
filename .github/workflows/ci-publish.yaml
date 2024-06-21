@@ -17,7 +17,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
-          node-version: "16.x"
+          node-version: "18.x"
           registry-url: "https://registry.npmjs.org/"
       - name: "🌌 Prepare"
         working-directory: ./Extension
@@ -29,7 +29,7 @@ jobs:
         run: npm run build
       - name: "🚀 Publish to Visual Studio Marketplace"
         working-directory: ./Extension
-        run: vsce publish --target win32-x64 win32-arm64 darwin-x64 darwin-arm64 linux-x64 linux-armhf
+        run: vsce publish --target win32-x64 win32-arm64 linux-x64 linux-arm64 linux-armhf alpine-x64 alpine-arm64 darwin-x64 darwin-arm64 web
       - name: "🚀 Publish to Open VSX Registry"
         working-directory: ./Extension
         run: npx --yes ovsx publish -p $OPENVSX_TOKEN

@@ -3,13 +3,14 @@ import * as path from "path";
 import * as vscode from "vscode";
 
 import { ChaletToolsExtension } from "./ChaletToolsExtension";
-import { ChaletSchemaProvider } from "./ChaletSchemaProvider";
+import { ChaletSchemaProvider, SCHEMA_PROVIDER_ID } from "./ChaletSchemaProvider";
 import { OutputChannel } from "./OutputChannel";
 import { ChaletVersion, getHomeDirectory, getVSCodePlatform, Optional, SemanticVersion, VSCodePlatform } from "./Types";
 import { ChaletFile } from "./Constants";
 import { getProcessOutput } from "./Functions/GetProcessOutput";
 import { getTerminalEnv } from "./Functions";
 import { Utils } from "vscode-uri";
+import fetch from "node-fetch";
 
 let chaletToolsInstance: Optional<ChaletToolsExtension> = null;
 
@@ -57,13 +58,13 @@ class ChaletToolsLoader {
         this.schemaProvider = new ChaletSchemaProvider(context.extensionPath);
 
         context.subscriptions.push(
-            vscode.workspace.registerTextDocumentContentProvider("chalet-schema", this.schemaProvider)
+            vscode.workspace.registerTextDocumentContentProvider(SCHEMA_PROVIDER_ID, this.schemaProvider)
         );
 
-        if (vscode.window.activeTextEditor) {
-            const { uri } = vscode.window.activeTextEditor.document;
-            // this.updateDiagnostics(uri);
-        }
+        // if (vscode.window.activeTextEditor) {
+        //     const { uri } = vscode.window.activeTextEditor.document;
+        //     // this.updateDiagnostics(uri);
+        // }
 
         /*context.subscriptions.push(
             vscode.languages.onDidChangeDiagnostics((ev) => ev.uris.map(debounce(this.updateDiagnostics, 500)))
@@ -85,8 +86,50 @@ class ChaletToolsLoader {
             vscode.workspace.onDidChangeWorkspaceFolders((ev) => this.activateFromWorkspaceFolders())
         );
 
-        this.activateFromWorkspaceFolders();
+        this.activateFromWorkspaceFolders().then(() => this.registerUriForYaml(SCHEMA_PROVIDER_ID));
     }
+
+    private registerUriForYaml = async (SCHEMA_PROVIDER_ID: string) => {
+        // https://github.com/redhat-developer/vscode-yaml/issues/986
+        try {
+            const rhYaml = vscode.extensions.getExtension("redhat.vscode-yaml");
+            if (rhYaml) {
+                if (!rhYaml.isActive) await rhYaml.activate();
+                const rhYamlApi = rhYaml.exports;
+                if (rhYamlApi && typeof rhYamlApi.registerContributor == "function") {
+                    rhYaml.exports.registerContributor(
+                        SCHEMA_PROVIDER_ID,
+                        () => undefined,
+                        async (rawUri: string) => {
+                            try {
+                                const uri = vscode.Uri.parse(rawUri);
+                                if (this.schemaProvider && !this.schemaProvider.isSchemaTypeValid(rawUri)) {
+                                    OutputChannel.log(
+                                        "yaml: using https://www.chalet-work.space/api/schema/latest/chalet-json"
+                                    );
+                                    const response = await fetch(
+                                        "https://www.chalet-work.space/api/schema/latest/chalet-json"
+                                    );
+                                    const json = await response.json();
+                                    return JSON.stringify(json);
+                                } else {
+                                    const doc = await vscode.workspace.openTextDocument(uri);
+                                    const text = doc.getText();
+                                    return text;
+                                }
+                            } catch (err: any) {
+                                OutputChannel.logError("Error registering yaml contributer");
+                                OutputChannel.logError(err);
+                                return "";
+                            }
+                        }
+                    );
+                }
+            }
+        } catch (err: any) {
+            OutputChannel.logError(err);
+        }
+    };
 
     private getVersionFromChalet = async (): Promise<SemanticVersion> => {
         const chalet = ChaletVersion.Release;
@@ -181,6 +224,17 @@ class ChaletToolsLoader {
         return file;
     };
 
+    private inputFiles: string[] = [];
+    private watchers: string[] = [];
+
+    private watchChaletFile2 = (file: string, listener: (curr: fs.Stats, prev: fs.Stats) => void): void => {
+        if (!this.watchers.includes(file)) {
+            const interval: number = 1000;
+            fs.watchFile(file, { interval }, listener);
+            this.watchers.push(file);
+        }
+    };
+
     private activate = async (workspaceFolder?: vscode.WorkspaceFolder): Promise<void> => {
         try {
             if (!workspaceFolder) {
@@ -236,12 +290,17 @@ class ChaletToolsLoader {
                 );
             }
 
+            const chaletJsonPath = Utils.joinPath(workspaceRoot, ChaletFile.ChaletJson).fsPath;
+            const chaletYamlPath = Utils.joinPath(workspaceRoot, ChaletFile.ChaletYaml).fsPath;
+            this.inputFiles.push(chaletJsonPath);
+            this.inputFiles.push(chaletYamlPath);
+
             if (this.inputFile === null) {
-                this.inputFile = this.watchChaletFile(
-                    Utils.joinPath(workspaceRoot, ChaletFile.ChaletJson).fsPath,
-                    chaletToolsInstance.setInputFile,
-                    this.onChaletJsonChange
-                );
+                this.inputFile = this.getCurrentInputFile();
+            }
+
+            for (const file of this.inputFiles) {
+                this.watchChaletFile2(file, this.onChangeInputFile);
             }
 
             await chaletToolsInstance.setEnabled(
@@ -251,6 +310,25 @@ class ChaletToolsLoader {
         } catch (err: any) {
             this.handleError(err);
         }
+    };
+
+    private getCurrentInputFile = (): string => {
+        for (const file of this.inputFiles) {
+            if (fs.existsSync(file)) {
+                return file;
+            }
+        }
+        if (this.inputFiles.length == 0) {
+            throw new Error("No input files");
+        }
+        return this.inputFiles[0];
+    };
+
+    private onChangeInputFile = (curr: fs.Stats, prev: fs.Stats) => {
+        const inputFile = this.getCurrentInputFile();
+        if (!!chaletToolsInstance) chaletToolsInstance.setInputFile(inputFile);
+
+        return this.onChaletJsonChange(curr, prev);
     };
 
     private onChaletJsonChange = async (_curr: fs.Stats, _prev: fs.Stats) => {

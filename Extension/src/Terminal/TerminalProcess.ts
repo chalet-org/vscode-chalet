@@ -1,10 +1,12 @@
 import * as proc from "child_process";
+import * as path from "path";
 import treeKill from "tree-kill";
 import { OutputChannel } from "../OutputChannel";
 
 import { Dictionary, getVSCodePlatform, Optional, VSCodePlatform } from "../Types";
 import { Readable, Writable } from "stream";
 import { EscapeCodes } from "./EscapeCodes";
+import { getChaletToolsInstance } from "../ChaletToolsLoader";
 
 export type SpawnError = Error & {
     code?: string;
@@ -17,6 +19,7 @@ export type SpawnError = Error & {
 
 type SucessCallback = (code?: Optional<number>, signal?: Optional<NodeJS.Signals>) => void;
 type FailureCallback = (err?: SpawnError) => void;
+type ProblemCallback = (lastOutput: string) => void;
 
 export type TerminalProcessOptions = {
     label: string;
@@ -28,14 +31,17 @@ export type TerminalProcessOptions = {
     onStart?: () => void;
     onSuccess?: SucessCallback;
     onFailure?: FailureCallback;
+    onGetOutput?: ProblemCallback;
 };
 
 class TerminalProcess {
     private subprocess: Optional<proc.ChildProcessByStdio<Writable, Readable, Readable>> = null;
     private interrupted: boolean = false;
+    private killed: boolean = false;
 
     private shellPath: string = "";
     private label: string = "";
+    private lastOutput: string = "";
 
     private platform: VSCodePlatform;
 
@@ -60,23 +66,50 @@ class TerminalProcess {
             }
         }
 
-        return this.haltSubProcess(signal);
+        if (!this.interrupted && !!signal) {
+            this.haltSubProcess();
+        }
     };
 
-    private haltSubProcess = (signal: Optional<NodeJS.Signals> = null, onHalt?: () => void): void => {
-        if (!!this.subprocess?.pid) {
-            let sig = !!signal ? signal : "SIGTERM";
-            // this.subprocess.kill(sig);
-            // this.subprocess = null;
-            // resolve();
+    private haltSubProcess = (signal: NodeJS.Signals = "SIGINT", onHalt?: () => void): void => {
+        if (!!this.subprocess?.pid && !this.killed) {
+            const pid = this.subprocess.pid;
 
-            treeKill(this.subprocess.pid, sig, (_err?: Error) => {
-                // Note: We don't care about the error
-                // if (!!err) OutputChannel.logError(err);
+            const callback = (err: any) => {
+                // We don't care if the process was not found - it means it finished already but the subprocess context still exists
+                const message: string = err?.message ?? "";
+                const processNotFound: boolean =
+                    message.includes('ERROR: The process "') && message.includes('" not found.');
+                if (!!err && !processNotFound) {
+                    // OutputChannel.logError(err);
+                    console.error(err);
+                    console.error("there was an error halting the process");
+                } else {
+                    this.subprocess = null;
+                    onHalt?.();
+                }
+            };
 
-                this.subprocess = null;
-                onHalt?.();
-            });
+            if (this.platform === VSCodePlatform.Windows) {
+                if (signal === "SIGINT") {
+                    // Note: on Windows, we have to use 3rd party app to bypass a nodejs shortcoming
+                    //   In Node, you can't send a CTRL_C_EVENT to a child process
+                    //
+
+                    // TODO: calling windows-kill twice is a bit of a hack
+                    //  The first time it's called, it might not work
+                    //
+                    const extensionPath = getChaletToolsInstance()!.extensionPath;
+                    const windowsKill = path.join(extensionPath, "bin", "windows-x64", "windows-kill.exe");
+                    const cmd = `${windowsKill} -${signal} ${pid}`;
+                    proc.exec(cmd, () => proc.exec(cmd, callback));
+                } else {
+                    proc.exec(`taskkill /pid ${pid} /T /F`, callback);
+                }
+            } else {
+                treeKill(this.subprocess.pid, signal, callback);
+            }
+            this.killed = true;
         } else {
             onHalt?.();
         }
@@ -101,7 +134,7 @@ class TerminalProcess {
             return;
         }
 
-        console.log(JSON.stringify(data));
+        // console.log(JSON.stringify(data));
 
         switch (data) {
             case EscapeCodes.Interrupt: {
@@ -189,18 +222,20 @@ class TerminalProcess {
         onStart,
         onSuccess,
         onFailure,
+        onGetOutput,
         ...options
     }: TerminalProcessOptions): Promise<number> => {
         return new Promise((resolve, reject) => {
-            if (!!this.subprocess) {
-                // Note: Fixes a bug where if the process is recreated, the old listeners don't get fired
-                this.subprocess.stdout.removeAllListeners("data");
-                this.subprocess.stderr.removeAllListeners("data");
-                this.subprocess.removeAllListeners("close");
-                this.subprocess.removeAllListeners("error");
-            }
+            const onCreate = () => {
+                if (!!this.subprocess) {
+                    // Note: Fixes a bug where if the process is recreated, the old listeners don't get fired
+                    this.subprocess.stdout.removeAllListeners("data");
+                    this.subprocess.stderr.removeAllListeners("data");
+                    this.subprocess.removeAllListeners("close");
+                    this.subprocess.removeAllListeners("error");
+                }
 
-            this.haltSubProcess("SIGTERM", () => {
+                this.killed = false;
                 this.interrupted = false;
 
                 // console.log(cwd);
@@ -219,6 +254,7 @@ class TerminalProcess {
                 this.subprocess = proc.spawn(options.shellPath, shellArgs, spawnOptions);
                 this.subprocess.stdin.setDefaultEncoding("utf-8");
 
+                this.lastOutput = "";
                 onStart?.();
 
                 this.label = label;
@@ -239,30 +275,70 @@ class TerminalProcess {
                     reject(err);
                 });
 
+                let captureOutput = true;
+                let passedProblems = false;
+                const searchStringA = "▼  Run:";
+                const searchStringB =
+                    "--------------------------------------------------------------------------------";
+
+                const passChaletOutputToProblemMatcher = () => {
+                    if (!passedProblems) {
+                        onGetOutput?.(
+                            this.lastOutput
+                                .replace(/\x1b\[[0-9;]*[Km]/g, "")
+                                .replace(/\r\n/g, "\n")
+                                .replace(/\r/g, "")
+                        );
+                        passedProblems = true;
+                    }
+                };
+
+                // stdin
                 // this.subprocess.stdin.on("data", (chunk: Buffer) => this.onWrite(chunk.toString()));
-                this.subprocess.stdout.on("data", (chunk: Buffer) => this.onWrite(chunk.toString()));
-                this.subprocess.stderr.on("data", (chunk: Buffer) => this.onWrite(chunk.toString()));
+
+                // stdout
+                this.subprocess.stdout.on("data", (chunk: Buffer) => {
+                    const data = chunk.toString();
+                    if (captureOutput) {
+                        if (data.indexOf(searchStringA) >= 0 || data.indexOf(searchStringB) >= 0) {
+                            passChaletOutputToProblemMatcher();
+                            captureOutput = false;
+                        }
+                    }
+                    if (captureOutput) {
+                        this.lastOutput += data;
+                    }
+                    this.onWrite(data);
+                });
+
+                // stderr
+                this.subprocess.stderr.on("data", (chunk: Buffer) => {
+                    const data = chunk.toString();
+                    if (captureOutput) {
+                        this.lastOutput += data;
+                    }
+                    this.onWrite(data);
+                });
 
                 // exit - stdio streams have not finished
                 // close - stdio streams have finished
                 this.subprocess.on("close", (code, signal) => {
                     try {
                         this.onProcessClose(code, signal);
+                        passChaletOutputToProblemMatcher();
                         onSuccess?.(code ?? 0, signal);
                         resolve(code ?? 0);
                     } catch (err) {
                         reject(err);
                     }
                 });
-            });
+            };
+
+            this.haltSubProcess("SIGINT", onCreate);
         });
     };
 
     interrupt = () => {
-        // Note: on Windows, the process will always be killed immediately
-        //  Days lost trying to figure out otherwise: 1
-        //  Does not work: GenerateConsoleCtrlEvent (winapi), "\u0003" or "\x03"
-        //
         this.haltSubProcess("SIGINT");
         this.interrupted = true;
     };
