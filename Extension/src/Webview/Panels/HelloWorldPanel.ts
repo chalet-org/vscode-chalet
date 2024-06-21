@@ -227,11 +227,19 @@ export class HelloWorldPanel {
                 margin-left: 2rem;
             }
             vscode-text-field {
-                display: block;
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                justify-content: space-between;
+                width: 100%;
                 margin: 1rem 0;
             }
             vscode-checkbox {
-                display: block;
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                justify-content: flex-start;
+                width: 100%;
                 margin: 1rem 0;
             }
         `;
