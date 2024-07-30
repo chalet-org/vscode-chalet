@@ -30,7 +30,7 @@ class ChaletSchemaProvider implements vscode.TextDocumentContentProvider {
 
     isSchemaTypeValid = (uri: string) => {
         uri = uri.substring(`${SCHEMA_PROVIDER_ID}:///`.length);
-        return uri == SchemaType.ChaletJson || uri == SchemaType.SettingsJson;
+        return uri === SchemaType.ChaletJson || uri === SchemaType.SettingsJson;
     };
 
     provideTextDocumentContent = async (uri: vscode.Uri): Promise<string> => {
