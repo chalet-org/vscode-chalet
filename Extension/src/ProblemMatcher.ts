@@ -61,7 +61,9 @@ class ProblemMatcher {
 
         const lines = lastOutput.split("\n");
         for (let outputLine of lines) {
-            if (outputLine === "" || cache[outputLine]) continue;
+            if (outputLine === "" || cache[outputLine]) {
+                continue;
+            }
 
             // gcc / clang style
             let captures = /(.*):([0-9]+):([0-9]+):\s*(error|warning|note):\s*(.*)/.exec(outputLine);

@@ -1,5 +1,9 @@
 # Change Log
 
+## Version 0.7.14
+
+- Fix an issue setting the run target to the `lastTarget` when switching between chalet commands
+
 ## Version 0.7.13
 
 - Don't pass `--arch` during "Generate VS Code Project Files" command

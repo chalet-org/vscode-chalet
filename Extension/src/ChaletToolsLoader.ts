@@ -94,9 +94,12 @@ class ChaletToolsLoader {
         try {
             const rhYaml = vscode.extensions.getExtension("redhat.vscode-yaml");
             if (rhYaml) {
-                if (!rhYaml.isActive) await rhYaml.activate();
+                if (!rhYaml.isActive) {
+                    await rhYaml.activate();
+                }
+
                 const rhYamlApi = rhYaml.exports;
-                if (rhYamlApi && typeof rhYamlApi.registerContributor == "function") {
+                if (rhYamlApi && typeof rhYamlApi.registerContributor === "function") {
                     rhYaml.exports.registerContributor(
                         SCHEMA_PROVIDER_ID,
                         () => undefined,
@@ -318,7 +321,7 @@ class ChaletToolsLoader {
                 return file;
             }
         }
-        if (this.inputFiles.length == 0) {
+        if (this.inputFiles.length === 0) {
             throw new Error("No input files");
         }
         return this.inputFiles[0];
@@ -326,7 +329,9 @@ class ChaletToolsLoader {
 
     private onChangeInputFile = (curr: fs.Stats, prev: fs.Stats) => {
         const inputFile = this.getCurrentInputFile();
-        if (!!chaletToolsInstance) chaletToolsInstance.setInputFile(inputFile);
+        if (!!chaletToolsInstance) {
+            chaletToolsInstance.setInputFile(inputFile);
+        }
 
         return this.onChaletJsonChange(curr, prev);
     };

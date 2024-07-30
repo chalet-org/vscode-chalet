@@ -75,10 +75,13 @@ class ChaletToolsExtension {
     runTargets: string[] = [];
     buildStrategies: string[] = [];
     buildPathStyles: string[] = [];
+
+    lastRunTarget: string = "";
+    // private lastBuildTarget: string = "";
+
     private currentToolchain: string = "";
     private currentArchitecture: string = "";
     private currentConfiguration: string = "";
-    private currentRunTarget: string = "";
     private currentBuildStrategy: Optional<string> = null;
     private currentBuildPathStyle: Optional<string> = null;
 
@@ -198,10 +201,7 @@ class ChaletToolsExtension {
                     this.configurations = res?.["configurations"] ?? [];
                     this.buildTargets = res?.["buildTargets"] ?? [];
                     this.runTargets = res?.["runTargets"] ?? [];
-
-                    if (this.currentRunTarget === "") {
-                        this.currentRunTarget = res?.["defaultRunTarget"] ?? "";
-                    }
+                    this.lastRunTarget = res?.["defaultRunTarget"] ?? "";
                 } else {
                     const res = JSON.parse(output);
                     this.toolchainPresets = res?.["toolchainPresets"] ?? [];
@@ -211,7 +211,7 @@ class ChaletToolsExtension {
                     this.currentArchitecture = res?.["architecture"] ?? BuildArchitecture.Auto;
                     this.currentConfiguration = res?.["configuration"] ?? "";
                     this.currentToolchain = res?.["toolchain"] ?? "";
-                    this.currentRunTarget = res?.["lastRunTarget"] ?? "";
+                    this.lastRunTarget = res?.["lastRunTarget"] ?? "";
                     // this.currentBuildStrategy = res?.["buildStrategy"] ?? null;
                     // this.currentBuildPathStyle = res?.["buildPathStyle"] ?? null;
                     this.currentBuildStrategy = null;
@@ -339,7 +339,6 @@ class ChaletToolsExtension {
         const update: boolean = rawData !== this.chaletJsonCache;
         if (update) {
             // this.configurations = await this.getChaletConfigurations();
-            // this.currentRunTarget = await this.getChaletCurrentRunTarget();
             await this.getChaletJsonState();
         }
 
@@ -351,10 +350,7 @@ class ChaletToolsExtension {
             this.chaletJsonCache = "";
         }
 
-        await Promise.all([
-            this.menuBuildConfiguration.setDefaultMenu(),
-            this.menuBuildTargets.setRunTarget(this.currentRunTarget),
-        ]);
+        await this.menuBuildConfiguration.setDefaultMenu();
 
         this.uiChaletJsonInitialized = true;
         await this.checkForVisibility();
