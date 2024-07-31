@@ -1,6 +1,6 @@
 # Change Log
 
-## Version 0.7.15
+## Version 0.7.16
 
 - Fix another regression from 0.7.14 with `lastTarget`
 - Some internal code improvements
