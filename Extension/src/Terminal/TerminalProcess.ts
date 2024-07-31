@@ -99,7 +99,7 @@ class TerminalProcess {
                     // TODO: calling windows-kill twice is a bit of a hack
                     //  The first time it's called, it might not work
                     //
-                    const extensionPath = getChaletToolsInstance()!.extensionPath;
+                    const extensionPath = getChaletToolsInstance().extensionPath;
                     const windowsKill = path.join(extensionPath, "bin", "windows-x64", "windows-kill.exe");
                     const cmd = `${windowsKill} -${signal} ${pid}`;
                     proc.exec(cmd, () => proc.exec(cmd, callback));

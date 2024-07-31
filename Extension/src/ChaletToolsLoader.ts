@@ -14,8 +14,11 @@ import fetch from "node-fetch";
 
 let chaletToolsInstance: Optional<ChaletToolsExtension> = null;
 
-const getChaletToolsInstance = (): Optional<ChaletToolsExtension> => {
-    return chaletToolsInstance;
+const getChaletToolsInstance = (): ChaletToolsExtension => {
+    if (!chaletToolsInstance) {
+        throw new Error("Chalet Tools instance was unset");
+    }
+    return chaletToolsInstance!;
 };
 
 class ChaletToolsLoader {

@@ -26,19 +26,20 @@ class BuildTargetsCommandMenu extends StatusBarCommandMenu<MenuType> {
 
     updateVisibility = async (commandMenu: ChaletCmdCommandMenu): Promise<void> => {
         const inst = getChaletToolsInstance();
-        if (inst) {
-            if (commandMenu.willRun()) {
-                const value = this.getValue()?.label ?? this.valueCache ?? inst.lastRunTarget;
-                this.setMenuOnly(inst.runTargets.map((label) => ({ label })));
-                if (this.includesLabel(value)) {
-                    await this.setValueFromString(value);
-                }
-                this.setVisible(true);
+        if (commandMenu.willRun()) {
+            const value = this.getValue()?.label ?? this.valueCache ?? inst.lastRunTarget;
+            const menu = inst.runTargets.map((label) => ({ label }));
+            this.setMenuOnly(menu);
+            if (this.includesLabel(value)) {
+                await this.setValueFromString(value);
             } else {
-                this.valueCache = this.getValue()?.label ?? inst.lastRunTarget;
-                await this.setDefaultMenu();
-                this.setVisible(false);
+                await this.setMenu(menu);
             }
+            this.setVisible(true);
+        } else {
+            this.valueCache = this.getValue()?.label ?? inst.lastRunTarget;
+            await this.setDefaultMenu();
+            this.setVisible(false);
         }
     };
 }

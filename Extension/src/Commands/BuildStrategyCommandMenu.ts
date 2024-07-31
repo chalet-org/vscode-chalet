@@ -15,7 +15,7 @@ class BuildStrategyCommandMenu extends StatusBarCommandMenu<MenuType> {
         this.setTooltip("Change Build Strategy");
     }
 
-    private getRawMenu = (): MenuType[] => [UNSET, ...(getChaletToolsInstance()?.buildStrategies ?? [])];
+    private getRawMenu = (): MenuType[] => [UNSET, ...getChaletToolsInstance().buildStrategies];
 
     @bind
     protected getDefaultMenu(): MenuItem<MenuType>[] {

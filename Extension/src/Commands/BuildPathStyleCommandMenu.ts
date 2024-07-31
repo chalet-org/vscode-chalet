@@ -15,7 +15,7 @@ class BuildPathStyleCommandMenu extends StatusBarCommandMenu<MenuType> {
         this.setTooltip("Change Build Path Style");
     }
 
-    private getRawMenu = (): MenuType[] => [UNSET, ...(getChaletToolsInstance()?.buildPathStyles ?? [])];
+    private getRawMenu = (): MenuType[] => [UNSET, ...getChaletToolsInstance().buildPathStyles];
 
     @bind
     protected getDefaultMenu(): MenuItem<MenuType>[] {

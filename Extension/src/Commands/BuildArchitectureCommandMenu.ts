@@ -17,7 +17,7 @@ class BuildArchitectureCommandMenu extends StatusBarCommandMenu<MenuType> {
         this.setTooltip("Change Build Architecture");
     }
 
-    private getRawMenu = (): MenuType[] => getChaletToolsInstance()?.architectures ?? [];
+    private getRawMenu = (): MenuType[] => getChaletToolsInstance().architectures;
 
     @bind
     protected getDefaultMenu(): MenuItem<MenuType>[] {

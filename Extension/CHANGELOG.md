@@ -2,7 +2,12 @@
 
 ## Version 0.7.15
 
-- Fix an issue regression from 0.7.14
+- Fix another regression from 0.7.14 with `lastTarget`
+- Some internal code improvements
+
+## Version 0.7.15
+
+- Fix a regression from 0.7.14
 
 ## Version 0.7.14
 
