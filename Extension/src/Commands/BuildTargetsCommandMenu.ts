@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import { bind } from "bind-decorator";
 
-import { CommandId } from "../Types";
+import { CommandId, Optional } from "../Types";
 import { StatusBarCommandMenu, ValueChangeCallback, MenuItem } from "./StatusBarCommandMenu";
 import { getChaletToolsInstance } from "../ChaletToolsLoader";
 import { ChaletCmdCommandMenu } from "./ChaletCmdCommandMenu";
@@ -15,6 +15,8 @@ class BuildTargetsCommandMenu extends StatusBarCommandMenu<MenuType> {
         this.setTooltip("Change Run Target");
     }
 
+    private valueCache: Optional<string> = null;
+
     private getRawMenu = (): MenuType[] => [];
 
     @bind
@@ -23,18 +25,20 @@ class BuildTargetsCommandMenu extends StatusBarCommandMenu<MenuType> {
     }
 
     updateVisibility = async (commandMenu: ChaletCmdCommandMenu): Promise<void> => {
-        if (commandMenu.willRun()) {
-            const inst = getChaletToolsInstance();
-            if (inst) {
-                await this.setMenu(inst.runTargets.map((label) => ({ label })));
-                if (this.includesLabel(inst.lastRunTarget)) {
-                    await this.setValueFromString(inst.lastRunTarget);
+        const inst = getChaletToolsInstance();
+        if (inst) {
+            if (commandMenu.willRun()) {
+                const value = this.getValue()?.label ?? this.valueCache ?? inst.lastRunTarget;
+                this.setMenuOnly(inst.runTargets.map((label) => ({ label })));
+                if (this.includesLabel(value)) {
+                    await this.setValueFromString(value);
                 }
+                this.setVisible(true);
+            } else {
+                this.valueCache = this.getValue()?.label ?? inst.lastRunTarget;
+                await this.setDefaultMenu();
+                this.setVisible(false);
             }
-            this.setVisible(true);
-        } else {
-            await this.setDefaultMenu();
-            this.setVisible(false);
         }
     };
 }
