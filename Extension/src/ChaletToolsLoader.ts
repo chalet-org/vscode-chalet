@@ -341,7 +341,7 @@ class ChaletToolsLoader {
 
     private onChaletJsonChange = async (_curr: fs.Stats, _prev: fs.Stats) => {
         try {
-            if (!chaletToolsInstance?.enabled ?? false) {
+            if (!chaletToolsInstance || !(chaletToolsInstance?.enabled ?? false)) {
                 await this.activateFromWorkspaceFolders();
             } else {
                 await chaletToolsInstance.handleChaletJsonChange();
@@ -353,7 +353,7 @@ class ChaletToolsLoader {
 
     private onSettingsJsonChange = async (_curr: fs.Stats, _prev: fs.Stats) => {
         try {
-            if (!chaletToolsInstance?.enabled ?? false) {
+            if (!chaletToolsInstance || !(chaletToolsInstance?.enabled ?? false)) {
                 await this.activateFromWorkspaceFolders();
             } else {
                 await chaletToolsInstance.handleSettingsJsonChange();
