@@ -14,8 +14,11 @@ import fetch from "node-fetch";
 
 let chaletToolsInstance: Optional<ChaletToolsExtension> = null;
 
-const getChaletToolsInstance = (): Optional<ChaletToolsExtension> => {
-    return chaletToolsInstance;
+const getChaletToolsInstance = (): ChaletToolsExtension => {
+    if (!chaletToolsInstance) {
+        throw new Error("Chalet Tools instance was unset");
+    }
+    return chaletToolsInstance!;
 };
 
 class ChaletToolsLoader {
@@ -338,7 +341,7 @@ class ChaletToolsLoader {
 
     private onChaletJsonChange = async (_curr: fs.Stats, _prev: fs.Stats) => {
         try {
-            if (!chaletToolsInstance?.enabled ?? false) {
+            if (!chaletToolsInstance || !(chaletToolsInstance?.enabled ?? false)) {
                 await this.activateFromWorkspaceFolders();
             } else {
                 await chaletToolsInstance.handleChaletJsonChange();
@@ -350,7 +353,7 @@ class ChaletToolsLoader {
 
     private onSettingsJsonChange = async (_curr: fs.Stats, _prev: fs.Stats) => {
         try {
-            if (!chaletToolsInstance?.enabled ?? false) {
+            if (!chaletToolsInstance || !(chaletToolsInstance?.enabled ?? false)) {
                 await this.activateFromWorkspaceFolders();
             } else {
                 await chaletToolsInstance.handleSettingsJsonChange();

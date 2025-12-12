@@ -1,5 +1,14 @@
 # Change Log
 
+## Version 0.7.16
+
+- Fix another regression from 0.7.14 with `lastTarget`
+- Some internal code improvements
+
+## Version 0.7.15
+
+- Fix a regression from 0.7.14
+
 ## Version 0.7.14
 
 - Fix an issue setting the run target to the `lastTarget` when switching between chalet commands

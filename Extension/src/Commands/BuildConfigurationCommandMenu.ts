@@ -14,7 +14,7 @@ class BuildConfigurationCommandMenu extends StatusBarCommandMenu<MenuType> {
         this.setTooltip("Change Build Configuration");
     }
 
-    private getRawMenu = (): MenuType[] => getChaletToolsInstance()?.configurations ?? [];
+    private getRawMenu = (): MenuType[] => getChaletToolsInstance().configurations;
 
     @bind
     protected getDefaultMenu(): MenuItem<MenuType>[] {
