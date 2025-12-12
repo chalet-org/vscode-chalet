@@ -59,7 +59,7 @@ class TerminalProcess {
             if (code === -2) {
                 color = 31;
                 this.onWrite(
-                    `\x1b[1;${color}mCritial Error:\x1b[0m ${this.shellPath} was not found in PATH\r\n\x1b[0m`
+                    `\x1b[1;${color}mCritial Error:\x1b[0m ${this.shellPath} was not found in PATH\r\n\x1b[0m`,
                 );
             } else if (code !== -4058 /* ENOENT */) {
                 this.onWrite(`\x1b[1;${color}m${this.label} exited with code: ${code}\r\n\x1b[0m`);
@@ -266,7 +266,7 @@ class TerminalProcess {
                     } else {
                         if (err.code === "ENOENT") {
                             this.onWrite(
-                                `\x1b[31;1mError:\n\x1b[0m   '${options.shellPath}' was not found in PATH.\n\n`
+                                `\x1b[31;1mError:\n\x1b[0m   '${options.shellPath}' was not found in PATH.\n\n`,
                             );
                         }
                         OutputChannel.logError(err);
@@ -287,7 +287,7 @@ class TerminalProcess {
                             this.lastOutput
                                 .replace(/\x1b\[[0-9;]*[Km]/g, "")
                                 .replace(/\r\n/g, "\n")
-                                .replace(/\r/g, "")
+                                .replace(/\r/g, ""),
                         );
                         passedProblems = true;
                     }

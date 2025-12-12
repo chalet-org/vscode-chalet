@@ -18,7 +18,11 @@ class ProblemMatcher {
     collection: vscode.DiagnosticCollection;
     diagnostics: Record<string, vscode.Diagnostic[]> = {};
 
-    constructor(context: vscode.ExtensionContext, private platform: VSCodePlatform, private cwd: string) {
+    constructor(
+        context: vscode.ExtensionContext,
+        private platform: VSCodePlatform,
+        private cwd: string,
+    ) {
         this.collection = vscode.languages.createDiagnosticCollection("chalet");
 
         if (vscode.window.activeTextEditor) {
@@ -29,11 +33,11 @@ class ProblemMatcher {
                 if (editor) {
                     this.refreshDiagnostics(editor.document);
                 }
-            })
+            }),
         );
 
         context.subscriptions.push(
-            vscode.workspace.onDidChangeTextDocument((e) => this.refreshDiagnostics(e.document))
+            vscode.workspace.onDidChangeTextDocument((e) => this.refreshDiagnostics(e.document)),
         );
 
         // context.subscriptions.push(vscode.workspace.onDidCloseTextDocument((doc) => this.collection.delete(doc.uri)));

@@ -55,8 +55,11 @@ class OutputChannel {
 
     static setVisible = (visible: boolean) => {
         if (OutputChannel.output !== null) {
-            if (visible) {OutputChannel.output.show();}
-            else {OutputChannel.output.hide();}
+            if (visible) {
+                OutputChannel.output.show();
+            } else {
+                OutputChannel.output.hide();
+            }
         }
     };
 

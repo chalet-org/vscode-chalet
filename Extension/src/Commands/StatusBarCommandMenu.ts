@@ -17,7 +17,11 @@ abstract class StatusBarCommandMenu<T extends string> extends StatusBarCommand {
 
     protected abstract getDefaultMenu(): MenuItem<T>[];
 
-    constructor(id: CommandId, private onClickCallback: ValueChangeCallback, context: vscode.ExtensionContext) {
+    constructor(
+        id: CommandId,
+        private onClickCallback: ValueChangeCallback,
+        context: vscode.ExtensionContext,
+    ) {
         super(id, context);
     }
 

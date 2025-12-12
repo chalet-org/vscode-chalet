@@ -14,7 +14,10 @@ abstract class StatusBarCommand {
     protected abstract onClick(): Promise<void>;
     protected abstract initialize(): Promise<void>;
 
-    constructor(protected id: CommandId, context: vscode.ExtensionContext) {
+    constructor(
+        protected id: CommandId,
+        context: vscode.ExtensionContext,
+    ) {
         this.workspaceState = context.workspaceState;
 
         priorityRange = Math.round((priorityRange += 0.01) * 100) / 100;
@@ -38,8 +41,11 @@ abstract class StatusBarCommand {
     setVisible = (value: boolean): void => {
         this.visible = value;
 
-        if (this.visible) {this.item.show();}
-        else {this.item.hide();}
+        if (this.visible) {
+            this.item.show();
+        } else {
+            this.item.hide();
+        }
     };
 
     protected setLabel = (value: string): void => {

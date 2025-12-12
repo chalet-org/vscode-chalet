@@ -12,6 +12,8 @@ import { getTerminalEnv } from "./Functions";
 import { Utils } from "vscode-uri";
 import fetch from "node-fetch";
 
+const CHALET_WEB_DOMAIN: string = "https://www.chalet-work.space";
+
 let chaletToolsInstance: Optional<ChaletToolsExtension> = null;
 
 const getChaletToolsInstance = (): ChaletToolsExtension => {
@@ -61,7 +63,7 @@ class ChaletToolsLoader {
         this.schemaProvider = new ChaletSchemaProvider(context.extensionPath);
 
         context.subscriptions.push(
-            vscode.workspace.registerTextDocumentContentProvider(SCHEMA_PROVIDER_ID, this.schemaProvider)
+            vscode.workspace.registerTextDocumentContentProvider(SCHEMA_PROVIDER_ID, this.schemaProvider),
         );
 
         // if (vscode.window.activeTextEditor) {
@@ -82,11 +84,11 @@ class ChaletToolsLoader {
                     const workspaceFolder = vscode.workspace.getWorkspaceFolder(ev.document.uri);
                     await this.activate(workspaceFolder);
                 }
-            })
+            }),
         );
 
         context.subscriptions.push(
-            vscode.workspace.onDidChangeWorkspaceFolders((ev) => this.activateFromWorkspaceFolders())
+            vscode.workspace.onDidChangeWorkspaceFolders((ev) => this.activateFromWorkspaceFolders()),
         );
 
         this.activateFromWorkspaceFolders().then(() => this.registerUriForYaml(SCHEMA_PROVIDER_ID));
@@ -110,12 +112,8 @@ class ChaletToolsLoader {
                             try {
                                 const uri = vscode.Uri.parse(rawUri);
                                 if (this.schemaProvider && !this.schemaProvider.isSchemaTypeValid(rawUri)) {
-                                    OutputChannel.log(
-                                        "yaml: using https://www.chalet-work.space/api/schema/latest/chalet-json"
-                                    );
-                                    const response = await fetch(
-                                        "https://www.chalet-work.space/api/schema/latest/chalet-json"
-                                    );
+                                    OutputChannel.log(`yaml: using ${CHALET_WEB_DOMAIN}/api/schema/latest/chalet-json`);
+                                    const response = await fetch(`${CHALET_WEB_DOMAIN}/api/schema/latest/chalet-json`);
                                     const json = await response.json();
                                     return JSON.stringify(json);
                                 } else {
@@ -128,7 +126,7 @@ class ChaletToolsLoader {
                                 OutputChannel.logError(err);
                                 return "";
                             }
-                        }
+                        },
                     );
                 }
             }
@@ -190,10 +188,9 @@ class ChaletToolsLoader {
                         `This version of the Chalet extension requires Chalet version ${min.major}.${min.minor}.${min.patch} or higher, but version ${ver.major}.${ver.minor}.${ver.patch} was found.`,
                         ["Download", "Cancel"],
                         {
-                            Download: () =>
-                                vscode.env.openExternal(vscode.Uri.parse("https://www.chalet-work.space/download")),
+                            Download: () => vscode.env.openExternal(vscode.Uri.parse(`${CHALET_WEB_DOMAIN}/download`)),
                             Cancel: () => {},
-                        }
+                        },
                     );
                 }
                 this.checkedVersion = true;
@@ -221,7 +218,7 @@ class ChaletToolsLoader {
     private watchChaletFile = (
         file: string,
         setFile: (f: string) => void,
-        listener: (curr: fs.Stats, prev: fs.Stats) => void
+        listener: (curr: fs.Stats, prev: fs.Stats) => void,
     ): string => {
         const interval: number = 1000;
         setFile(file);
@@ -284,7 +281,7 @@ class ChaletToolsLoader {
                 this.globalSettingsFile = this.watchChaletFile(
                     path.join(getHomeDirectory(), ChaletFile.GlobalDirectory, ChaletFile.GlobalConfig),
                     chaletToolsInstance.setGlobalSettingsFile,
-                    this.onSettingsJsonChange
+                    this.onSettingsJsonChange,
                 );
             }
 
@@ -292,7 +289,7 @@ class ChaletToolsLoader {
                 this.settingsFile = this.watchChaletFile(
                     Utils.joinPath(workspaceRoot, ChaletFile.LocalConfig).fsPath,
                     chaletToolsInstance.setSettingsFile,
-                    this.onSettingsJsonChange
+                    this.onSettingsJsonChange,
                 );
             }
 
@@ -311,7 +308,7 @@ class ChaletToolsLoader {
 
             await chaletToolsInstance.setEnabled(
                 (!!this.inputFile && fs.existsSync(this.inputFile)) ||
-                    (!!this.settingsFile && fs.existsSync(this.settingsFile))
+                    (!!this.settingsFile && fs.existsSync(this.settingsFile)),
             );
         } catch (err: any) {
             this.handleError(err);
@@ -392,7 +389,7 @@ class ChaletToolsLoader {
     private handleInformation = async <T extends string>(
         msg: string,
         options: T[],
-        handlers: Record<string, () => void>
+        handlers: Record<string, () => void>,
     ) => {
         // We want activate to trigger next time
         this.clearActivateVars();

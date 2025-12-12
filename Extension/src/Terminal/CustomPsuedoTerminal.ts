@@ -8,7 +8,7 @@ class CustomPsuedoTerminal implements vscode.Pseudoterminal {
     constructor(
         public open: (initialDimensions?: vscode.TerminalDimensions) => void,
         public close: () => void,
-        private onHandleInput: (data: string) => void
+        private onHandleInput: (data: string) => void,
     ) {}
 
     onDidWrite: vscode.Event<string> = this.writeEmitter.event;

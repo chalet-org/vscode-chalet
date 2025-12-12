@@ -56,7 +56,7 @@ class ChaletTerminal {
             this.pseudoTerminal = new CustomPsuedoTerminal(
                 this.onTerminalOpen,
                 this.onTerminalClose,
-                this.onHandleInput
+                this.onHandleInput,
             );
         }
         return this.pseudoTerminal;

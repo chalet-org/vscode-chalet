@@ -109,7 +109,7 @@ class ChaletToolsExtension {
         context: vscode.ExtensionContext,
         public platform: VSCodePlatform,
         private cwd: string,
-        private handleError: (err: any) => void
+        private handleError: (err: any) => void,
     ) {
         this.chaletTerminal = new ChaletTerminal();
         this.cli = new ChaletCliSettings();
@@ -122,22 +122,22 @@ class ChaletToolsExtension {
         }
 
         context.subscriptions.push(
-            vscode.commands.registerCommand(getCommandID(CommandId.InitializeProject), this.onInitializeProject)
+            vscode.commands.registerCommand(getCommandID(CommandId.InitializeProject), this.onInitializeProject),
         );
 
         context.subscriptions.push(
             vscode.commands.registerCommand(
                 getCommandID(CommandId.InitializeCMakeProject),
-                this.onInitializeCMakeProject
-            )
+                this.onInitializeCMakeProject,
+            ),
         );
 
         context.subscriptions.push(
-            vscode.commands.registerCommand(getCommandID(CommandId.GenerateProjectFiles), this.generateProjectFiles)
+            vscode.commands.registerCommand(getCommandID(CommandId.GenerateProjectFiles), this.generateProjectFiles),
         );
 
         context.subscriptions.push(
-            vscode.commands.registerCommand(getCommandID(CommandId.TestTerminal), this.onTestTerminal)
+            vscode.commands.registerCommand(getCommandID(CommandId.TestTerminal), this.onTestTerminal),
         );
 
         // Note: Assignment order = reverse visible order
@@ -222,7 +222,7 @@ class ChaletToolsExtension {
         } catch (err) {
             console.error(err);
             err = new Error(
-                `Chalet ran into a problem getting details about this workspace. Check Problems panel or Chalet installation.`
+                `Chalet ran into a problem getting details about this workspace. Check Problems panel or Chalet installation.`,
             );
             this.handleError(err);
             this.fetchAttempts = 0;
@@ -432,7 +432,7 @@ class ChaletToolsExtension {
     private runChalet = async (
         command: Optional<ChaletCommands>,
         param: Optional<string>,
-        settings: ChaletCliSettings
+        settings: ChaletCliSettings,
     ): Promise<void> => {
         try {
             if (command === null) {

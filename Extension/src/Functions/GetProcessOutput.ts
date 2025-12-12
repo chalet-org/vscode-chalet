@@ -9,7 +9,7 @@ export const getProcessOutput = (
     executable: string,
     args: string[],
     env?: Dictionary<string>,
-    cwd?: string
+    cwd?: string,
 ): Promise<string> => {
     return new Promise((resolve, reject) => {
         let ret: string = "";
