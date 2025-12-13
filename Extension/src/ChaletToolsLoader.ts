@@ -13,6 +13,7 @@ import { Utils } from "vscode-uri";
 import fetch from "node-fetch";
 
 const CHALET_WEB_DOMAIN: string = "https://www.chalet-work.space";
+const VERSION_CHECK_ATTEMPTS: number = 3;
 
 let chaletToolsInstance: Optional<ChaletToolsExtension> = null;
 
@@ -158,9 +159,22 @@ class ChaletToolsLoader {
     };
 
     private isVersionValid = async (): Promise<[boolean, SemanticVersion]> => {
-        const version = await this.getVersionFromChalet();
+        let version: SemanticVersion = await this.getVersionFromChalet();
         if (version.major === 0 && version.minor === 0 && version.patch === 0) {
-            throw new Error("Error fetching chalet version");
+            const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
+
+            for (let i = 0; i < VERSION_CHECK_ATTEMPTS; i++) {
+                delay(50);
+                OutputChannel.log(`Attempting to fetch chalet version: attempt ${i + 2}`);
+                version = await this.getVersionFromChalet();
+                if (version.major === 0 && version.minor === 0 && version.patch === 0) {
+                    if (i == VERSION_CHECK_ATTEMPTS - 1) {
+                        throw new Error("Error fetching chalet version");
+                    }
+                } else {
+                    break;
+                }
+            }
         }
 
         const min = this.getMinimumVersion();

@@ -1,5 +1,10 @@
 # Change Log
 
+## Version 0.8.0
+
+- Security updates for dependent packages
+- During startup, attempt to get the chalet version a couple of times if it fails the first time
+
 ## Version 0.7.16
 
 - Fix another regression from 0.7.14 with `lastTarget`
