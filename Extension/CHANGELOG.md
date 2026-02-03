@@ -1,5 +1,9 @@
 # Change Log
 
+## Version 0.8.1
+
+- Security updates for dependent packages
+
 ## Version 0.8.0
 
 - Security updates for dependent packages
