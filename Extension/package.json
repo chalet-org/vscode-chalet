@@ -174,7 +174,7 @@
 		"@types/mocha": "10.0.10",
 		"@types/node": "20.14.8",
 		"@types/node-fetch": "2.6.13",
-		"@types/vscode": "1.108.1",
+		"@types/vscode": "1.64.0",
 		"@typescript-eslint/eslint-plugin": "8.54.0",
 		"@typescript-eslint/parser": "8.54.0",
 		"@vscode/test-electron": "2.5.2",
