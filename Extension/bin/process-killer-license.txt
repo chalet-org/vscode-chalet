@@ -1,0 +1,6 @@
+process-killer (MIT license) from:
+https://github.com/thefrontside/ctrlc-windows
+
+v2.1.0
+
+Copied separately due to import/extension packing issues

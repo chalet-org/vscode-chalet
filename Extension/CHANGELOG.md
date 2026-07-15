@@ -1,5 +1,9 @@
 # Change Log
 
+## Version 0.8.2
+
+- On Windows, changed the application responsible for sending a CTRL+C event to the chalet process with a more reliable one.
+
 ## Version 0.8.1
 
 - Security updates for dependent packages

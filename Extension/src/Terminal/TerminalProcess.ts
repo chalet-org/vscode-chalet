@@ -1,5 +1,6 @@
 import * as proc from "child_process";
 import * as path from "path";
+import * as os from "os";
 import treeKill from "tree-kill";
 import { OutputChannel } from "../OutputChannel";
 
@@ -91,18 +92,15 @@ class TerminalProcess {
             };
 
             if (this.platform === VSCodePlatform.Windows) {
-                if (signal === "SIGINT") {
+                const arch = os.arch();
+                if (signal === "SIGINT" && (arch == "x64" || arch == "arm64")) {
                     // Note: on Windows, we have to use 3rd party app to bypass a nodejs shortcoming
                     //   In Node, you can't send a CTRL_C_EVENT to a child process
                     //
-
-                    // TODO: calling windows-kill twice is a bit of a hack
-                    //  The first time it's called, it might not work
-                    //
                     const extensionPath = getChaletToolsInstance().extensionPath;
-                    const windowsKill = path.join(extensionPath, "bin", "windows-x64", "windows-kill.exe");
-                    const cmd = `${windowsKill} -${signal} ${pid}`;
-                    proc.exec(cmd, () => proc.exec(cmd, callback));
+                    const procKill = path.join(extensionPath, "bin", `windows-${arch}`, "process-killer.exe");
+                    const cmd = `${procKill} ${pid}`;
+                    proc.exec(cmd);
                 } else {
                     proc.exec(`taskkill /pid ${pid} /T /F`, callback);
                 }
