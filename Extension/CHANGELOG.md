@@ -1,6 +1,10 @@
 # Change Log
 
-## Version 0.8.2
+## Version 0.8.4
+
+- On Windows, fixed a bug where the 'chalet.runChalet' command had to be fired twice to stop the previous process.
+
+## Version 0.8.3
 
 - On Windows, changed the application responsible for sending a CTRL+C event to the chalet process with a more reliable one.
 

@@ -76,7 +76,7 @@ class TerminalProcess {
         if (!!this.subprocess?.pid && !this.killed) {
             const pid = this.subprocess.pid;
 
-            const callback = (err: any) => {
+            const callback = (err?: any) => {
                 // We don't care if the process was not found - it means it finished already but the subprocess context still exists
                 const message: string = err?.message ?? "";
                 const processNotFound: boolean =
@@ -93,17 +93,19 @@ class TerminalProcess {
 
             if (this.platform === VSCodePlatform.Windows) {
                 const arch = os.arch();
+                let theProcess: proc.ChildProcess;
                 if (signal === "SIGINT" && (arch == "x64" || arch == "arm64")) {
                     // Note: on Windows, we have to use 3rd party app to bypass a nodejs shortcoming
                     //   In Node, you can't send a CTRL_C_EVENT to a child process
                     //
                     const extensionPath = getChaletToolsInstance().extensionPath;
                     const procKill = path.join(extensionPath, "bin", `windows-${arch}`, "process-killer.exe");
-                    const cmd = `${procKill} ${pid}`;
-                    proc.exec(cmd);
+                    theProcess = proc.exec(`${procKill} ${pid}`);
                 } else {
-                    proc.exec(`taskkill /pid ${pid} /T /F`, callback);
+                    theProcess = proc.exec(`taskkill /pid ${pid} /T /F`);
                 }
+                theProcess.on("close", () => callback());
+                theProcess.on("error", (err) => callback(err));
             } else {
                 treeKill(this.subprocess.pid, signal, callback);
             }
@@ -249,6 +251,7 @@ class TerminalProcess {
                 };
 
                 this.onWrite("\r\n");
+
                 this.subprocess = proc.spawn(options.shellPath, shellArgs, spawnOptions);
                 this.subprocess.stdin.setDefaultEncoding("utf-8");
 
